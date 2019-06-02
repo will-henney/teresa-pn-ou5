@@ -8,14 +8,22 @@ import astropy.units as u
 sys.path.append('/Users/will/Dropbox/OrionWest')
 from helio_utils import helio_topo_from_header, vels2waves
 
-if len(sys.argv) == 3:
+
+try:
     line_id = sys.argv[1]
+except IndexError:
+    print('Usage: {} LINE_ID [VRANGE [OUTPUT_FOLDER]]'.format(sys.argv[0]))
+
+try:
     vrange = sys.argv[2]
-elif len(sys.argv) == 2:
-    line_id = sys.argv[1]
+except IndexError:
     vrange = None
-else:
-    print('Usage: {} LINE_ID [VRANGE]'.format(sys.argv[0]))
+
+try:
+    outdir = sys.argv[3]
+except IndexError:
+    outdir = "maps"
+
 
 def waves2pixels(waves, w):
     n = len(waves)
@@ -138,4 +146,4 @@ fits.HDUList([
     fits.ImageHDU(header=w.to_header(), data=outimage, name='slits'),
     fits.ImageHDU(header=w.to_header(), data=outweights, name='weight'),
     fits.ImageHDU(header=w.to_header(), data=outimage/outweights, name='scaled'),
-    ]).writeto('data/maps/turtle-slits-{}.fits'.format(label), overwrite=True)
+    ]).writeto(f'data/{outdir}/turtle-slits-{label}.fits', overwrite=True)

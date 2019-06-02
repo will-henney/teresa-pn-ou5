@@ -79,7 +79,7 @@ for fn in speclist:
         # vrange should be of a form like '-100+100' or '+020+030'
         v1, v2 = float(vrange[:4]), float(vrange[-4:])
         print('Velocity window:', v1, 'to', v2)
-        waves = vels2waves([v1, v2], wavrest,  spechdu.header)
+        waves = vels2waves([v1, v2], wavrest,  spechdu.header, usewcs="A")
     print('Wavelength window: {:.2f} to {:.2f}'.format(*waves.to(u.Angstrom)))
 
     # Find pixel indices for line extraction window
@@ -97,10 +97,18 @@ for fn in speclist:
     profile = profile[goodslice]
     slit_coords = slit_coords[goodslice]
 
+    # Deal with NaNs in profile:
+    # - Make an array of per-pixel weights
+    wp = np.ones_like(profile)*slit_weight
+    # - Set profile and weight to zeros wherever there are NaNs
+    badmask = ~np.isfinite(profile)
+    profile[badmask] = 0.0
+    wp[badmask] = 0.0
+
     # Convert to pixel coordinates in output image
     xp, yp = skycoord_to_pixel(slit_coords, w, 0)
 
-    for x, y, bright in zip(xp, yp, profile):
+    for x, y, bright, wt in zip(xp, yp, profile, wp):
         # Find output pixels corresponding to corners of slit pixel
         # (approximate as square)
         i1 = int(0.5 + x - slit_pix_width/2)
@@ -113,8 +121,8 @@ for fn in speclist:
         j1, j2 = max(0, j1), max(0, j2)
         j1, j2 = min(NY, j1), min(NY, j2)
         # Fill in the square
-        outimage[j1:j2, i1:i2] += bright*slit_weight
-        outweights[j1:j2, i1:i2] += slit_weight
+        outimage[j1:j2, i1:i2] += bright*wt
+        outweights[j1:j2, i1:i2] += wt
 
 # Save everything as different images in a single fits file:
 # 1. The sum of the raw slits 

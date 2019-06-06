@@ -30,6 +30,12 @@ def waves2pixels(waves, w):
     pixels, _, _ = w.all_world2pix(waves, [RA0]*n, [Dec0]*n, 0)
     return pixels.astype(int)
 
+datadir_dict = {
+    # special cases
+    "oiii": "data/pvextract-oiii",
+}
+datadir = datadir_dict.get(line_id, "data/pvextract")
+
 # First set up WCS for the output image
 #
 NX, NY = 512, 512
@@ -49,10 +55,10 @@ outimage = np.zeros((NY, NX))
 outweights = np.zeros((NY, NX))
 
 # Use a slightly wider slit than is strictly accurate 
-slit_width = 2.0                
+slit_width = 1.0                
 slit_pix_width = slit_width/pixel_scale
 
-speclist = glob.glob(f'data/pvextract/*-{line_id}.fits')
+speclist = glob.glob(f'{datadir}/*-{line_id}.fits')
 
 # Window widths for line and BG
 dwline = 7.0*u.Angstrom

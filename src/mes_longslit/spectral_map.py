@@ -24,6 +24,7 @@ try:
 except IndexError:
     outdir = "maps"
 
+print("(line_id, vrange, outdir) = ", line_id, vrange, outdir)
 
 def waves2pixels(waves, w):
     n = len(waves)
@@ -147,9 +148,11 @@ if vrange is None:
 else:
     label = line_id + vrange
 
+outfile = f'data/{outdir}/turtle-slits-{label}.fits'
+print("Writing to", outfile)
 fits.HDUList([
     fits.PrimaryHDU(),
     fits.ImageHDU(header=w.to_header(), data=outimage, name='slits'),
     fits.ImageHDU(header=w.to_header(), data=outweights, name='weight'),
     fits.ImageHDU(header=w.to_header(), data=outimage/outweights, name='scaled'),
-    ]).writeto(f'data/{outdir}/turtle-slits-{label}.fits', overwrite=True)
+    ]).writeto(outfile, overwrite=True)

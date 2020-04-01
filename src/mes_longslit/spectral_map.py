@@ -8,6 +8,27 @@ import astropy.units as u
 sys.path.append('/Users/will/Dropbox/OrionWest')
 from helio_utils import helio_topo_from_header, vels2waves
 
+wav0_dict = {
+    'oiii': 5006.84,
+    'ha': 6562.79,
+    'nii': 6583.45,
+    'nii_s': 6548.05,
+    'heii': 6560.10,
+    'cii': 6578.15,
+    'hei': 5015.68,
+}
+
+# Which spectrum file do we *really* need to look in?
+parent = {
+    'oiii': 'oiii',
+    'ha': 'ha',
+    'nii': 'nii',
+    'nii_s': 'nii_s',
+    'heii': 'ha',
+    'cii': 'nii',
+    'hei': 'oiii',
+}
+
 
 try:
     line_id = sys.argv[1]
@@ -35,7 +56,7 @@ datadir_dict = {
     # special cases
     "oiii": "data/pvextract-oiii",
 }
-datadir = datadir_dict.get(line_id, "data/pvextract")
+datadir = datadir_dict.get(parent[line_id], "data/pvextract")
 
 # First set up WCS for the output image
 #
@@ -59,7 +80,7 @@ outweights = np.zeros((NY, NX))
 slit_width = 1.0                
 slit_pix_width = slit_width/pixel_scale
 
-speclist = glob.glob(f'{datadir}/*-{line_id}.fits')
+speclist = glob.glob(f'{datadir}/*-{parent[line_id]}.fits')
 
 # Window widths for line and BG
 dwline = 7.0*u.Angstrom
@@ -82,8 +103,9 @@ for fn in speclist:
     # Eliminate degenerate 3rd dimension from data array and trim off bad bits
     spec2d = spechdu.data[0]
 
-    # Rest wavelength from FITS header is in meters
-    wavrest = wspec.wcs.restwav*u.m
+    # Change to get rest wavelength from dict instead of from FITS
+    # header, so we can treat minor lines too
+    wavrest = (wav0_dict[line_id]*u.Angstrom).to(u.m)
 
     # Find wavelength limits for line extraction window
     if vrange is None:

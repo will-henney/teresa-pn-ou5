@@ -1,0 +1,87 @@
+* Administration tasks for Teresa PN Ou 5 project
+
+** Managing the Python environment
++ Managed with anaconda
++ Python version and required packages are listed in [[file:../environment.yml]]
++ For more details, see [[https://haveagreatdata.com/posts/data-science-python-dependency-management/][this blog post]]
++ I wanted to try Python 3.10 but it seems that there is no astropy available for that version yet
+*** Installing the environment
+This only needs to be run once on a given machine:
+#+begin_src sh :dir .. :eval no
+  conda env create -f environment.yml 
+#+end_src
+
+*** Activating the environment
++ In terminal
+  #+begin_src sh
+    conda activate pn-ou5
+  #+end_src
++ In Emacs
+  #+begin_src emacs-lisp :results silent
+    (pyvenv-activate (expand-file-name "~/miniconda/envs/pn-ou5"))
+  #+end_src
+  Or use the ~VirtualEnvs->Activate~ menu item
+  + To deactivate
+    #+begin_src emacs-lisp :results silent
+      (pyvenv-deactivate)
+    #+end_src
+*** Updating the environment
++ Add new dependencies to [[file:~/Dropbox/teresa-pn-ou5/environment.yml][~environment.yml~]]
++ Run one of the following to install new packages and remove unwanted ones:
+  + Mamba
+    #+begin_src sh
+      mamba env update --prune
+    #+end_src
+  + Conda
+    #+begin_src sh
+      conda env update --prune
+    #+end_src
++ In principle, Mamba should be faster
+
+** Installing the source library
++ I am going to try and do things properly this time
+  + So instead of adding to ~sys.packages~ I will make my library code be a proper package and install it with pip
+  + I want to have an editable install so that it automatically gets changes
+  + There are various ways of doing this
+    + setuptools
+    + poetry
+    + flit
+  + I am going to try flit
++ Package is called ~mes_longslit~
+
+
+*** Setting up flit
+This is following the instructions in the [[https://flit.readthedocs.io/en/latest/index.html][flit docs]]
+
+1. I added flit to [[file:~/Dropbox/teresa-pn-ou5/environment.yml][~environment.yml~]] and updated environment
+2. I ran ~flit init~ and answered the questions
+3. This made my [[file:~/Dropbox/teresa-pn-ou5/pyproject.toml][pyproject.toml]] file
+4. Edit it to add more stuff, such as minimum python version
+
+
+*** Installing local version with flit
+#+begin_src sh
+  flit install --symlink
+#+end_src
+The option ~--symlink~ is what makes it an editable install.  On Windows one would have to use ~--pth-file~ instead.
+
+*** TODO Testing locally installed version
+#+begin_src python :results output verbatim
+  import sys
+
+  print(sys.path)
+  # import mes_longslit
+  # print(mes_longslit.__version__)
+
+#+end_src
+
+#+RESULTS:
+: ['', '/Users/will/miniconda3/envs/science/lib/python38.zip', '/Users/will/miniconda3/envs/science/lib/python3.8', '/Users/will/miniconda3/envs/science/lib/python3.8/lib-dynload', '/Users/will/.local/lib/python3.8/site-packages', '/Users/will/miniconda3/envs/science/lib/python3.8/site-packages', '/Users/will/miniconda3/envs/science/lib/python3.8/site-packages/linmix-0.1.0.dev1-py3.8.egg', '/Users/will/miniconda3/envs/science/lib/python3.8/site-packages/sherpa-4.12.0+99.g3002c71c.dirty-py3.8-macosx-10.9-x86_64.egg', '/Users/will/miniconda3/envs/science/lib/python3.8/site-packages/saba-0.2.dev178-py3.8.egg', '/Users/will/miniconda3/envs/science/lib/python3.8/site-packages/Syrupy-1.4.0-py3.8.egg', '/Users/will/miniconda3/envs/science/lib/python3.8/site-packages/pyds9-1.9.dev0-py3.8-macosx-10.9-x86_64.egg', '/Users/will/Dropbox/wcsfile']
+   
+*** Resources on package management
++ [[https://www.blog.pythonlibrary.org/2021/09/23/python-101-how-to-create-a-python-package/][Python 101 - How to Create a Python Package]]
+  + Very thorough but uses outdated setup.py method
++ [[https://packaging.python.org/tutorials/packaging-projects/#configuring-metadata][Packaging Python Projects]]
+  + Tutorial on packaging.python.org
+  + Explains directory layout and use of ~pyproject.toml~
+  + Uses setuptools method as an example, but also mentions other options such as poetry and flit

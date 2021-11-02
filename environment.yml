@@ -13,7 +13,10 @@ dependencies:
   - pip
   - cmasher
   - flit
-  - jupyter_client<=6.1.12
+  # Recent versions of jupyter_client gave me problems with the jupyter console
+  # See https://github.com/jupyter/jupyter_console/issues/241
+  - jupyter_client<=6.1.12 
   - jupyter
   - pip:
+      # Any packages that are missing from conda/conda-forge can be installed by pip
       - reproject

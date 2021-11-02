@@ -18,7 +18,7 @@ This only needs to be run once on a given machine:
   #+end_src
 + In Emacs
   #+begin_src emacs-lisp :results silent
-    (pyvenv-activate (expand-file-name "~/miniconda/envs/pn-ou5"))
+    (pyvenv-activate (expand-file-name "~/miniconda3/envs/pn-ou5"))
   #+end_src
   Or use the ~VirtualEnvs->Activate~ menu item
   + To deactivate
@@ -65,19 +65,37 @@ This is following the instructions in the [[https://flit.readthedocs.io/en/lates
 #+end_src
 The option ~--symlink~ is what makes it an editable install.  On Windows one would have to use ~--pth-file~ instead.
 
-*** TODO Testing locally installed version
-#+begin_src python :results output verbatim
+*** DONE Testing locally installed version
+CLOSED: [2021-11-01 Mon 20:01]
+
+Try it both ways:
+1. Executing source block directly (~C-c C-c~ in following block)
+2. Tangle to file and then run that file from a shell source block (~C-c x~ in following block)
+
+#+begin_src python :tangle test-import.py :results output verbatim
   import sys
 
-  print(sys.path)
-  # import mes_longslit
-  # print(mes_longslit.__version__)
-
+  import mes_longslit
+  print(mes_longslit.__version__)
 #+end_src
 
 #+RESULTS:
-: ['', '/Users/will/miniconda3/envs/science/lib/python38.zip', '/Users/will/miniconda3/envs/science/lib/python3.8', '/Users/will/miniconda3/envs/science/lib/python3.8/lib-dynload', '/Users/will/.local/lib/python3.8/site-packages', '/Users/will/miniconda3/envs/science/lib/python3.8/site-packages', '/Users/will/miniconda3/envs/science/lib/python3.8/site-packages/linmix-0.1.0.dev1-py3.8.egg', '/Users/will/miniconda3/envs/science/lib/python3.8/site-packages/sherpa-4.12.0+99.g3002c71c.dirty-py3.8-macosx-10.9-x86_64.egg', '/Users/will/miniconda3/envs/science/lib/python3.8/site-packages/saba-0.2.dev178-py3.8.egg', '/Users/will/miniconda3/envs/science/lib/python3.8/site-packages/Syrupy-1.4.0-py3.8.egg', '/Users/will/miniconda3/envs/science/lib/python3.8/site-packages/pyds9-1.9.dev0-py3.8-macosx-10.9-x86_64.egg', '/Users/will/Dropbox/wcsfile']
-   
+: 0.1
+
+#+begin_src sh :results verbatim
+  echo $VIRTUAL_ENV
+  which python
+  python ./test-import.py
+#+end_src
+
+#+RESULTS:
+: /Users/will/miniconda3/envs/pn-ou5/
+: /Users/will/miniconda3/envs/pn-ou5/bin/python
+: 0.1
+
+
+
+
 *** Resources on package management
 + [[https://www.blog.pythonlibrary.org/2021/09/23/python-101-how-to-create-a-python-package/][Python 101 - How to Create a Python Package]]
   + Very thorough but uses outdated setup.py method

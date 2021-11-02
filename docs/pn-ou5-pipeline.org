@@ -2,6 +2,90 @@
 + I am going to follow similar steps to what I did with the Owl and the Turtle
 + But this time I will try and make a proper re-useable python library, rather than just have snippets of code spread over an org file
 + And I will make jupyter notebooks to demonstrate use of the library
-** 01 Astrometry of slits
-** 02 Photometry of slits
+** 00 Preliminary organization
+*** Find list of image+slit exposures
+*** Set up astrometry.net
++ Find the HEALpix tiles
+  + This is done in 
+** 01 Astrometry of slits and images
+** 02 Photometry correction of slits
 ** 03 Isovelocity images
+* Initial messages from Teresa
+** 2021-06-21
+: Al ver los espectros, se ven con mucho ruido, esto es porque eliminé
+: el background, creo que mejor te envio los originales para que también
+: tengan el mismo tamaño, el último corte lo hice antes de cambiar la
+: versión de la mac, de hecho haré como con la tortuga, te envio todo el
+: material ya que no he tomado en cuenta algunas posiciones, tal vez
+: sean de utilidad para la parte central.
+
+#+begin_example
+  ,*****************
+  28 de Agosto 2017
+  ,*****************
+
+  N1035 I+S  Halpha
+  N1036 espectro Ha
+  N1039 espelctro [OIII]
+
+  N1042 I+S
+  N1043 espectro Ha
+  N1045 espectro [OIII]
+  N1047 slit+image
+
+  N2001 I+S desenfocada
+  N2004 espectro ha
+  N2006 espectro [OIII]
+  N2008 I+S confiar en esta posicion
+
+  POSICION D
+  N2011 I+S
+  N2012 espec ha
+
+
+  MAYO 1 2018
+
+  crspm0021o_bx.fits Ha
+  crspm0023o_bx oiii
+
+
+  MAYO 2 2018
+
+  crspm047 i+s
+  crspm048 espec
+  crspm050 spec
+  crspm052 s+i
+
+  crspm053 i+s
+  crspm054 spec
+  crspm056 spec
+  crspm058 S+i
+
+  spm104 I+S
+  spm105 esp
+  spm106 lamp
+  spm107 spe
+  spm108 arc
+  spm109 s+i
+
+  14/09/2019
+
+  Ha
+
+  spm0210 I+S
+  spm0211 spec
+
+  spm0214 I+S
+  spm0215 spec
+
+  spm0431 I+S
+  spm0432 spec
+
+
+  spm0439 I+S
+  spm0440 spec
+
+
+  spm0600 I+S
+  spm0601 spec
+#+end_example

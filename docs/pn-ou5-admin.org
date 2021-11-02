@@ -106,3 +106,17 @@ Try it both ways:
   + Tutorial on packaging.python.org
   + Explains directory layout and use of ~pyproject.toml~
   + Uses setuptools method as an example, but also mentions other options such as poetry and flit
+
+** Maintaining the jupyter notebooks
++ Use jupytext
++ Sync pure python version of all notebooks
+  #+begin_src sh :dir ../notebooks :results verbatim
+    jupytext --set-formats ipynb,py:light *.ipynb
+  #+end_src
+
+  #+RESULTS:
+  : [jupytext] Reading 00-00-inspect-orig-files.ipynb in format ipynb
+  : [jupytext] Updating notebook metadata with '{"jupytext": {"formats": "ipynb,py:light"}}'
+  : [jupytext] Updating 00-00-inspect-orig-files.ipynb
+  : [jupytext] Updating 00-00-inspect-orig-files.py
+

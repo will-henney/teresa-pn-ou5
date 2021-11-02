@@ -4,19 +4,25 @@ channels:
   - conda-forge
 dependencies:
   - python=3.9
-  - astropy
+  # Packages for science
   - numpy
   - scipy
   - matplotlib
   - seaborn
+  - astropy
+  - astropy-healpix
+  - reproject
+  - cmasher
+  # Packages for development
+  - flit
   - black
   - pip
-  - cmasher
-  - flit
   # Recent versions of jupyter_client gave me problems with the jupyter console
   # See https://github.com/jupyter/jupyter_console/issues/241
   - jupyter_client<=6.1.12 
   - jupyter
-  - pip:
-      # Any packages that are missing from conda/conda-forge can be installed by pip
-      - reproject
+  - jupyterlab
+  - jupytext
+  # - pip:
+  #     # Any packages that are missing from conda/conda-forge can be installed by pip
+  #     - reproject

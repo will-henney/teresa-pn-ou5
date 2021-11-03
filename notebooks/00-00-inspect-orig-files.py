@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.13.0
+#       jupytext_version: 1.11.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -41,7 +41,15 @@ tab.show_in_notebook()
 m = ["slit" in _ for _ in tab["MEZMODE"]]
 tab[m]
 
-list(tab[m]["File"])
+# Write out a list of all the Image+slit files
+
+listfile = dpath.parent / "image-list.dat"
+listfile.write_text("\n".join(tab[m]["File"]))
+listfile
+
+# Check that it worked:
+
+listfile.read_text().splitlines()
 
 # ## Find the HEALpix coordinates of our source
 
@@ -69,5 +77,36 @@ hp_2.cone_search_skycoord(c, radius=5 * u.arcminute)
 hp_1.cone_search_skycoord(c, radius=5 * u.arcminute)
 
 # So that means `index500[5-7]-03.fits`
+
+# + tags=[]
+hp_2.cone_search_lonlat(300 * u.deg, 50 * u.deg, 0.1 * u.deg)
+# -
+
+# ## Look at the HEALpix data files
+#
+# Something isn't right.  I got the 13 series but the program complains that the coordinates are not contained in the tile.
+
+hdulist = fits.open(dpath.parent / "astrometry-net" / "index-5004-13.fits")
+hdulist.info()
+
+# Looks like HDU 13 has the original table of stars:
+
+hdulist[13].header
+
+tstars = Table.read(hdulist[13])
+
+df = tstars.to_pandas()
+
+df[["ra", "dec"]].describe()
+
+# So no wonder that is not working.  I want (318.6, 43.7) but this has an RA range of 270 to 315
+
+tstars2 = Table.read(fits.open(dpath.parent / "astrometry-net" / "index-5004-14.fits")[13])
+
+df2 = tstars2.to_pandas()
+
+df2[["ra", "dec"]].describe()
+
+# So, it turns out that tile 14 is what I needed, not 13.
 
 

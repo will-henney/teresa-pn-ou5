@@ -5,9 +5,65 @@
 ** 00 Preliminary organization
 *** Find list of image+slit exposures
 *** Set up astrometry.net
-+ Find the HEALpix tiles
-  + This is done in 
+1. Find the HEALpix tiles
+   + This is done in [[file:../notebooks/00-00-inspect-orig-files.py][00-00-inspect-orig-files.py]]
+     + [[file:../notebooks/00-00-inspect-orig-files.ipynb][00-00-inspect-orig-files.ipynb]]
+2. Download data files from http://data.astrometry.net/5000/
+   + I got ~index500[0-4]-13.fits~ and ~index500[5-7]-03.fits~
+3. Copy data files to [[file:../../../Work/astrometry/data/]]
+4. Install ~astrometry-net~
+   - Used Homebrew
+5. Configure ~astrometry-net~
+   - [[file:../../../../../usr/local/Cellar/astrometry-net/0.85_1/etc/astrometry.cfg][file:/usr/local/Cellar/astrometry-net/0.85_1/etc/astrometry.cfg]]
+   - Turn on ~inparallel~
+   - Use ~add_path~ to add my data folder (see above)
+
 ** 01 Astrometry of slits and images
+
+*** Run ~astrometry-net~ on all the images
++ Run these in the terminal
+  + I divide the images in two groups since the pixel scale is different
++ The ones starting ~crN~ have 2x2 binning
+  #+begin_src sh :dir ../data :results verbatim :eval no
+    for F in $(grep crN image-list.dat); do
+        solve-field --config astrometry-net/astrometry.cfg \
+                --ra 318.58 --dec 43.69 --radius 1.0\
+                --scale-units arcsecperpix --scale-low 0.3 --scale-high 0.4\
+                --depth 50 --dir wcs --new-fits '%s-wcs.fits'\
+                --no-tweak --overwrite originals/$F.fits 
+    done
+  #+end_src
++ The ones starting ~crspm~ have 3x3 binning
+  #+begin_src sh :dir ../data :results verbatim :eval no
+    for F in $(grep crspm image-list.dat); do
+        solve-field --config astrometry-net/astrometry.cfg \
+                --ra 318.58 --dec 43.69 --radius 1.0\
+                --scale-units arcsecperpix --scale-low 0.5 --scale-high 0.6\
+                --depth 50 --dir wcs --new-fits '%s-wcs.fits'\
+                --no-tweak --overwrite originals/$F.fits 
+    done
+  #+end_src
+
+
+*** List of all the images
+| crN10035   | Ha        |
+| crN10042   | Ha        |
+| crN10047o  | Missing   |
+| crN20001   | Unfocused |
+| crN20008   | [O III]   |
+| crN20011   | Ha        |
+| crspm0020o | Ha        |
+| crspm0025o | [O III]   |
+| crspm0047o | Ha        |
+| crspm0052o | [O III]   |
+| crspm0053o | Ha        |
+| crspm0058o | [O III]   |
+| crspm0109o | [O III]   |
+| crspm0210o | Ha        |
+| crspm0214o | Ha        |
+| crspm0431o | Ha        |
+| crspm0439o | Ha        |
+| crspm0600o | Ha        |
 ** 02 Photometry correction of slits
 ** 03 Isovelocity images
 * Initial messages from Teresa

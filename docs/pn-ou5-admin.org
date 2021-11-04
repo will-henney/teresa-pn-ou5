@@ -106,6 +106,17 @@ Try it both ways:
   + Tutorial on packaging.python.org
   + Explains directory layout and use of ~pyproject.toml~
   + Uses setuptools method as an example, but also mentions other options such as poetry and flit
++ [[https://flit.readthedocs.io/en/latest/index.html][Flit documentation]]
+  + This is basically what I followed
++ [[https://ealizadeh.com/blog/guide-to-python-env-pkg-dependency-using-conda-poetry][A Guide to Python Environment, Dependency and Package Management: Conda + Poetry]]
+  + An alternative way of doing things, using:
+    + conda but only for managing environment
+    + pip for package installs
+    + poetry for dependency management
+  + I am not using this at the moment, but I might switch to it later
+    + It has the advantage that the dependencies are all in pyproject.toml
+    + Poetry can have separate normal and dev dependencies
+    + But som of his criticism of using conda for dependency management is obviated if you use mamba instead 
 
 ** Maintaining the jupyter notebooks
 + Use jupytext
@@ -117,7 +128,7 @@ Try it both ways:
   #+RESULTS:
   : [jupytext] Reading 00-00-inspect-orig-files.ipynb in format ipynb
   : [jupytext] Updating notebook metadata with '{"jupytext": {"formats": "ipynb,py:light"}}'
-  : [jupytext] Updating 00-00-inspect-orig-files.py
+  : [jupytext] Updating the timestamp of 00-00-inspect-orig-files.py
   : [jupytext] Reading 01-00-image-astrometry.ipynb in format ipynb
   : [jupytext] Updating notebook metadata with '{"jupytext": {"formats": "ipynb,py:light"}}'
   : [jupytext] Updating 01-00-image-astrometry.ipynb

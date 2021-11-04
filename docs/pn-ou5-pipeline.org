@@ -17,6 +17,167 @@
    - [[file:../../../../../usr/local/Cellar/astrometry-net/0.85_1/etc/astrometry.cfg][file:/usr/local/Cellar/astrometry-net/0.85_1/etc/astrometry.cfg]]
    - Turn on ~inparallel~
    - Use ~add_path~ to add my data folder (see above)
+*** Test of YAML files
+**** Make a YAML file for testing
+#+begin_src yaml :tangle test.yml
+  this: that
+  tother:
+    - one
+    - two
+    - three
+#+end_src
+**** A database of all the slits
++ I will make this by hand, even though some of the info could be obtained automatically
++ To start off with, I will key it all by the image name, but I might change that later
+
+#+begin_src yaml :tangle ../data/image-slit-database.yml
+  -
+    image_id: N10035   
+    line_id: Ha        
+  -
+    image_id: N10042   
+    line_id: Ha        
+  -
+    image_id: N10047o  
+    problem: Missing   
+  -
+    image_id: N20001   
+    problem: Unfocused 
+  -
+    image_id: N20008   
+    line_id: O III   
+  -
+    image_id: N20011   
+    line_id: Ha        
+  -
+    image_id: spm0020o 
+    line_id: Ha        
+  -
+    image_id: spm0025o 
+    line_id: O III   
+  -
+    image_id: spm0047o 
+    line_id: Ha        
+  -
+    image_id: spm0052o 
+    line_id: O III   
+  -
+    image_id: spm0053o 
+    line_id: Ha        
+  -
+    image_id: spm0058o 
+    line_id: O III   
+  -
+    image_id: spm0109o 
+    line_id: O III   
+  -
+    image_id: spm0210o 
+    line_id: Ha        
+  -
+    image_id: spm0214o 
+    line_id: Ha        
+  -
+    image_id: spm0431o 
+    line_id: Ha        
+  -
+    image_id: spm0439o 
+    line_id: Ha        
+  -
+    image_id: spm0600o 
+    line_id: Ha        
+#+end_src
+
+
+**** Read in test file as a dict
+#+begin_src python :return data :results verbatim
+  import yaml
+
+  data = yaml.load(open("test.yml"))
+#+end_src
+
+#+RESULTS:
+: {'this': 'that', 'tother': ['one', 'two', 'three']}
+
+That seems to work fine
+
+#+begin_src python :return data :results verbatim
+  import yaml
+
+  data = yaml.load(open("../data/image-slit-database.yml"))
+#+end_src
+
+#+RESULTS:
+: [{'image_id': 'N10035', 'line_id': 'Ha'}, {'image_id': 'N10042', 'line_id': 'Ha'}, {'image_id': 'N10047o', 'problem': 'Missing'}, {'image_id': 'N20001', 'problem': 'Unfocused'}, {'image_id': 'N20008', 'line_id': 'O III'}, {'image_id': 'N20011', 'line_id': 'Ha'}, {'image_id': 'spm0020o', 'line_id': 'Ha'}, {'image_id': 'spm0025o', 'line_id': 'O III'}, {'image_id': 'spm0047o', 'line_id': 'Ha'}, {'image_id': 'spm0052o', 'line_id': 'O III'}, {'image_id': 'spm0053o', 'line_id': 'Ha'}, {'image_id': 'spm0058o', 'line_id': 'O III'}, {'image_id': 'spm0109o', 'line_id': 'O III'}, {'image_id': 'spm0210o', 'line_id': 'Ha'}, {'image_id': 'spm0214o', 'line_id': 'Ha'}, {'image_id': 'spm0431o', 'line_id': 'Ha'}, {'image_id': 'spm0439o', 'line_id': 'Ha'}, {'image_id': 'spm0600o', 'line_id': 'Ha'}]
+
+**** Load into a dataframe and astropy Table
+
+Astropy table deals well with missing values
+
+#+begin_src python :return data :results verbatim
+  import yaml
+  from astropy.table import Table
+
+  data = yaml.load(open("../data/image-slit-database.yml"))
+  data = Table(data)
+#+end_src
+
+#+RESULTS:
+#+begin_example
+image_id line_id  problem 
+-------- ------- ---------
+  N10035      Ha        --
+  N10042      Ha        --
+ N10047o      --   Missing
+  N20001      -- Unfocused
+  N20008   O III        --
+  N20011      Ha        --
+spm0020o      Ha        --
+spm0025o   O III        --
+spm0047o      Ha        --
+spm0052o   O III        --
+spm0053o      Ha        --
+spm0058o   O III        --
+spm0109o   O III        --
+spm0210o      Ha        --
+spm0214o      Ha        --
+spm0431o      Ha        --
+spm0439o      Ha        --
+spm0600o      Ha        --
+#+end_example
+
+And so does pandas:
+
+#+begin_src python :return data :results verbatim
+  import yaml
+  from pandas import DataFrame
+
+  data = yaml.load(open("../data/image-slit-database.yml"))
+  data = DataFrame(data)
+#+end_src
+
+#+RESULTS:
+#+begin_example
+    image_id line_id    problem
+0     N10035      Ha        NaN
+1     N10042      Ha        NaN
+2    N10047o     NaN    Missing
+3     N20001     NaN  Unfocused
+4     N20008   O III        NaN
+5     N20011      Ha        NaN
+6   spm0020o      Ha        NaN
+7   spm0025o   O III        NaN
+8   spm0047o      Ha        NaN
+9   spm0052o   O III        NaN
+10  spm0053o      Ha        NaN
+11  spm0058o   O III        NaN
+12  spm0109o   O III        NaN
+13  spm0210o      Ha        NaN
+14  spm0214o      Ha        NaN
+15  spm0431o      Ha        NaN
+16  spm0439o      Ha        NaN
+17  spm0600o      Ha        NaN
+#+end_example
+
 
 ** 01 Astrometry of slits and images
 
@@ -46,24 +207,30 @@
 
 
 *** List of all the images
-| crN10035   | Ha        |
-| crN10042   | Ha        |
-| crN10047o  | Missing   |
-| crN20001   | Unfocused |
-| crN20008   | [O III]   |
-| crN20011   | Ha        |
-| crspm0020o | Ha        |
-| crspm0025o | [O III]   |
-| crspm0047o | Ha        |
-| crspm0052o | [O III]   |
-| crspm0053o | Ha        |
-| crspm0058o | [O III]   |
-| crspm0109o | [O III]   |
-| crspm0210o | Ha        |
-| crspm0214o | Ha        |
-| crspm0431o | Ha        |
-| crspm0439o | Ha        |
-| crspm0600o | Ha        |
+| N10035   | Ha        |
+| N10042   | Ha        |
+| N10047o  | Missing   |
+| N20001   | Unfocused |
+| N20008   | [O III]   |
+| N20011   | Ha        |
+| spm0020o | Ha        |
+| spm0025o | [O III]   |
+| spm0047o | Ha        |
+| spm0052o | [O III]   |
+| spm0053o | Ha        |
+| spm0058o | [O III]   |
+| spm0109o | [O III]   |
+| spm0210o | Ha        |
+| spm0214o | Ha        |
+| spm0431o | Ha        |
+| spm0439o | Ha        |
+| spm0600o | Ha        |
+
+
+
+#+RESULTS:
+: {'this': 'that', 'tother': ['one', 'two', 'three']}
+
 ** 02 Photometry correction of slits
 ** 03 Isovelocity images
 * Initial messages from Teresa

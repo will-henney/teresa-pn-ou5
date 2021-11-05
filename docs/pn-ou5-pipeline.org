@@ -4,30 +4,29 @@
 + And I will make jupyter notebooks to demonstrate use of the library
 ** 00 Preliminary organization
 *** Find list of image+slit exposures
-*** Set up astrometry.net
-1. Find the HEALpix tiles
-   + This is done in [[file:../notebooks/00-00-inspect-orig-files.py][00-00-inspect-orig-files.py]]
-     + [[file:../notebooks/00-00-inspect-orig-files.ipynb][00-00-inspect-orig-files.ipynb]]
-2. Download data files from http://data.astrometry.net/5000/
-   + I got ~index500[0-4]-13.fits~ and ~index500[5-7]-03.fits~
-3. Copy data files to [[file:../../../Work/astrometry/data/]]
-4. Install ~astrometry-net~
-   - Used Homebrew
-5. Configure ~astrometry-net~
-   - [[file:../../../../../usr/local/Cellar/astrometry-net/0.85_1/etc/astrometry.cfg][file:/usr/local/Cellar/astrometry-net/0.85_1/etc/astrometry.cfg]]
-   - Turn on ~inparallel~
-   - Use ~add_path~ to add my data folder (see above)
-*** Test of YAML files
-**** Make a YAML file for testing
-#+begin_src yaml :tangle test.yml
-  this: that
-  tother:
-    - one
-    - two
-    - three
-#+end_src
-**** A database of all the slits
-+ I will make this by hand, even though some of the info could be obtained automatically
++ This is done in [[file:../notebooks/00-00-inspect-orig-files.py][00-00-inspect-orig-files.py]]
+  + [[file:../notebooks/00-00-inspect-orig-files.ipynb][00-00-inspect-orig-files.ipynb]]
+**** A database of all the image+slit files
+| N10035   | Ha        |
+| N10042   | Ha        |
+| N10047o  | Missing   |
+| N20001   | Unfocused |
+| N20008   | [O III]   |
+| N20011   | Ha        |
+| spm0020o | Ha        |
+| spm0025o | [O III]   |
+| spm0047o | Ha        |
+| spm0052o | [O III]   |
+| spm0053o | Ha        |
+| spm0058o | [O III]   |
+| spm0109o | [O III]   |
+| spm0210o | Ha        |
+| spm0214o | Ha        |
+| spm0431o | Ha        |
+| spm0439o | Ha        |
+| spm0600o | Ha        |
+
++ I will make a YAML file by hand, even though some of the info could be obtained automatically
 + To start off with, I will key it all by the image name, but I might change that later
 
 #+begin_src yaml :tangle ../data/image-slit-database.yml
@@ -88,6 +87,29 @@
 #+end_src
 
 
+*** Set up astrometry.net
+1. Find which HEALpix tiles to use
+   + This is done in [[file:../notebooks/00-00-inspect-orig-files.py][00-00-inspect-orig-files.py]]
+     + [[file:../notebooks/00-00-inspect-orig-files.ipynb][00-00-inspect-orig-files.ipynb]]
+2. Download data files from http://data.astrometry.net/5000/
+   + I got ~index500[0-4]-14.fits~ and ~index500[5-7]-03.fits~
+   + Note that ~astropy_healpix~ did not help much here - it gave a different ID for the tile from what astrometry-net was using
+3. Copy data files to [[file:../data/astrometry-net/]]
+4. Install ~astrometry-net~
+   - Used Homebrew
+5. Configure ~astrometry-net~
+   - [[file:../data/astrometry-net/astrometry.cfg]]
+   - Turn on ~inparallel~
+   - Use ~add_path~ to add my data folder (see above)
+*** Test of YAML files
+**** Make a YAML file for testing
+#+begin_src yaml :tangle test.yml
+  this: that
+  tother:
+    - one
+    - two
+    - three
+#+end_src
 **** Read in test file as a dict
 #+begin_src python :return data :results verbatim
   import yaml
@@ -181,7 +203,8 @@ And so does pandas:
 
 ** 01 Astrometry of slits and images
 
-*** Run ~astrometry-net~ on all the images
+*** TASK 01-00 Run ~astrometry-net~ on all the images
++ The difficult part here was finding the correct 
 + Run these in the terminal
   + I divide the images in two groups since the pixel scale is different
 + The ones starting ~crN~ have 2x2 binning
@@ -206,31 +229,88 @@ And so does pandas:
   #+end_src
 
 
-*** List of all the images
-| N10035   | Ha        |
-| N10042   | Ha        |
-| N10047o  | Missing   |
-| N20001   | Unfocused |
-| N20008   | [O III]   |
-| N20011   | Ha        |
-| spm0020o | Ha        |
-| spm0025o | [O III]   |
-| spm0047o | Ha        |
-| spm0052o | [O III]   |
-| spm0053o | Ha        |
-| spm0058o | [O III]   |
-| spm0109o | [O III]   |
-| spm0210o | Ha        |
-| spm0214o | Ha        |
-| spm0431o | Ha        |
-| spm0439o | Ha        |
-| spm0600o | Ha        |
+*** TASK 01-01 Generating the median images
++ This is done in the notebook
+  + [[file:../notebooks/01-00-image-astrometry.py]]
+*** Databases of all the spectrum slits
+**** [O III] slits
+#+begin_src yaml :tangle ../data/slits-o3.yaml
+  -
+    slit_id: N10039
+    orig_file: crN10039_bx-oiii.fits
+    image_id: N10035
+    line_id: O III
+    slit_width: 70
+    comment: >-
+      Just E of center. 
+      Highest resolution for the inner shell.
+      Image is Ha, not O III. 
+  -
+    slit_id: N10045
+    orig_file: crN10045_bx-oiii.fits
+    image_id: N10042
+    line_id: O III
+    slit_width: 70
+    comment: >-
+      Grazes E limb. 
+      Image is Ha, not O III.
+  -
+    slit_id: N20006
+    orig_file: crN20006_bx-oiii.fits
+    image_id: N20008
+    line_id: O III
+    slit_width: 70
+    comment: >-
+      Crosses E limb. 
+  -
+    slit_id: spm0023o
+    orig_file: crspm0023o_bx-oiii.fits
+    image_id: spm0025o
+    line_id: O III
+    slit_width: 150
+    comment: >-
+      Grazes E limb. 
+  -
+    slit_id: spm0050o
+    orig_file: crspm0050o_bx.fits
+    image_id: spm0052o
+    line_id: O III
+    slit_width: 150
+    comment: >-
+      E of center.
+      Shows outer lobes well.
+      Shows central blue wing.
+  -
+    slit_id: spm0056o
+    orig_file: crspm0056o_bx.fits
+    image_id: spm0058o
+    line_id: O III
+    slit_width: 150
+    comment: >-
+      Exact center.
+      Shows outer lobes well.
+      Shows central blue wing.
+      Shows weak continuum. 
+  -
+    slit_id: spm0107o
+    orig_file: crspm0107o_bx.fits
+    image_id: spm0109o
+    line_id: O III
+    slit_width: 150
+    comment: >-
+      W of center.
+      Shows outer lobes well.
+      Shows central blue wing.
 
+#+end_src
 
-
-#+RESULTS:
-: {'this': 'that', 'tother': ['one', 'two', 'three']}
-
++ Some thoughts:
+  - We could co-add the last 3 [O III] slits: spm0050o, spm0056o, spm0107o
+    - They look very similar in nearly all respects, and it would improve s/n for the fainter features
+  - We have no [O III] slits of the W limb, which is a shame
+**** Ha slits
+#+begin_src yaml :tangle ../data/slits-ha.yaml
+#+end_src
 ** 02 Photometry correction of slits
 ** 03 Isovelocity images
 * Initial messages from Teresa

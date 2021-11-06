@@ -201,42 +201,6 @@ And so does pandas:
 #+end_example
 
 
-** [2/4] 01 Astrometry of slits and images
-
-*** DONE TASK 01-00 Run ~astrometry-net~ on all the images
-CLOSED: [2021-11-05 Fri 19:45]
-+ The only tricky parts here were
-  1. Finding the correct HEALpix tile (see above)
-  2. Putting sensible limits on the pixel scale
-+ Once those were resolved then solutions are found very rapidly for all the images.
-+ Run these in the terminal
-  + I divide the images in two groups since the pixel scale is different
-+ The ones starting ~crN~ have 2x2 binning
-  #+begin_src sh :dir ../data :results verbatim :eval no
-    for F in $(grep crN image-list.dat); do
-        solve-field --config astrometry-net/astrometry.cfg \
-                --ra 318.58 --dec 43.69 --radius 1.0\
-                --scale-units arcsecperpix --scale-low 0.3 --scale-high 0.4\
-                --depth 50 --dir wcs --new-fits '%s-wcs.fits'\
-                --no-tweak --overwrite originals/$F.fits 
-    done
-  #+end_src
-+ The ones starting ~crspm~ have 3x3 binning
-  #+begin_src sh :dir ../data :results verbatim :eval no
-    for F in $(grep crspm image-list.dat); do
-        solve-field --config astrometry-net/astrometry.cfg \
-                --ra 318.58 --dec 43.69 --radius 1.0\
-                --scale-units arcsecperpix --scale-low 0.5 --scale-high 0.6\
-                --depth 50 --dir wcs --new-fits '%s-wcs.fits'\
-                --no-tweak --overwrite originals/$F.fits 
-    done
-  #+end_src
-
-
-*** DONE TASK 01-01 Generating the median images
-CLOSED: [2021-11-05 Fri 19:45]
-+ This is done in the notebook
-  + [[file:../notebooks/01-00-image-astrometry.py]]
 *** Databases of all the spectrum slits
 **** [O III] slits
 #+begin_src yaml :tangle ../data/slits-o3.yml
@@ -482,11 +446,52 @@ Looks good.
 [13 rows x 6 columns]
 #+end_example
 
-*** TODO TASK 01-02
+** [2/2] 01 Astrometry and median combination of images+slit
 
-*** TODO TASK 01-03 
+*** DONE TASK 01-00 Run ~astrometry-net~ on all the images
+CLOSED: [2021-11-05 Fri 19:45]
++ The only tricky parts here were
+  1. Finding the correct HEALpix tile (see above)
+  2. Putting sensible limits on the pixel scale
++ Once those were resolved then solutions are found very rapidly for all the images.
++ Run these in the terminal
+  + I divide the images in two groups since the pixel scale is different
++ The ones starting ~crN~ have 2x2 binning
+  #+begin_src sh :dir ../data :results verbatim :eval no
+    for F in $(grep crN image-list.dat); do
+        solve-field --config astrometry-net/astrometry.cfg \
+                --ra 318.58 --dec 43.69 --radius 1.0\
+                --scale-units arcsecperpix --scale-low 0.3 --scale-high 0.4\
+                --depth 50 --dir wcs --new-fits '%s-wcs.fits'\
+                --no-tweak --overwrite originals/$F.fits 
+    done
+  #+end_src
++ The ones starting ~crspm~ have 3x3 binning
+  #+begin_src sh :dir ../data :results verbatim :eval no
+    for F in $(grep crspm image-list.dat); do
+        solve-field --config astrometry-net/astrometry.cfg \
+                --ra 318.58 --dec 43.69 --radius 1.0\
+                --scale-units arcsecperpix --scale-low 0.5 --scale-high 0.6\
+                --depth 50 --dir wcs --new-fits '%s-wcs.fits'\
+                --no-tweak --overwrite originals/$F.fits 
+    done
+  #+end_src
 
-** 02 Photometry correction of slits
+
+*** DONE TASK 01-01 Generating the median images
+CLOSED: [2021-11-05 Fri 19:45]
++ This is done in the notebook
+  + [[file:../notebooks/01-00-image-astrometry.py]]
+** [0/4] 02 Photometry and WCS info for slit spectra
++ We will generally follow the Turtle plan
++ But another thing we could do is to use the BG component in H alpha
+*** TODO TASK 02-00 Port the routines from ~turtle_utils.py~
++ These need to be generalised a bit and put in [[file:../src/mes_longslit/]]
+*** TODO TASK 02-01 Reference profiles from median image
+
+*** TODO TASK 02-03 Compare slit profiles with reference profiles 
+
+*** TODO Add WCS for velocities and slit offsets
 ** 03 Isovelocity images
 * Initial messages from Teresa
 ** 2021-06-21

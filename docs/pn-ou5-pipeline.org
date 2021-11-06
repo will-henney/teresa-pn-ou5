@@ -201,10 +201,14 @@ And so does pandas:
 #+end_example
 
 
-** 01 Astrometry of slits and images
+** [2/4] 01 Astrometry of slits and images
 
-*** TASK 01-00 Run ~astrometry-net~ on all the images
-+ The difficult part here was finding the correct 
+*** DONE TASK 01-00 Run ~astrometry-net~ on all the images
+CLOSED: [2021-11-05 Fri 19:45]
++ The only tricky parts here were
+  1. Finding the correct HEALpix tile (see above)
+  2. Putting sensible limits on the pixel scale
++ Once those were resolved then solutions are found very rapidly for all the images.
 + Run these in the terminal
   + I divide the images in two groups since the pixel scale is different
 + The ones starting ~crN~ have 2x2 binning
@@ -229,7 +233,8 @@ And so does pandas:
   #+end_src
 
 
-*** TASK 01-01 Generating the median images
+*** DONE TASK 01-01 Generating the median images
+CLOSED: [2021-11-05 Fri 19:45]
 + This is done in the notebook
   + [[file:../notebooks/01-00-image-astrometry.py]]
 *** Databases of all the spectrum slits
@@ -477,6 +482,10 @@ Looks good.
 [13 rows x 6 columns]
 #+end_example
 
+*** TODO TASK 01-02
+
+*** TODO TASK 01-03 
+
 ** 02 Photometry correction of slits
 ** 03 Isovelocity images
 * Initial messages from Teresa
@@ -558,3 +567,5 @@ Looks good.
   spm0600 I+S
   spm0601 spec
 #+end_example
+* TODO Finish this project
+I need to get on and finish this.  Like now. 

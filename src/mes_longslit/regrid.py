@@ -1,11 +1,11 @@
 from __future__ import annotations
 import numpy as np
-from reproject import reproject_interp
-from astropy.io import fits
-from astropy.wcs import WCS
-from astropy.table import Table
-from astropy.coordinates import SkyCoord
-import astropy.units as u
+from reproject import reproject_interp  # type: ignore
+from astropy.io import fits  # type: ignore
+from astropy.wcs import WCS  # type: ignore
+from astropy.table import Table  # type: ignore
+from astropy.coordinates import SkyCoord  # type: ignore
+import astropy.units as u  # type: ignore
 
 
 def regrid_images(

@@ -270,7 +270,7 @@ def extract_slit_profile_from_imslit(
         raise ValueError("ij must be 1 or 2")
 
 
-    def wavs2slice(wavs: Sequence[float], wcs: WCS, db: Mapping) -> slice:
+def wavs2slice(wavs: Sequence[float], wcs: WCS, db: Mapping) -> slice:
     """
     Convert a wavelength interval `wavs` (length-2 sequence) to a
     slice of the relevant axis`
@@ -287,8 +287,14 @@ def extract_slit_profile_from_imslit(
 
 
 def extract_line_and_regularize(
-    data, wcs, wavrest, db, dw=10.0, dwbg_in=7.0, dwbg_out=10.0
-):
+    data: np.ndarray,
+    wcs: WCS,
+    wavrest: float,
+    db: Mapping,
+    dw: float = 10.0,
+    dwbg_in: float = 7.0,
+    dwbg_out: float = 10.0,
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
     Transpose data if necessary, and then subtract off the continuum
     (blue and red of line, inner width `dwbg_in`, outer width
@@ -337,8 +343,12 @@ def extract_line_and_regularize(
     return data - bgdata, bgdata, wavs[wslice]
 
 
-def make_slit_wcs(db, slit_coords, wavs, j0):
+def make_slit_wcs(
+    db: Mapping, slit_coords: Mapping, wavs: Sequence, j0: int
+) -> tuple[WCS, WCS]:
+    """Make WCS for the PV images
 
+    Return two versions, one complex and one simple"""
     #
     # First, wavelength axis, which is easy
     #
@@ -409,7 +419,9 @@ def make_slit_wcs(db, slit_coords, wavs, j0):
     return w, w2
 
 
-def fit_cheb(x, y, npoly=3, mask=None):
+def fit_cheb(
+    x: np.ndarray, y: np.ndarray, npoly: int = 3, mask: np.ndarray | None = None
+) -> np.ndarray:
     """Fits a Chebyshev poly to y(x) and returns fitted y-values"""
     fitter = fitting.LinearLSQFitter()
     p_init = models.Chebyshev1D(npoly, domain=[x.min(), x.max()])
@@ -422,16 +434,15 @@ def fit_cheb(x, y, npoly=3, mask=None):
 
 
 def make_three_plots(
-    spec,
-    calib,
-    prefix,
-    slit_points=None,
-    niirat=None,
-    neighbors=None,
-    db=None,
-    sdb=None,
-    linelabel="H$\alpha$",
-):
+    spec: np.ndarray,
+    calib: np.ndarray,
+    prefix: str,
+    slit_points: np.ndarray | None = None,
+    neighbors: Mapping | None = None,
+    db: Mapping | None = None,
+    sdb: Mapping | None = None,
+    linelabel: str = "H$\alpha$",
+) -> None:
     assert spec.shape == calib.shape
     fig, axes = plt.subplots(3, 1)
 
@@ -486,8 +497,7 @@ def make_three_plots(
                 color="k",
                 label=label,
             )
-    # axes[1].plot(ypix, spec/ratio_fit, alpha=alpha, lw=1.0,
-    #              label='Corrected Integrated Spectrum')
+
     axes[1].set_xlim(*xlim)
     axes[1].set_ylim(vmin, vmax)
     axes[1].legend(fontsize="xx-small", loc="upper right")
@@ -495,11 +505,6 @@ def make_three_plots(
     axes[1].set_ylabel("Profile (absolute log scale)")
     axes[1].set_yscale("symlog", linthreshy=0.01)
 
-    # # Third, plot ratio to look for spatial trends
-    # axes[2].plot(ypix, ratio, alpha=alpha)
-    # axes[2].plot(ypix, ratio_fit, alpha=alpha)
-    # if niirat is not None:
-    #     axes[2].plot(ypix, niirat, 'b', lw=0.5, alpha=0.5)
     axes[2].set_xlim(-40, 40)
     axes[2].set_ylim(-0.05, 1.05)
     axes[2].set_xlabel(xlabel)

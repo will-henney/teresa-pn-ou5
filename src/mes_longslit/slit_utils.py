@@ -17,6 +17,7 @@ HISTORY:
 import numpy as np
 import numpy.typing as npt
 from collections.abc import Sequence, Iterable, Mapping
+from typing import Union
 from astropy.io import fits  # type: ignore
 from astropy.wcs import WCS  # type: ignore
 from astropy.coordinates import SkyCoord  # type: ignore
@@ -212,8 +213,8 @@ def subtract_sky_and_trim(
 def extract_full_profile_from_pv(
     spec_hdu: fits._BaseHDU,
     wavaxis: int,
-    bandwidth: float | None,
-    linedict: dict[str, float] | None,
+    bandwidth: Union[float, None],
+    linedict: Union[dict[str, float], None],
 ) -> np.ndarray:
     """Get profile along slit of PV image, summed over wavelength
 
@@ -238,7 +239,7 @@ def extract_full_profile_from_pv(
     assert nwav == im.shape[-1]
     full_profile = im.sum(axis=-1)
 
-    if bandwidth is not None:
+    if bandwidth is not None and linedict is not None:
         wavmask = np.ones((nwav,)).astype(bool)
         # remove from continuum mask +/- 150 km/s around each line
         for lineid, wav0 in linedict.items():
@@ -294,7 +295,7 @@ def extract_line_and_regularize(
     dw: float = 10.0,
     dwbg_in: float = 7.0,
     dwbg_out: float = 10.0,
-) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
     Transpose data if necessary, and then subtract off the continuum
     (blue and red of line, inner width `dwbg_in`, outer width
@@ -420,7 +421,7 @@ def make_slit_wcs(
 
 
 def fit_cheb(
-    x: np.ndarray, y: np.ndarray, npoly: int = 3, mask: np.ndarray | None = None
+    x: np.ndarray, y: np.ndarray, npoly: int = 3, mask: Union[np.ndarray, None] = None
 ) -> np.ndarray:
     """Fits a Chebyshev poly to y(x) and returns fitted y-values"""
     fitter = fitting.LinearLSQFitter()
@@ -437,10 +438,10 @@ def make_three_plots(
     spec: np.ndarray,
     calib: np.ndarray,
     prefix: str,
-    slit_points: np.ndarray | None = None,
-    neighbors: Mapping | None = None,
-    db: Mapping | None = None,
-    sdb: Mapping | None = None,
+    slit_points: Union[np.ndarray, None] = None,
+    neighbors: Union[Mapping, None] = None,
+    db: Union[Mapping, None] = None,
+    sdb: Union[Mapping, None] = None,
     linelabel: str = "H$\alpha$",
 ) -> None:
     assert spec.shape == calib.shape

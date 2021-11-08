@@ -42,9 +42,7 @@ def regrid_images(
             data_out = reproject_interp(
                 hdu_in, W, shape_out=shape, return_footprint=False
             )
-            # Carry over the header from the input ...
-            hdr_out = hdu_in.header.copy()
-            # ... except update it with the new WCS
-            hdr_out.update(W.to_header())
+            # Just nuke the previous header - the only way to be sure
+            hdr_out = W.to_header()
             list_out.append(_HDU(header=hdr_out, data=data_out))
     return fits.HDUList(list_out)

@@ -89,13 +89,13 @@ hdu = ha_dict["N20011"][0]
 w = WCS(hdu.header)
 fig, ax = plt.subplots(
     figsize=(4, 4),
-#    subplot_kw=dict(projection=w)
+    subplot_kw=dict(projection=w)
 )
 ax.imshow(hdu.data, cmap="gray_r", origin="lower", vmin=-5, vmax=12)
-# ax.set(
-#     xlabel="RA",
-#     ylabel="DEC",
-# )
+ax.set(
+    xlabel="RA",
+    ylabel="DEC",
+)
 
 # ## Normalize the images
 

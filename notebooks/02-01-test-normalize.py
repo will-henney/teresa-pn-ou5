@@ -1,7 +1,6 @@
 # ---
 # jupyter:
 #   jupytext:
-#     formats: ipynb,py:light
 #     text_representation:
 #       extension: .py
 #       format_name: light
@@ -74,10 +73,11 @@ else:
 db["s"] = 1
 
 spec_hdu.data = mes.subtract_sky_and_trim(
-    spec_hdu.data, db, trim=5, margin=50)
+    spec_hdu.data, db, trim=15, margin=150, degree=1)
 
 fig, ax = plt.subplots(figsize=(10, 5))
 ax.imshow(spec_hdu.data[250:450, 200:700], origin="lower");
+#ax.imshow(spec_hdu.data[:, :], vmin=-3, vmax=3, origin="lower");
 
 # So that does a reasonably good job of subtracting the background emission line
 
@@ -143,15 +143,38 @@ calib_profile = mes.slit_profile(
     wphot,
 )
 
+# Plot the calibration profile (green) compared with the spec and imslit profiles:
+
 fig, ax = plt.subplots(figsize=(12, 4))
 ax.plot(jslit + db["shift"], (imslit_profile + 20) * 10)
 ax.plot(jslit, spec_profile)
 ax.plot(jslit, calib_profile * 1000)
 ax.set(yscale="linear", ylim=[0, 2000]);
 
-calib_profile[::100]
+# That did not come out how I hoped. The calibration profile is clearly broader. To try and get to the bottom of this, I will jhave to look at some neighboring profiles
 
-spec_profile[::100]
+neighbors = [-2, -1, 1, 2]
+nb_calib_profiles = {}
+for nb in neighbors:
+    nbdb = db.copy()
+    nbdb["islit"] += nb
+    nb_slit_coords = mes.find_slit_coords(nbdb, im_hdu.header, spec_hdu.header)
+    nb_calib_profiles[nb] = mes.slit_profile(
+        nb_slit_coords['RA'], nb_slit_coords['Dec'], photom.data, wphot
+    )
+
+fig, ax = plt.subplots(figsize=(12, 4))
+# ax.plot(jslit + db["shift"], (imslit_profile + 20) * 10)
+# ax.plot(jslit, spec_profile)
+ax.plot(jslit, calib_profile * 1000, color="k", lw=2)
+for nb in neighbors:
+    ax.plot(jslit, nb_calib_profiles[nb] * 1000, label=f"${nb:+d}$")
+ax.legend()
+ax.set(yscale="linear", ylim=[0, 2000]);
+
+
+
+
 
 slit_points = (np.arange(len(spec_profile)) - j0_s)*slit_coords["ds"]
 
@@ -178,6 +201,7 @@ mes.make_three_plots(
     neighbors=None,
     db=db, 
     sdb=slit_coords,
-)
+    return_fig=True,
+);
 
 

@@ -16,6 +16,7 @@ HISTORY:
 
 import numpy as np
 import numpy.typing as npt
+from numpy.polynomial import Chebyshev
 from collections.abc import Sequence, Iterable, Mapping
 from typing import Union
 from astropy.io import fits  # type: ignore
@@ -175,25 +176,40 @@ def find_slit_coords(db: Mapping, hdr: fits.Header, shdr: fits.Header) -> dict:
 
 
 def subtract_sky_and_trim(
-    data: np.ndarray, db: Mapping, trim: int = 3, margin: int = 10
+    data: np.ndarray,
+    db: Mapping,
+    trim: int = 3,
+    margin: int = 10,
+    degree: int = 1,
 ) -> np.ndarray:
     """Remove sky and extraneous border pixels.
     Assume that pixels within `trim` of edge might be bad, and use
     average sky within margin of edge in spatial direction to define
-    the bg
+    the bg, fitting a `degree` order polynomial at each wavelength
     """
     # convert axis notation from FITS to python convention
     wav_axis = 2 - db["wa"]
-    if wav_axis == 0:
-        bg = 0.5 * (data[:, trim:margin] + data[:, -margin:-trim]).mean(
-            axis=1, keepdims=True
-        )
-    else:
-        bg = 0.5 * (data[trim:margin, :] + data[-margin:-trim, :]).mean(
-            axis=0, keepdims=True
-        )
-    # Remove sky background
-    newdata = data - bg
+    slit_axis = 1 - wav_axis
+    # Array of points along the slit length
+    s = np.arange(data.shape[slit_axis], dtype=float)
+    # We only fit between trim and margin at each end, so set mask appropriately
+    m = np.zeros_like(s, dtype=bool)
+    m[trim:margin] = True
+    m[-margin:-trim] = True
+    # Take a copy of the original array, which we will then modify
+    newdata = data.copy()
+    # If necessary, transpose the data so that axis 0 is wavelength
+    if wav_axis == 1:
+        newdata = newdata.T
+    # Fit and remove the continuum from each row
+    for row in newdata:
+        p = Chebyshev.fit(s[m], row[m], degree)
+        bg_row = p(s)
+        row -= bg_row
+    # Undo the transpose if necessary
+    if wav_axis == 1:
+        newdata = newdata.T
+
     # And only then can we clean up the trim zone
     newdata[:trim, :] = 0.0
     newdata[-trim:, :] = 0.0
@@ -435,6 +451,7 @@ def make_three_plots(
     db: Union[Mapping, None] = None,
     sdb: Union[Mapping, None] = None,
     linelabel: str = "H$\alpha$",
+    return_fig: bool = False,
 ) -> None:
     assert spec.shape == calib.shape
     fig, axes = plt.subplots(3, 1)
@@ -465,8 +482,8 @@ def make_three_plots(
     axes[0].set_ylim(vmin, vmax)
     axes[0].set_xlabel("Calibration Image")
     axes[0].set_ylabel("Uncorrected Integrated Spectrum")
-    axes[0].set_xscale("symlog", linthreshx=0.01)
-    axes[0].set_yscale("symlog", linthreshy=0.01)
+    axes[0].set_xscale("symlog", linthresh=0.01)
+    axes[0].set_yscale("symlog", linthresh=0.01)
 
     # Second, plot each against slit pixel to check spatial offset
     axes[1].plot(ypix, spec, alpha=alpha, lw=1, label="Integrated Spectrum")
@@ -496,7 +513,7 @@ def make_three_plots(
     axes[1].legend(fontsize="xx-small", loc="upper right")
     axes[1].set_xlabel(xlabel)
     axes[1].set_ylabel("Profile (absolute log scale)")
-    axes[1].set_yscale("symlog", linthreshy=0.01)
+    axes[1].set_yscale("symlog", linthresh=0.01)
 
     axes[2].set_xlim(-40, 40)
     axes[2].set_ylim(-0.05, 1.05)
@@ -527,6 +544,11 @@ def make_three_plots(
     fig.set_size_inches(5, 8)
     fig.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
     fig.savefig(f"{prefix}.png", dpi=300)
-    plt.close(fig)
 
-    return None
+    if return_fig:
+        # This option suitable for single use in notebook
+        return fig
+    else:
+        # Default option to clean up, suitable for use in loop over many spectra
+        plt.close(fig)
+        return None

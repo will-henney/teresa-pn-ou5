@@ -8,7 +8,8 @@ dependencies:
   - numpy
   - scipy
   - pandas
-  - matplotlib
+  # The linthresh parameter for symlog scales changed in 3.3
+  - matplotlib>=3.3 
   - seaborn
   - astropy
   - astropy-healpix

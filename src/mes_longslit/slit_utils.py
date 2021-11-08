@@ -122,7 +122,7 @@ def find_slit_coords(db: Mapping, hdr: fits.Header, shdr: fits.Header) -> dict:
     if jstring_i == "1":
         # Slit is horizontal in IMAGE coords
         iarr = np.arange(ns) - float(db["shift"])
-        jarr = np.ones(ns) * float(db["islit"])
+        jarr = np.ones(ns) * (float(db["islit"]) - 1)
         # Mezcal has used two different ways of specifying on-chip binning
         try:
             # Older way
@@ -138,7 +138,7 @@ def find_slit_coords(db: Mapping, hdr: fits.Header, shdr: fits.Header) -> dict:
         iarr *= spec_binning / image_binning
     elif jstring_i == "2":
         # Slit is vertical in IMAGE coords
-        iarr = np.ones(ns) * float(db["islit"])
+        iarr = np.ones(ns) * (float(db["islit"]) - 1)
         jarr = np.arange(ns) - float(db["shift"])
         try:
             image_binning = hdr["RBIN"]
@@ -162,15 +162,7 @@ def find_slit_coords(db: Mapping, hdr: fits.Header, shdr: fits.Header) -> dict:
 
     # Convert to world coords, using the native frame
     w = WCS(hdr)
-    observed_frame = w.wcs.radesys.lower()
-    # Note it is vital to ensure the pix2world transformation returns
-    # values in the order (RA, Dec), even if the image+slit may have
-    # Dec first
-    coords = SkyCoord(
-        *w.all_pix2world(iarr, jarr, 0, ra_dec_order=True),
-        unit=(u.deg, u.deg),
-        frame=observed_frame,
-    )
+    coords = w.pixel_to_world(iarr, jarr)
     print("coords =", coords[::100])
     print("Binning along slit: image =", image_binning, "spectrum =", spec_binning)
     # Make sure to return the coords in the ICRS frame
@@ -211,7 +203,7 @@ def subtract_sky_and_trim(
 
 
 def extract_full_profile_from_pv(
-    spec_hdu: fits._BaseHDU,
+    spec_hdu: Union[fits.PrimaryHDU, fits.CompImageHDU, fits.ImageHDU],
     wavaxis: int,
     bandwidth: Union[float, None],
     linedict: Union[dict[str, float], None],
@@ -515,10 +507,9 @@ def make_three_plots(
     info = ""
     if db is not None:
         # Add some info to the graphs
-        info += fr"{linelabel} slit {db['id']:02d}" + "\n"
-        info += f"PV: {db['spec']}" + "\n"
-        info += f"I+S: {db['imslit']}" + "\n"
-        info += f"Date: {db['run']}, t = {db['t']} s" + "\n"
+        info += fr"{db['line_id']}" + "\n"
+        info += f"PV: {db['slit_id']}" + "\n"
+        info += f"I+S: {db['image_id']}" + "\n"
     if sdb is not None:
         info += (
             fr"Slit PA = ${sdb['PA']:.1f}^\circ$, ds = {sdb['ds']:.2f} arcsec" + "\n"
@@ -535,7 +526,7 @@ def make_three_plots(
         )
     fig.set_size_inches(5, 8)
     fig.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
-    fig.savefig(prefix + ".png", dpi=300)
+    fig.savefig(f"{prefix}.png", dpi=300)
     plt.close(fig)
 
     return None

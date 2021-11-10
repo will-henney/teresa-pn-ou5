@@ -70,6 +70,9 @@
     image_id: spm0109o 
     line_id: O III   
   -
+    image_id: spm0104o 
+    line_id: Ha   
+  -
     image_id: spm0210o 
     line_id: Ha        
   -
@@ -428,22 +431,22 @@ Looks good.
 
 #+RESULTS:
 #+begin_example
-     slit_id  ...                                    comment
-0     N10036  ...                          Just E of center.
-1     N10043  ...                             Grazes E limb.
-2     N20004  ...    Crosses E limb. Image is O III, not Ha.
-3     N20012  ...                               W of center.
-4   spm0021o  ...                             Grazes E limb.
-5   spm0048o  ...                          Just E of center.
-6   spm0054o  ...  Just W of center. Crosses unrelated star.
-7   spm0105o  ...                               W of center.
-8   spm0211o  ...                          Just W of center.
-9   spm0215o  ...                            Crosses W limb.
-10  spm0432o  ...                               E of center.
-11  spm0440o  ...                           Horizontal slit.
-12  spm0601o  ...                            Crosses W limb.
+     slit_id            orig_file  ...            trim shift_range
+0     N10036     crN10036_bx.fits  ...             NaN         NaN
+1     N10043     crN10043_bx.fits  ...             NaN         NaN
+2     N20004     crN20004_bx.fits  ...             NaN         NaN
+3     N20012     crN20012_bx.fits  ...  [0, 0, 0, -50]   [50, 110]
+4   spm0021o   crspm0021o_bx.fits  ...             NaN         NaN
+5   spm0048o   crspm0048o_bx.fits  ...             NaN         NaN
+6   spm0054o   crspm0054o_bx.fits  ...             NaN         NaN
+7   spm0105o   crspm0105o_bx.fits  ...             NaN         NaN
+8   spm0211o  crspm0211o_b1t.fits  ...             NaN         NaN
+9   spm0215o  crspm0215o_b1t.fits  ...             NaN         NaN
+10  spm0432o  crspm0432o_b1t.fits  ...             NaN         NaN
+11  spm0440o  crspm0440o_b1t.fits  ...             NaN         NaN
+12  spm0601o  crspm0601o_b1t.fits  ...             NaN         NaN
 
-[13 rows x 6 columns]
+[13 rows x 10 columns]
 #+end_example
 
 ** [2/2] 01 Astrometry and median combination of images+slit
@@ -475,6 +478,15 @@ CLOSED: [2021-11-05 Fri 19:45]
                 --depth 50 --dir wcs --new-fits '%s-wcs.fits'\
                 --no-tweak --overwrite originals/$F.fits 
     done
+  #+end_src
++ The one I forgot
+  #+begin_src sh :dir ../data :results verbatim :eval no
+    F=crspm0104o_b
+    solve-field --config astrometry-net/astrometry.cfg \
+            --ra 318.58 --dec 43.69 --radius 1.0\
+            --scale-units arcsecperpix --scale-low 0.5 --scale-high 0.6\
+            --depth 50 --dir wcs --new-fits '%s-wcs.fits'\
+            --no-tweak --overwrite originals/$F.fits 
   #+end_src
 
 

@@ -9,15 +9,17 @@ William Henney, 2019, 2020, 2021
 
 from .regrid import regrid_images
 from .slit_utils import (
+    slit_profile_circle,
     slit_profile,
     find_slit_coords,
-    subtract_sky_and_trim,
+    subtract_sky,
     extract_full_profile_from_pv,
     extract_slit_profile_from_imslit,
     extract_line_and_regularize,
     make_slit_wcs,
     fit_cheb,
     make_three_plots,
+    pv_extract,
 )
 
 __version__ = "0.1"

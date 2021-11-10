@@ -13,11 +13,11 @@ HISTORY:
           Added comments from teresa-turtle.org
 """
 
-
+from pathlib import Path
 import numpy as np
 import numpy.typing as npt
 from numpy.polynomial import Chebyshev
-from collections.abc import Sequence, Iterable, Mapping
+from collections.abc import Sequence, Iterable, Mapping, MutableMapping
 from typing import Union
 from astropy.io import fits  # type: ignore
 from astropy.wcs import WCS  # type: ignore
@@ -31,14 +31,7 @@ import seaborn as sns  # type: ignore
 
 VERBOSE = 0
 
-ORIG_DATA_ROOT = "../Papers/LL-Objects/NGC6210"
-
-
-def get_orig_folder(temporada):
-    if "2015" in temporada:
-        return ORIG_DATA_ROOT + "/Temporada2015"
-    else:
-        return ORIG_DATA_ROOT + "/Varias-temporadas"
+HDU = Union[fits.PrimaryHDU, fits.CompImageHDU, fits.ImageHDU]
 
 
 def slit_profile(
@@ -63,6 +56,29 @@ def slit_profile(
             for i, j in list(zip(ii, jj))
         ]
     )
+
+
+def slit_profile_circle(
+    ra: Sequence[float], dec: Sequence[float], image: np.ndarray, wcs: WCS, r: float
+) -> np.ndarray:
+    """
+    Find the image intensity for a list of positions (ra and dec)
+
+    * This takes average intensity of all pixels within a distance `r`
+    (in arcsec) of each position
+    """
+    # Coordinates of all pixels in the image
+    ny, nx = image.shape
+    X, Y = np.meshgrid(np.arange(nx), np.arange(ny))
+    c = wcs.pixel_to_world(X, Y)
+    ns = len(ra)
+    profile = np.zeros(shape=(ns,), dtype=float)
+    for j, [_ra, _dec] in enumerate(zip(ra, dec)):
+        c0 = SkyCoord(_ra, _dec, unit=u.deg)
+        sep = c0.separation(c)
+        m = sep <= r * u.arcsec
+        profile[j] = np.mean(image[m])
+    return profile
 
 
 def find_slit_coords(db: Mapping, hdr: fits.Header, shdr: fits.Header) -> dict:
@@ -175,6 +191,41 @@ def find_slit_coords(db: Mapping, hdr: fits.Header, shdr: fits.Header) -> dict:
     }
 
 
+def subtract_sky(
+    data: np.ndarray,
+    db: Mapping,
+    degree: int = 1,
+) -> np.ndarray:
+    """Remove sky from spectra using explicit windows.
+    Sky portions of the slit are given in `db["sky_windows"]`
+    We fit a `degree` order polynomial at each wavelength in
+    these windows to give the sky estimate, which we subtract.
+    """
+    # convert axis notation from FITS to python convention
+    wav_axis = 2 - db["wa"]
+    slit_axis = 1 - wav_axis
+    # Array of points along the slit length
+    s = np.arange(data.shape[slit_axis], dtype=float)
+    # We only fit the sky_windows
+    m = np.zeros_like(s, dtype=bool)
+    for j1, j2 in db["sky_windows"]:
+        m[j1 - 1 : j2] = True
+    # Take a copy of the original array, which we will then modify
+    newdata = data.copy()
+    # If necessary, transpose the data so that axis 0 is wavelength
+    if wav_axis == 1:
+        newdata = newdata.T
+    # Fit and remove the continuum from each row
+    for row in newdata:
+        p = Chebyshev.fit(s[m], row[m], degree)
+        bg_row = p(s)
+        row -= bg_row
+    # Undo the transpose if necessary
+    if wav_axis == 1:
+        newdata = newdata.T
+    return newdata
+
+
 def subtract_sky_and_trim(
     data: np.ndarray,
     db: Mapping,
@@ -219,10 +270,10 @@ def subtract_sky_and_trim(
 
 
 def extract_full_profile_from_pv(
-    spec_hdu: Union[fits.PrimaryHDU, fits.CompImageHDU, fits.ImageHDU],
+    spec_hdu: HDU,
     wavaxis: int,
     bandwidth: Union[float, None],
-    linedict: Union[dict[str, float], None],
+    linedict: Union[Mapping[str, float], None],
 ) -> np.ndarray:
     """Get profile along slit of PV image, summed over wavelength
 
@@ -353,7 +404,7 @@ def extract_line_and_regularize(
 
 
 def make_slit_wcs(
-    db: Mapping, slit_coords: Mapping, wavs: Sequence, j0: int
+    db: Mapping, slit_coords: Mapping, wavs: npt.NDArray[np.floating], j0: int
 ) -> tuple[WCS, WCS]:
     """Make WCS for the PV images
 
@@ -452,7 +503,9 @@ def make_three_plots(
     sdb: Union[Mapping, None] = None,
     linelabel: str = "H$\alpha$",
     return_fig: bool = False,
+    fig_fmt: str = "pdf",
 ) -> None:
+    """Make diagnostic plots for slit normalization and alignment"""
     assert spec.shape == calib.shape
     fig, axes = plt.subplots(3, 1)
 
@@ -543,7 +596,7 @@ def make_three_plots(
         )
     fig.set_size_inches(5, 8)
     fig.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
-    fig.savefig(f"{prefix}.png", dpi=300)
+    fig.savefig(f"{prefix}.{fig_fmt}", dpi=300)
 
     if return_fig:
         # This option suitable for single use in notebook
@@ -552,3 +605,170 @@ def make_three_plots(
         # Default option to clean up, suitable for use in loop over many spectra
         plt.close(fig)
         return None
+
+
+def trim_edges(
+    image: np.ndarray, edges: Sequence[int], fill_value: float = np.nan
+) -> np.ndarray:
+    lx, ux, ly, uy = edges
+    if ly > 0:
+        image[:ly, :] = fill_value
+    if uy < 0:
+        image[uy:, :] = fill_value
+    if lx > 0:
+        image[:, :lx] = fill_value
+    if ux < 0:
+        image[:, ux:] = fill_value
+    return image
+
+
+def pv_extract(
+    spec_hdu: HDU,
+    im_hdu: HDU,
+    photom_hdu: HDU,
+    db: dict,
+    restwavs: Mapping[str, float],
+    pvpath: Path,
+    neighbors: Sequence[int] = [-4, -2, 2, 4],
+) -> None:
+    """
+    For a single spectrum, apply all steps to get calibrated line PV diagrams
+    """
+
+    if "trim" in db:
+        # Replace non-linear part with NaNs
+        spec_hdu.data = trim_edges(spec_hdu.data, db["trim"])
+        # Fit and remove the linear trend along slit
+        pvmed = np.nanmedian(spec_hdu.data, axis=2 - db["wa"])
+        s = np.arange(len(pvmed))
+        pvmed0 = np.nanmedian(pvmed)
+        sig = np.nanstd(pvmed)
+        m = np.abs(pvmed - pvmed0) <= db.get("bg_sig", 1) * sig
+        p = Chebyshev.fit(s[m], pvmed[m], db.get("bg_deg", 1))
+        if db["wa"] == 1:
+            spec_hdu.data -= p(s)[:, None]
+        else:
+            spec_hdu.data -= p(s)[None, :]
+        # And replace the NaNs with the median value
+        spec_hdu.data = trim_edges(
+            spec_hdu.data, db["trim"], np.nanmedian(spec_hdu.data)
+        )
+
+    # And take a mean-over-wavelength of the spectral slit
+    # profile. This is so that we can use its median as a zero point
+    # to subtract from the PV array
+    spec_profile = np.nanmean(spec_hdu.data, axis=2 - db["wa"])
+    imslit_profile = extract_slit_profile_from_imslit(im_hdu.data, db, slit_width=2)
+
+    # Now subtract the median from each profile so that the cross correlation works
+    spec_zero_point = np.median(spec_profile)
+    spec_profile -= spec_zero_point
+    imslit_profile -= np.median(imslit_profile)
+
+    # We need to find the alignment along the slit.
+    # New method uses cross-correlation
+    ns = len(spec_profile)
+    assert len(imslit_profile) == ns, "Incompatible lengths. Maybe different binning?"
+    # The above assert would fail if the binning were different
+    # between the spectrum and the im+slit, which is something I will
+    # have to deal with later.
+
+    # An array of pixel offsets that matches the result of `np.correlate` in "full" mode:
+    jshifts = np.arange(-(ns - 1), ns)
+    # Now calculate the correlation:
+    xcorr = np.correlate(spec_profile, imslit_profile, mode="full")
+
+    if "shift_range" in db:
+        shmin, shmax = db["shift_range"]
+        mm = (np.abs(jshifts) >= shmin) & (np.abs(jshifts) <= shmax)
+        jshifts = jshifts[mm]
+        xcorr = xcorr[mm]
+
+    # Use the peak in xcorr to define the shift between the two profiles
+    db["shift"] = jshifts[xcorr.argmax()]
+
+    print("Shift along slit:", db["shift"])
+
+    # The other thing we need is the approximate peak of the spectral profile
+    jslit = np.arange(ns)
+    jwin_slice = slice(*db["jwin"])
+    # Take weighted average to define peak position
+    j0_s = np.average(jslit[jwin_slice], weights=spec_profile[jwin_slice])
+
+    # Now we have the shift, we can find the celestial coords along the slit in the spectrum
+    slit_coords = find_slit_coords(db, im_hdu.header, spec_hdu.header)
+    # And then find the profile along the calibration image
+    wphot = WCS(photom_hdu.header)
+    calib_profile = slit_profile(
+        slit_coords["RA"],
+        slit_coords["Dec"],
+        photom_hdu.data,
+        wphot,
+    )
+
+    # We have the ability to look at the profiles at neighboring slit
+    # positions in the calibration image. This allows us to see if we
+    # might have an error in the `islit` value:
+    nb_calib_profiles = {}
+    for nb in neighbors:
+        nbdb = db.copy()
+        nbdb["islit"] += nb
+        nb_slit_coords = find_slit_coords(nbdb, im_hdu.header, spec_hdu.header)
+        nb_calib_profiles[nb] = slit_profile(
+            nb_slit_coords["RA"], nb_slit_coords["Dec"], photom_hdu.data, wphot
+        )
+
+    # Now estimate the ratio between the spectrum brightness and the calibration image
+    jslice0 = slice(int(j0_s) - 20, int(j0_s) + 20)
+    spec_sum = np.nansum(spec_profile[jslice0])
+    calib_sum = np.nansum(calib_profile[jslice0])
+    print("Normalizations:", spec_sum, calib_sum)
+    print(spec_profile[jslice0])
+    print(calib_profile[jslice0])
+
+    rat0 = spec_sum / calib_sum
+    # And normalize the spectral profile to match the calibration image
+    spec_profile /= rat0
+
+    # Make the diagnostic plot that shows the calibration
+    slit_points = (np.arange(len(spec_profile)) - j0_s) * slit_coords["ds"]
+    figpath = Path.cwd().parent / "figs"
+    figpath.mkdir(exist_ok=True)
+    plt_prefix = str(figpath / f"{db['slit_id']}-calib")
+    make_three_plots(
+        spec_profile,
+        calib_profile,
+        plt_prefix,
+        slit_points=slit_points,
+        neighbors=nb_calib_profiles,
+        db=db,
+        sdb=slit_coords,
+        return_fig=False,
+    )
+
+    # Subtract zero point and flux-normalize the whole PV array
+    spec_hdu.data -= spec_zero_point
+    spec_hdu.data /= rat0
+    # Write out the flux-calibrated spectra
+    # The default header has minimal changes from the original
+    pvheader = fits.Header(spec_hdu.header, copy=True)
+    for lineid, wav0 in restwavs.items():
+        pvdata, contdata, wavs = extract_line_and_regularize(
+            spec_hdu.data, WCS(spec_hdu.header), wav0, db
+        )
+        pvdata = pvdata[None, :, :]
+        contdata = contdata[None, :, :]
+
+        # Create a fancy WCS object for slit coordinates (and a simple one too)
+        wslit, wsimp = make_slit_wcs(db, slit_coords, wavs, j0_s)
+        # Set the rest wavelength for this line
+        wslit.wcs.restwav = (wav0 * u.Angstrom).to(u.m).value
+        pvheader.update(wsimp.to_header())
+        pvheader.update(wslit.to_header(key="A"))
+        pvheader["WEIGHT"] = rat0
+
+        pvfile = str(pvpath / f"{db['slit_id']}-{lineid}.fits")
+        fits.PrimaryHDU(header=pvheader, data=pvdata).writeto(pvfile, overwrite=True)
+
+        pvcfile = pvfile.replace(".fits", "-cont.fits")
+        fits.PrimaryHDU(header=pvheader, data=contdata).writeto(pvcfile, overwrite=True)

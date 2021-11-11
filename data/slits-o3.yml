@@ -18,6 +18,10 @@
   slit_width: 70
   islit: 436
   jwin: [400, 600]
+  cosmic_rays:
+    -
+      xy: [426, 196]
+      radius: 3
   comment: >-
     Grazes E limb. 
     Image is Ha, not O III.
@@ -29,6 +33,11 @@
   slit_width: 70
   islit: 449
   jwin: [580, 740]
+  trim: [0, 0, 0, -50]
+  cosmic_rays:
+    -
+      xy: [349, 256]
+      radius: 5
   comment: >-
     Crosses E limb. 
 -
@@ -37,7 +46,9 @@
   image_id: spm0025o
   line_id: O III
   slit_width: 150
-  islit: 390
+  trim: [0, 0, 0, -5]
+  islit: 392
+  shift_range: [5, 100]
   jwin: [420, 530]
   comment: >-
     Grazes E limb. 

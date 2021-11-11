@@ -622,6 +622,21 @@ def trim_edges(
     return image
 
 
+def remove_cosmic_rays(
+    image: np.ndarray, crays: Sequence[Mapping], fill_value: float = np.nan
+) -> np.ndarray:
+    """
+    Remove cosmic rays by infilling a aquare around them
+    """
+    for cray in crays:
+        x, y = cray["xy"]
+        r = cray["radius"]
+        xslice = slice(x - r, x + r)
+        yslice = slice(y - r, y + r)
+        image[yslice, xslice] = fill_value
+    return image
+
+
 def pv_extract(
     spec_hdu: HDU,
     im_hdu: HDU,
@@ -634,6 +649,13 @@ def pv_extract(
     """
     For a single spectrum, apply all steps to get calibrated line PV diagrams
     """
+
+    if "cosmic_rays" in db:
+        spec_hdu.data = remove_cosmic_rays(
+            spec_hdu.data,
+            db["cosmic_rays"],
+            np.nanmedian(spec_hdu.data),
+        )
 
     if "trim" in db:
         # Replace non-linear part with NaNs

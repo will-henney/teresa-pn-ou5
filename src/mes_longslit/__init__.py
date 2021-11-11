@@ -20,6 +20,8 @@ from .slit_utils import (
     fit_cheb,
     make_three_plots,
     pv_extract,
+    remove_cosmic_rays,
+    trim_edges,
 )
 
 __version__ = "0.1"

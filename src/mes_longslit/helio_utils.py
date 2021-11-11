@@ -1,4 +1,10 @@
-# [[file:alba-orion-west.org::*Module%20to%20find%20heliocentric%20correction:%20helio_utils.py][Module\ to\ find\ heliocentric\ correction:\ helio_utils\.py:1]]
+"""
+Routines to find heliocentric correction using slalib
+
+Originally from Alba Orion West project
+"""
+
+
 import numpy as np
 from astropy.io import fits
 from astropy import coordinates as coord
@@ -9,15 +15,17 @@ from astropy.time import Time
 from pyslalib.slalib import sla_dcs2c, sla_evp, sla_rverot, sla_obs
 
 OBSERVATORY_ALIASES = {
-    'SPM': 'SANPM83',
-    'VLT': 'VLT1',
+    "SPM": "SANPM83",
+    "VLT": "VLT1",
 }
+
 
 def ra_dec_from_header(hdr):
     """This trusts the nominal RA, Dec given in the header"""
-    ra = coord.Longitude(hdr['RA'], u.hour)
-    dec = coord.Latitude(hdr['DEC'], u.deg)
+    ra = coord.Longitude(hdr["RA"], u.hour)
+    dec = coord.Latitude(hdr["DEC"], u.deg)
     return ra, dec
+
 
 def ra_dec_from_header_wcs(hdr, wcskey):
     """This uses the RA, Dec of the WCS reference pixel"""
@@ -26,16 +34,19 @@ def ra_dec_from_header_wcs(hdr, wcskey):
     dec = coord.Latitude(w.wcs.crval[1], u.deg)
     return ra, dec
 
+
 def mjd_from_header(hdr):
     if "MJD-OBS" in hdr:
-        mjd = float(hdr.get('MJD-OBS'))
+        mjd = float(hdr.get("MJD-OBS"))
     else:
-        mjd = float(hdr.get('MJD'))
+        mjd = float(hdr.get("MJD"))
     return mjd
+
 
 def mjd_from_header_wcs(hdr, wcskey):
     w = WCS(hdr, key=wcskey).celestial
     return Time(w.wcs.dateobs).mjd
+
 
 def obs_lat_from_name(observatory):
     if observatory in OBSERVATORY_ALIASES:
@@ -45,19 +56,21 @@ def obs_lat_from_name(observatory):
     obs_id, obs_name, obs_long, obs_lat, obs_height = sla_obs(0, obs_string)
     return coord.Latitude(obs_lat, u.radian)
 
+
 def st_from_header(hdr):
-    if 'ST' in hdr:
+    if "ST" in hdr:
         # SPM observations have ST measured in hours
-        st = coord.Longitude(hdr['ST'], u.hour)
-    elif 'LST' in hdr:
+        st = coord.Longitude(hdr["ST"], u.hour)
+    elif "LST" in hdr:
         # MUSE observations have LST measured in seconds
-        st = coord.Longitude(hdr['LST'], u.hour)/3600.0
+        st = coord.Longitude(hdr["LST"], u.hour) / 3600.0
     else:
         # No ST found - just assume midnight
         st = coord.Longitude(0.0, u.hour)
     return st
 
-def helio_topo_from_header(hdr, usewcs=None, observatory='SPM'):
+
+def helio_topo_from_header(hdr, usewcs=None, observatory="SPM"):
     if usewcs is None:
         ra, dec = ra_dec_from_header(hdr)
         mjd = mjd_from_header(hdr)
@@ -69,6 +82,7 @@ def helio_topo_from_header(hdr, usewcs=None, observatory='SPM'):
     obs_lat = obs_lat_from_name(observatory)
     return helio_topo_correction(ra, dec, mjd, st, obs_lat)
 
+
 def helio_topo_correction(ra, dec, mjd, st, obs_lat):
     """Find radial velocity correction in km/s due to transformation
     between topocentric and heliocentric frame.  Positive when
@@ -76,19 +90,22 @@ def helio_topo_correction(ra, dec, mjd, st, obs_lat):
 
     Parameters
     ----------
-    ra : :class:`~astropy.coordinates.Longitude` 
+    ra : :class:`~astropy.coordinates.Longitude`
         Right ascension of source
-    dec : :class:`~astropy.coordinates.Latitude` 
+    dec : :class:`~astropy.coordinates.Latitude`
         Declination of source
     mjd : float
         Modified Julian Date of observation
     st : :class:`~astropy.coordinates.Angle`
         Sideral Time of observation
-    obs_lat : :class:`~astropy.coordinates.Latitude` 
+    obs_lat : :class:`~astropy.coordinates.Latitude`
         Latitude of observatory
 
     """
-    return helio_geo_correction(ra, dec, mjd, st) + geo_topo_correction(ra, dec, st, obs_lat)
+    return helio_geo_correction(ra, dec, mjd, st) + geo_topo_correction(
+        ra, dec, st, obs_lat
+    )
+
 
 def helio_geo_correction(ra, dec, mjd, st):
     """Motion of earth's center in heliocentric frame"""
@@ -97,36 +114,38 @@ def helio_geo_correction(ra, dec, mjd, st):
     # Velocity and position of earth in barycentric and heliocentric frames
     # Units are AU and AU/s
     vel_bary, pos_bary, vel_hel, pos_hel = sla_evp(mjd, 2000.0)
-    # Radial velocity correction (km/s) due to helio-geocentric transformation  
+    # Radial velocity correction (km/s) due to helio-geocentric transformation
     # Positive when earth is moving away from object
     return u.AU.to(u.km, -np.dot(vel_hel, k_los))
+
 
 def geo_topo_correction(ra, dec, st, obs_lat):
     """Motion of telescope in geocentric frame"""
     return sla_rverot(obs_lat.radian, ra.radian, dec.radian, st.radian)
 
 
-LIGHT_SPEED_KMS = const.c.to('km/s').value
-def vels2waves(vels, restwav, hdr, usewcs=None, observatory='SPM'):
+LIGHT_SPEED_KMS = const.c.to("km/s").value
+
+
+def vels2waves(vels, restwav, hdr, usewcs=None, observatory="SPM"):
     """Heliocentric radial velocity (in km/s) to observed wavelength (in
     m, or whatever units restwav is in)
 
     """
     # Heliocentric correction
-    vels = np.array(vels) + helio_topo_from_header(hdr, usewcs=usewcs,
-                                                   observatory=observatory)
-    waves = restwav*(1.0 + vels/LIGHT_SPEED_KMS)
+    vels = np.array(vels) + helio_topo_from_header(
+        hdr, usewcs=usewcs, observatory=observatory
+    )
+    waves = restwav * (1.0 + vels / LIGHT_SPEED_KMS)
     return waves
 
 
-def waves2vels(waves, restwav, hdr, usewcs=None, observatory='SPM'):
-    """Observed wavelength to Heliocentric radial velocity (in km/s) 
-
-    """
-    vels = const.c*(waves - restwav)/restwav
+def waves2vels(waves, restwav, hdr, usewcs=None, observatory="SPM"):
+    """Observed wavelength to Heliocentric radial velocity (in km/s)"""
+    vels = const.c * (waves - restwav) / restwav
     # Heliocentric correction
-    vels -= helio_topo_from_header(hdr, usewcs=usewcs,
-                                   observatory=observatory)*u.km/u.s
+    vels -= (
+        helio_topo_from_header(hdr, usewcs=usewcs, observatory=observatory) * u.km / u.s
+    )
 
     return vels
-# Module\ to\ find\ heliocentric\ correction:\ helio_utils\.py:1 ends here

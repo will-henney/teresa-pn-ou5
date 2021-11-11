@@ -494,16 +494,30 @@ CLOSED: [2021-11-05 Fri 19:45]
 CLOSED: [2021-11-05 Fri 19:45]
 + This is done in the notebook
   + [[file:../notebooks/01-00-image-astrometry.py]]
-** [0/4] 02 Photometry and WCS info for slit spectra
+** [3/3] 02 Photometry and WCS info for slit spectra
 + We will generally follow the Turtle plan
 + But another thing we could do is to use the BG component in H alpha
-*** TODO TASK 02-00 Port the routines from ~turtle_utils.py~
+*** DONE TASK 02-00 Port the routines from ~turtle_utils.py~
+CLOSED: [2021-11-10 Wed 19:23]
 + These need to be generalised a bit and put in [[file:../src/mes_longslit/]]
-*** TODO TASK 02-01 Reference profiles from median image
++ They are in [[file:../src/mes_longslit/slit_utils.py]]
+*** DONE TASK 02-01 Reference profiles from median image and compare with slit profiles
+CLOSED: [2021-11-10 Wed 19:24]
++ This is done in [[file:../notebooks/02-01-test-normalize.py]] for Ha
++ And in [[file:../notebooks/02-02-o3-normalize.py]] for [O III]
++ They use the routine ~pv_extract()~ from the library
 
-*** TODO TASK 02-03 Compare slit profiles with reference profiles 
+*** DONE [#B] TASK 02-03 Write out extracted PV spectra with celestial coordinates
+CLOSED: [2021-11-10 Wed 19:27]
++ This is done with the same notebooks as above
++ The files are in [[file:../data/pvextract/]]
++ The have two different WCS systems
+  + Default is just wavelength, offset
+  + ~A~ is a fabcy one
+    + with 3 WCS axes mapping on to 2 image axes
+    + wavelength, RA, and Dec
 
-*** TODO Add WCS for velocities and slit offsets
+
 ** 03 Isovelocity images
 * Initial messages from Teresa
 ** 2021-06-21

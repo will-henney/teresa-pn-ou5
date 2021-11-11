@@ -25,6 +25,7 @@
 from pathlib import Path
 import yaml
 import numpy as np
+from numpy.polynomial import Chebyshev
 from astropy.io import fits
 from astropy.wcs import WCS
 import astropy.units as u
@@ -52,7 +53,7 @@ wphot = WCS(photom.header)
 
 # To start off with, we will analyze a single slit. **This is what we change when we want to try a differnt slit**
 
-db = slit_db_list[0]
+db = slit_db_list[3]
 db
 
 # Get the HDUs for both the slit spectrum and the image+slit. The spectrum file names are very variable, so we have an `orig_file` entry in the database:
@@ -78,68 +79,44 @@ else:
     db["ij"] = 1
 db["s"] = 1
 
-# +
-fill_value = np.nan  # np.nanmedian(spec_hdu.data)
-
-if "trim" in db:
-    # Trim edges from array
-    lx, ux, ly, uy = db["trim"]
-    if ly > 0:
-        spec_hdu.data[:ly, :] = fill_value
-    if uy < 0:
-        spec_hdu.data[uy:, :] = fill_value
-    if lx > 0:
-        spec_hdu.data[:, :lx] = fill_value
-    if ux < 0:
-        spec_hdu.data[:, ux:] = fill_value
-
-
-# spec_hdu.data[-50:, :] = fill_value
-# -
+if "cosmic_rays" in db:
+    spec_hdu.data = mes.remove_cosmic_rays(
+        spec_hdu.data, db["cosmic_rays"], np.nanmedian(spec_hdu.data),
+    )
 
 fig, ax = plt.subplots(figsize=(10, 5))
 # ax.imshow(spec_hdu.data[250:700, :],
 #          #vmin=-3, vmax=30,
 #          origin="lower");
-ax.imshow(spec_hdu.data[:, :], vmin=-10, vmax=60, origin="lower")
+ax.imshow(spec_hdu.data[:, :], vmin=10, vmax=100, origin="lower")
 
 # Try to correct for gradient:
 
-pvmed = np.nanmedian(spec_hdu.data, axis=1)
-s = np.arange(len(pvmed))
-pvmed0 = np.nanmedian(pvmed)
-sig = np.nanstd(pvmed)
-m = np.abs(pvmed - pvmed0) <= 5 * sig
-
-from numpy.polynomial import Chebyshev
-
-p = Chebyshev.fit(s[m], pvmed[m], 10)
-
-fig, ax = plt.subplots()
-ax.plot(s[m], pvmed[m])
-ax.plot(s, p(s))
-
-spec_hdu.data -= p(s)[:, None]
-
-# +
-fill_value = np.nanmedian(spec_hdu.data)
-
 if "trim" in db:
-    # Trim edges from array
-    lx, ux, ly, uy = db["trim"]
-    if ly > 0:
-        spec_hdu.data[:ly, :] = fill_value
-    if uy < 0:
-        spec_hdu.data[uy:, :] = fill_value
-    if lx > 0:
-        spec_hdu.data[:, :lx] = fill_value
-    if ux < 0:
-        spec_hdu.data[:, ux:] = fill_value
+    # Replace non-linear part with NaNs
+    spec_hdu.data = mes.trim_edges(spec_hdu.data, db["trim"])
+    # Fit and remove the linear trend along slit
+    pvmed = np.nanmedian(spec_hdu.data, axis=2 - db["wa"])
+    s = np.arange(len(pvmed))
+    pvmed0 = np.nanmedian(pvmed)
+    sig = np.nanstd(pvmed)
+    m = np.abs(pvmed - pvmed0) <= db.get("bg_sig", 1) * sig
+    p = Chebyshev.fit(s[m], pvmed[m], db.get("bg_deg", 1))
+    if db["wa"] == 1:
+        spec_hdu.data -= p(s)[:, None]
+    else:
+        spec_hdu.data -= p(s)[None, :]
+    # And replace the NaNs with the median value
+    spec_hdu.data = mes.trim_edges(
+        spec_hdu.data, db["trim"], np.nanmedian(spec_hdu.data)
+    )
 
-# -
+    fig, ax = plt.subplots()
+    ax.plot(s[m], pvmed[m])
+    ax.plot(s, p(s))
 
 fig, ax = plt.subplots(figsize=(10, 5))
-ax.imshow(spec_hdu.data[:, :], vmin=-10, vmax=60, origin="lower")
+ax.imshow(spec_hdu.data[:, :], vmin=-5, vmax=100, origin="lower")
 
 # So we are no longer attempting to remove the sky at this stage, but we are trying to remove the light leak or whatever it is that adds a bright background at one end of the slit.  This is necessary so that the cross correlation works.
 
@@ -150,7 +127,7 @@ restwavs = {"oiii": 5006.84, "hei": 5015.68}
 spec_profile = mes.extract_full_profile_from_pv(
     spec_hdu,
     wavaxis=db["wa"],
-    bandwidth=90.0,
+    bandwidth=None,
     linedict=restwavs,
 )
 
@@ -161,6 +138,7 @@ imslit_profile = mes.extract_slit_profile_from_imslit(
     db,
     slit_width=2,
 )
+
 
 jslit = np.arange(len(spec_profile))
 
@@ -192,7 +170,7 @@ ax.plot(jshifts, xcorr)
 
 # That is a very clean result! One high narrow peak, at an offset of roughly 100, exactly where we expect it to be.
 
-mm = (np.abs(jshifts) < 110) & (np.abs(jshifts) > 50)
+mm = (np.abs(jshifts) < 110) & (np.abs(jshifts) > 5)
 jshift_peak = jshifts[mm][xcorr[mm].argmax()]
 jshift_peak
 
@@ -201,7 +179,7 @@ jshift_peak
 fig, ax = plt.subplots(figsize=(12, 4))
 ax.plot(jslit + jshift_peak, imslit_profile / np.max(imslit_profile))
 ax.plot(jslit, spec_profile / np.max(spec_profile), alpha=0.7)
-ax.set(yscale="linear", ylim=[-0.2, 1])
+ax.set(yscale="linear", ylim=[-0.4, 1])
 ax.axhline(0)
 
 
@@ -303,7 +281,7 @@ mes.make_three_plots(
     db=db,
     sdb=slit_coords,
     return_fig=True,
-)
+);
 
 
 # ## Now try the automated way

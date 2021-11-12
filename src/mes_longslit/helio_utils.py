@@ -6,13 +6,13 @@ Originally from Alba Orion West project
 
 
 import numpy as np
-from astropy.io import fits
-from astropy import coordinates as coord
-from astropy import units as u
-from astropy import constants as const
-from astropy.wcs import WCS
-from astropy.time import Time
-from pyslalib.slalib import sla_dcs2c, sla_evp, sla_rverot, sla_obs
+from astropy.io import fits  # type: ignore
+from astropy import coordinates as coord  # type: ignore
+from astropy import units as u  # type: ignore
+from astropy import constants as const  # type: ignore
+from astropy.wcs import WCS  # type: ignore
+from astropy.time import Time  # type: ignore
+from pyslalib.slalib import sla_dcs2c, sla_evp, sla_rverot, sla_obs  # type: ignore
 
 OBSERVATORY_ALIASES = {
     "SPM": "SANPM83",

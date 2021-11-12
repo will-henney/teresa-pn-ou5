@@ -23,5 +23,6 @@ from .slit_utils import (
     remove_cosmic_rays,
     trim_edges,
 )
+from .spectral_map import make_vmap
 
 __version__ = "0.1"

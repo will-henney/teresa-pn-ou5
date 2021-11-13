@@ -140,30 +140,17 @@ Try it both ways:
   [jupytext] Loading 02-02-o3-normalize.py
   [jupytext] Updating the timestamp of 02-02-o3-normalize.py
   [jupytext] Reading 03-01-test-vmap.ipynb in format ipynb
+  [jupytext] Updating 03-01-test-vmap.py
   #+end_example
 
 + Or this version if we have added a new notebook
     #+begin_src sh :dir ../notebooks :results verbatim
-    jupytext --set-formats ipynb,py:light *.ipynb
+    jupytext --set-formats ipynb,py:light 03*.ipynb
   #+end_src
 
   #+RESULTS:
-  #+begin_example
-  [jupytext] Reading 00-00-inspect-orig-files.ipynb in format ipynb
-  [jupytext] Updating notebook metadata with '{"jupytext": {"formats": "ipynb,py:light"}}'
-  [jupytext] Updating the timestamp of 00-00-inspect-orig-files.py
-  [jupytext] Reading 01-01-median-image.ipynb in format ipynb
-  [jupytext] Updating notebook metadata with '{"jupytext": {"formats": "ipynb,py:light"}}'
-  [jupytext] Updating the timestamp of 01-01-median-image.py
-  [jupytext] Reading 02-01-test-normalize.ipynb in format ipynb
-  [jupytext] Updating notebook metadata with '{"jupytext": {"formats": "ipynb,py:light"}}'
-  [jupytext] Updating the timestamp of 02-01-test-normalize.py
-  [jupytext] Reading 02-02-o3-normalize.ipynb in format ipynb
-  [jupytext] Updating notebook metadata with '{"jupytext": {"formats": "ipynb,py:light"}}'
-  [jupytext] Updating the timestamp of 02-02-o3-normalize.py
-  [jupytext] Reading 03-01-test-vmap.ipynb in format ipynb
-  [jupytext] Updating notebook metadata with '{"jupytext": {"formats": "ipynb,py:light"}}'
-  [jupytext] Updating 03-01-test-vmap.ipynb
-  [jupytext] Updating 03-01-test-vmap.py
-  #+end_example
+  : [jupytext] Reading 03-01-test-vmap.ipynb in format ipynb
+  : [jupytext] Updating notebook metadata with '{"jupytext": {"formats": "ipynb,py:light"}}'
+  : [jupytext] Updating 03-01-test-vmap.ipynb
+  : [jupytext] Updating 03-01-test-vmap.py
 

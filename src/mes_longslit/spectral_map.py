@@ -17,6 +17,16 @@ import astropy.units as u  # type: ignore
 from .helio_utils import helio_topo_from_header, vels2waves
 
 
+# This is derived from the data in Table 1 of Meaburn et al 2003RMxAA..39..185M
+#
+# For example 30 mm in focal plane is 6.5 arcmin = 390 arcsec
+MES_ARCSEC_PER_MICRON = 0.013
+
+# This is necessary so that astropy.unit will recognise the plural form
+# "microns", which is often used in the SPM FITS headers
+u.add_enabled_units([u.def_unit("microns", u.micron)])
+
+
 def waves2pixels(waves: np.ndarray, w: WCS) -> np.ndarray:
     """
     Convert array of wavelengths (in m) to array indices (integers)
@@ -36,7 +46,7 @@ def make_vmap(
     datapath: Path = Path.cwd().parent / "data" / "pvextract",
     shape: tuple[int, int] = (512, 512),
     pixel_scale: float = 0.2,
-    slit_width: float = 1.0,
+    slit_width_scale: float = 1.0,
     verbose: bool = False,
 ) -> fits.HDUList:
     """
@@ -62,8 +72,8 @@ def make_vmap(
         Shape of output image array. Default is (512, 512).
     pixel_scale : float, optional
         Linear size in arcsec of each pixel in output array. Default is 0.2 arcsec.
-    slit_width : float, optional
-        Width of each slit in arcsec. Default is 1.0 arcsec.
+    slit_width_scale : float, optional
+        Scale factor to multiply the true width of slit. Default is 1.0
     verbose : bool, default: False
 
     Returns:
@@ -92,9 +102,6 @@ def make_vmap(
     outimage = np.zeros((NY, NX))
     outweights = np.zeros((NY, NX))
 
-    # Use a slightly wider slit than is strictly accurate
-    slit_pix_width = slit_width / pixel_scale
-
     speclist = datapath.glob(f"*-{line_id}.fits")
 
     # Window widths for line and BG
@@ -108,6 +115,16 @@ def make_vmap(
             print("Processing", fn)
         (spechdu,) = fits.open(fn)
         wspec = WCS(spechdu.header, key="A")
+
+        # If the header does not specify the slit width, assume it is 150 um
+        aperture = spechdu.header.get("APERTURE", "150 micron")
+        # Use astropy.unit to parse the string
+        slit_width_micron = u.Unit(aperture).to(u.micron)
+
+        # Allow adjustment of the true slit width using the slit_width_scale parameter
+        slit_pix_width = (
+            MES_ARCSEC_PER_MICRON * slit_width_micron * slit_width_scale / pixel_scale
+        )
 
         # Trim to good portion of the slit
         goodslice = slice(None, None)

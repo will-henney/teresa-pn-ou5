@@ -37,6 +37,10 @@ def waves2pixels(waves: np.ndarray, w: WCS) -> np.ndarray:
     return w.spectral.world_to_array_index_values(waves)
 
 
+def make_vcube():
+    ...
+
+
 def make_vmap(
     vel0: float,
     ra0: float,
@@ -63,28 +67,50 @@ def make_vmap(
     dvel : float, optional
         Width of velocity channel in km/s. Default is 20 km/s
     line_id : str, optional
-        Name of emission line. This is used to glob for the files containing the PV spectra.
-        Default is "ha".
+        Name of emission line. This is used to glob for the files
+        containing the PV spectra.  Default is "ha".
     datapath : `pathlib.Path`, optional
-        Path to folder containing PV spectra files.  Default is ../data/pvextract with
-        respect to current working directory.
+        Path to folder containing PV spectra files.  Default is
+        ../data/pvextract with respect to current working directory.
     shape : 2-tuple of (int, int), optional
         Shape of output image array. Default is (512, 512).
     pixel_scale : float, optional
-        Linear size in arcsec of each pixel in output array. Default is 0.2 arcsec.
+        Linear size in arcsec of each pixel in output array. Default
+        is 0.2 arcsec.
     slit_width_scale : float, optional
-        Scale factor to multiply the true width of slit. Default is 1.0
+        Scale factor to multiply the true width of slit. Default is
+        1.0
     verbose : bool, default: False
 
     Returns:
     --------
     `fits.HDUList`
-        List of 3 HDU images. The first ("slits") is the sum of all the slit
-        brightness times the per-slit weight.  The second ("weight") is the
-        sum of the weights.  These two have zero for pixels where there is no slit.
-        The third ("scaled") is the first divided by the second, so this is the one
-        that has the best estimate of the channel brightness in each pixel. This has
-        NaN for pixels where there is no slit.
+        List of 3 HDU images. The first ("slits") is the sum of all
+        the slit brightness times the per-slit weight.  The second
+        ("weight") is the sum of the weights.  These two have zero for
+        pixels where there is no slit.  The third ("scaled") is the
+        first divided by the second, so this is the one that has the
+        best estimate of the channel brightness in each pixel. This
+        has NaN for pixels where there is no slit.
+
+    Notes
+    -----
+
+    Here are some limitations and quirks of the current algorithm.
+
+    1. The transformation to pixels along the wavelength axis yields
+    integer values.  This could produce inaccuracies and aliasing when
+    `dvel` is less than or comparable to the original pixel size
+    along the spectral axis of the PV image. One way of getting round
+    this would be to subgrid-interpolate the spectral axis first, but
+    this is not yet implemented.
+
+    2. When each slit pixel is added to the output image, a square
+    image pixel is used. This means that increasing the width of the
+    slit will also produce a corresponding smoothing along the length
+    of the slit.  This could even be considered as a positive feature
+    ...
+
     """
     # First set up WCS for the output image
     #

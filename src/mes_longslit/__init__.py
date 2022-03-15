@@ -7,7 +7,10 @@ Observatory, Mexico)
 William Henney, 2019, 2020, 2021
 """
 
-from .regrid import regrid_images
+from .regrid import (
+    regrid_images,
+    regrid_pv,
+)
 from .slit_utils import (
     slit_profile_circle,
     slit_profile,

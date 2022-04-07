@@ -124,7 +124,7 @@ ax.set(
 )
 # -
 
-# Look at all the [O III] slits
+# ## Look at all the [O III] slits
 
 # +
 file_list = sorted(pvpath.glob("*-oiii-*.fits"), key=fkey)
@@ -337,6 +337,68 @@ hdu.writeto(pvpath2 / "ha-pv-coadd.fits", overwrite=True)
 
 
 # -
+# ## Look at our co-added spectra
+
+
+import seaborn as sns
+sns.set_context("talk")
+
+# +
+file_list = sorted(pvpath2.glob("*-pv-coadd.fits"))
+
+N = len(file_list)
+ncols = 2
+nrows = (N // ncols) + 1
+fig = plt.figure(figsize=(8 * ncols, 10 * nrows))
+
+vsys = -33
+v1, v2 = vsys - 100, vsys + 100
+s1, s2 = -35, 35
+
+kernel = Gaussian2DKernel(x_stddev=2.0)
+for i, filepath in enumerate(file_list):
+    hdu, = fits.open(filepath)
+    w = WCS(hdu.header)
+    ax = plt.subplot(nrows, ncols, i + 1, projection=w)
+    xlims, ylims = w.world_to_pixel_values([v1, v2], [s1, s2])
+    y1, y2 = [int(_) for _ in ylims]
+    bg1 = np.median(hdu.data[y1-10:y1], axis=0)
+    bg2 = np.median(hdu.data[y2:y2+10], axis=0)
+    im = hdu.data - 0.5 * (bg1 + bg2)
+    im /= im.max()
+    ax.imshow(im, vmin=-0.1, vmax=1.0)
+    ims = convolve_fft(im, kernel)
+    ax.contour(
+        ims, 
+        levels=[0.005, 0.01, 0.02, 0.04, 0.08], 
+        colors="w",
+        linewidths=[0.5, 1.0, 1.5, 2.0, 2.5],
+    )
+
+    ax.set(xlim=xlims, ylim=ylims)
+    ax.set_title(filepath.stem + f"\nweight = {hdu.header['WEIGHT']:.3f}")
+...;
+# -
+
+# ### Some comments on the results
+#
+# Components
+#
+# #### Inner lobes
+#
+# Red component is brighter than blue.
+#
+# #### Outer lobes
+#
+# Bend towards blue on both sides (N and S)
+#
+# #### Equatorial high velocity wings
+# More obvious in oiii. 
+#
+# #### Polar knots
+#
+#
+#
 
 
 

@@ -2,7 +2,6 @@
 
 
 
-<a id="org83f3e0e"></a>
 
 ## Layout of this repo
 
@@ -12,7 +11,7 @@
     -   `data/first-look` is the initial partially reduced spectra from Teresa for reference
         -   Also includes a [PDF showing the slit positions](data/first-look/slit-spm-final-1.pdf).
     -   `docs/` contains documentation
-        -   <docs/pn-ou5-pipeline.md> describes all the steps in the data reduction
-        -   <docs/pn-ou5-admin.md> describes setting up the python virtual environment, etc
+        - [pn-ou5-pipeline](docs/pn-ou5-pipeline.org) describes all the steps in the data reduction
+        - [pn-ou5-admin](docs/pn-ou5-admin.org) describes setting up the python virtual environment, etc
     -   `notebooks/` contains jupyter notebooks
     -   `src/` contains python source code for library functions that are used in the notebooks

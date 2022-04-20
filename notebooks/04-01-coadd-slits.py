@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # ---
 # jupyter:
 #   jupytext:
@@ -682,7 +683,9 @@ axes[3].legend(ncol=2)
 axes[-1].set(
     xlabel="Heliocentric velocity, km/s",
 )
-fig.savefig("ou5-coadd-1dspec-all.pdf")
+figfile = "ou5-coadd-1dspec-all.pdf"
+fig.savefig(figfile)
+fig.savefig(figfile.replace(".pdf", ".jpg"))
 ...;
 # -
 
@@ -746,9 +749,6 @@ for ax, [pos_label, [s1, s2]] in zip(axes, positions):
         fitmask = spec > fac * spec.max()
         fitted_model = fitter(init_model, vels[fitmask], spec[fitmask])
         gfits[(line_label, pos_label)] = fitted_model
-#        print(pos_label, line_label)
-#        print(init_model)
-#        print(fitted_model)
         ax.plot(
             vels, 
             fitted_model(vels), 
@@ -758,10 +758,19 @@ for ax, [pos_label, [s1, s2]] in zip(axes, positions):
             label=f"{line_label} fit",
         )
         if "knot" in pos_label:
-            mark_component(fitted_model, c, ax)
-        else:
-            mark_component(fitted_model[0], c, ax)
-            mark_component(fitted_model[1], c, ax)
+            # special case of 1 component, therefore not compound model
+            fitted_model = [fitted_model]
+        for component in fitted_model:
+            mark_component(component, c, ax)
+            ax.plot(
+                vels, 
+                component(vels), 
+                linestyle="dotted", 
+                lw=2, 
+                c=c,
+                alpha=0.5,
+            )
+
 
     ax.axhline(0.0, linestyle="dashed", c="k", lw=1,)
     ax.axvline(vsys, linestyle="dashed", c="k", lw=1,)
@@ -771,7 +780,9 @@ axes[3].legend(ncol=2)
 axes[-1].set(
     xlabel="Heliocentric velocity, km/s",
 )
-fig.savefig("ou5-coadd-1dspec-ha-oiii.pdf")
+figfile = "ou5-coadd-1dspec-ha-oiii.pdf"
+fig.savefig(figfile)
+fig.savefig(figfile.replace(".pdf", ".jpg"))
 ...;
 # -
 
@@ -878,7 +889,9 @@ axes[1].legend(ncol=1)
 axes[-1].set(
     xlabel="Heliocentric velocity, km/s",
 )
-fig.savefig("ou5-coadd-1dspec-wings.pdf")
+figfile = "ou5-coadd-1dspec-wings.pdf"
+fig.savefig(figfile)
+fig.savefig(figfile.replace(".pdf", ".jpg"))
 ...;
 # -
 
@@ -887,13 +900,16 @@ import pandas as pd
 m = gfits[("oiii", "Core")]
 dict(zip(m.param_names, m.parameters))
 
+pd.set_option('display.precision', 2)
 pd.DataFrame(
     {k: dict(zip(m.param_names, m.parameters)) for k, m in gfits.items()}
-).T
+).T.style.format(na_rep='—')
 
 pd.DataFrame(
     {k: dict(zip(m.param_names, m.parameters)) for k, m in gfits2.items()}
 ).T
+
+
 
 # ## Exploratory material
 

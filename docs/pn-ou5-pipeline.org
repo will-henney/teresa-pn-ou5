@@ -10,6 +10,16 @@
 
 
 *** Diego's intent to remove cosmic rays
+- Diego says it is not working, so I will try it
+- I have made the following changes
+  - I have changed the path to look in the current folder
+  - I have removed the figure parts, since we can just look at the FITS files
+#+begin_src sh :dir ../diego-remove-cosmicrays
+python remove_cosmicRay.py
+#+end_src
+
+#+RESULTS:
+    
 
 * Stages in data reduction and analysis
 + I am going to follow similar steps to what I did with the Owl and the Turtle

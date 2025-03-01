@@ -1,0 +1,25 @@
+[build-system]
+requires = ["flit_core"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "mes-longslit"
+authors = [{name = "William Henney", email = "whenney@gmail.com"}]
+classifiers = ["License :: OSI Approved :: MIT License"]
+dynamic = ["version", "description"]
+requires-python = ">=3.8"
+dependencies = [
+    "poetry",
+    "setuptools < 60.0",
+    "astropy",
+    "astropy-healpix",
+    "reproject",
+    "FITS_tools>=0.3",
+    "pyslalib>=1.0.9",
+]
+
+[project.urls]
+Home = "https://github.com/will-henney/teresa-pn-ou5"
+
+[tool.uv.sources]
+FITS_tools = { git = "https://github.com/keflavich/FITS_tools" }

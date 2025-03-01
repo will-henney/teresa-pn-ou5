@@ -1,13 +1,37 @@
-[build-system]
-requires = ["flit_core >=3.2,<4"]
-build-backend = "flit_core.buildapi"
-
 [project]
-name = "mes_longslit"
-authors = [{name = "William Henney", email = "whenney@gmail.com"}]
-classifiers = ["License :: OSI Approved :: MIT License"]
-dynamic = ["version", "description"]
-requires-python = ">=3.9"
+name = "teresa-pn-ou5"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "numpy",
+    "scipy",
+    "pandas",
+    "matplotlib>=3.3",
+    "seaborn",
+    "astropy",
+    "cmasher",
+    "pyyaml",
+    "jupyter_client",
+    "jupyter",
+    "jupyterlab",
+    "jupytext",
+    "mes-longslit",
+]
+
+[project.optional-dependencies]
+dev = [
+    "flit",
+    "black",
+    "mypy"
+]
+
+[tool.uv.sources]
+mes-longslit = { workspace = true }
+
+[tool.uv.workspace]
+members = ["mes-longslit"]
 
 [project.urls]
 Home = "https://github.com/will-henney/teresa-pn-ou5"

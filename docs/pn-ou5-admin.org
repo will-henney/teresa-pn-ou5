@@ -1,5 +1,35 @@
 * Administration tasks for Teresa PN Ou 5 project
 
+** Revisiting this project 2025
+- I would rather not have to use conda any more
+- I have rewritten everything to use uv instead, which was very painful
+  - I had to use the github version of ~fits_tools~, since the PyPI version is very old and I could not get it to compile
+  - the sub-package is now in mes-longslits, which is included as a workspace member in the top-level uv config
+  - This means that it has its own ~pyproject.toml~    
+  - I am currently using python 3.11 as a compromise between modernity and compatibility
+    - Later versions produce irreconcilable version conflicts between numpy and distutils
+
+      
+*** Testing locally installed version
+#+begin_src sh :results verbatim
+  uv run ./test-import.py
+#+end_src
+
+#+RESULTS:
+: 0.1
+
+This works, but it does give some warnings though
+#+begin_example
+  /Users/will/Dropbox/teresa-pn-ou5/.venv/lib/python3.11/site-packages/FITS_tools/__init__.py:33: UserWarning: module 'astropy.config.configuration' has no attribute 'update_default_config', which has been deprecated in astropy 6.1.1.
+    warn(wmsg)
+#+end_example
+
+
+*** Testing that the notebooks still work
+#+begin_src sh :eval no
+  uv run jupyter lab --no-browser
+#+end_src
+* Original version from 2021
 ** Managing the Python environment
 + Managed with anaconda
 + Python version and required packages are listed in [[file:../environment.yml]]
@@ -89,9 +119,7 @@ Try it both ways:
 #+end_src
 
 #+RESULTS:
-: /Users/will/miniconda3/envs/pn-ou5/
-: /Users/will/miniconda3/envs/pn-ou5/bin/python
-: 0.1
+: 
 
 
 *** Publishing the package

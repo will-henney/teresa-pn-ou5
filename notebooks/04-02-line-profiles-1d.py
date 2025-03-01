@@ -7,7 +7,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.13.0
+#       jupytext_version: 1.16.7
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -119,7 +119,7 @@ fig, axes = plt.subplots(
     figsize=(12, 16),
 )
 
-vsys = -33c
+vsys = -33
 v1, v2 = vsys - 100, vsys + 100
 fitter = fitting.LevMarLSQFitter()
 keep = ["ha", "oiii"]
@@ -199,15 +199,12 @@ fig.savefig(figfile.replace(".pdf", ".jpg"))
 
 # Now zoom the y axis, to look at the wings, but just for the inner regions:
 
-# + tags=[]
 cpos = {
     k: v for k, v in positions
     if np.abs(v).min() < 4
 }
 cpos
 
-
-# -
 
 def mark_component_low(model, color, ax):
     v = model.mean.value
@@ -317,11 +314,9 @@ df = pd.DataFrame(
 ).T
 df.style.format(na_rep='—')
 
-# + [markdown] tags=[]
 # ## Compare with 2D spectra
 #
 # Repeat from previous notebook, but add positions
-# -
 
 positions
 
@@ -407,6 +402,8 @@ sys = -33
 v1, v2 = vsys - 100, vsys + 100
 fitter = fitting.LevMarLSQFitter()
 finefits = {}
+finesingles = {}
+fineprofiles = {}
 hdu = linehdus["oiii"]
 w = WCS(hdu.header)
 ns, nv = hdu.data.shape
@@ -421,30 +418,75 @@ for finepos in fine_positions:
     vels = vels[x1:x2+1]
     sm = spec.max()
     g1 = models.Gaussian1D(amplitude=sm, mean=-50, stddev=10.0)
+    g1.stddev.bounds = (5.0, 10.0)
     g2 = models.Gaussian1D(amplitude=sm, mean=-20, stddev=10.0)
+    g2.stddev.bounds = (5.0, 10.0)
     init_model = g1 + g2
     fitted_model = fitter(init_model, vels, spec)
+    gs = models.Gaussian1D(amplitude=sm, mean=sys, stddev=10.0)
+    fitted_single = fitter(gs, vels, spec)
     finefits[finepos] = fitted_model
+    finesingles[finepos] = fitted_single
+    fineprofiles[finepos] = {
+        "v": vels,
+        "spec": spec,
+        "model": fitted_model(vels),
+        "g1": fitted_model[0](vels),
+        "g2": fitted_model[1](vels),
+        "gs": fitted_single(vels),
+    }
 ...;
 # -
-
 fdf = pd.DataFrame(
     {k: dict(zip(m.param_names, m.parameters)) for k, m in finefits.items()}
 ).T
 fdf.style.format(na_rep='—')
 
-fdf[["mean_0", "mean_1"]].plot()
+fdfs = pd.DataFrame(
+    {k: dict(zip(m.param_names, m.parameters)) for k, m in finesingles.items()}
+).T
+fdfs.style.format(na_rep='—')
+
+fdf = fdf.join(fdfs)
+
+# Calculate weighted mean of the velocities
+
+fdf = fdf.assign(
+    wmean = lambda x: (
+        x.mean_0 * x.stddev_0 * x.amplitude_0
+        + x.mean_1 * x.stddev_1 * x.amplitude_1
+    ) / (x.stddev_0 * x.amplitude_0 + x.stddev_1 * x.amplitude_1)
+)
+
+fdf[["mean_0", "mean_1", "mean", "wmean"]].plot()
+
+fdf[["amplitude_0", "amplitude_1", "amplitude"]].plot().set_yscale("log")
+
+
+fdf[["stddev_0", "stddev_1", "stddev"]].plot().set_ylim(0.0, 25.0)
+
 
 fig, ax = plt.subplots(figsize=(8, 8))
 ax.scatter(
     fdf["mean_0"], 
     fdf.index,
-    s=100 * fdf["amplitude_0"],    
+    s=100 * fdf["amplitude_0"] * fdf["stddev_0"] / 7,    
 )
 ax.scatter(
     fdf["mean_1"], 
     fdf.index,
-    s=100 * fdf["amplitude_1"],    
+    s=100 * fdf["amplitude_1"] * fdf["stddev_1"] / 7,    
+)
+# ax.scatter(
+#     fdf["mean"], 
+#     fdf.index,
+#     s=100 * fdf["amplitude"] * fdf["stddev"] / 14,    
+# )
+ax.plot(
+    fdf["wmean"], 
+    fdf.index,
+    color="k",
+#    s=100 * fdf["amplitude"] * fdf["stddev"] / 14,    
 )
 ax.axhline(0.0, color="k", ls="dashed", lw=2, alpha=0.3)
 ax.axvline(vsys, color="k", ls="dashed", lw=2, alpha=0.3)
@@ -458,4 +500,79 @@ fig.savefig(figfile)
 fig.savefig(figfile.replace(".pdf", ".jpg"))
 ...;
 
-                                                                                                                                    
+# ## Look at the individua profile fits in more detail                                                                                                                        
+# We want to see whether it makes sense to fit two gaussians in the outer lobes
+
+fig, ax = plt.subplots(figsize=(8, 8))
+for pos in fine_positions:
+    data = fineprofiles[pos]
+    v = data["v"]
+    norm = np.max(data["spec"])
+    g1 = np.where(data["g1"] > 0.02 * norm, data["g1"], np.nan)
+    g2 = np.where(data["g2"] > 0.02 * norm, data["g2"], np.nan)
+    ax.fill_between(v, pos + 4 * g1 / norm, pos, color="b", lw=0.5, alpha=0.3)
+    ax.fill_between(v, pos + 4 * g2 / norm, pos, color="r", lw=0.5, alpha=0.3)
+    ax.plot(v, pos + 4 * data["spec"] / norm, color="k", alpha=0.4, drawstyle="steps-mid")
+ax.set(
+    xlim=[-95, 25],
+)
+
+
+# Repeat but for northern outer lobe
+
+fig, ax = plt.subplots(figsize=(8, 8))
+for pos in fine_positions:
+    if pos < 12.0:
+        continue
+    data = fineprofiles[pos]
+    v = data["v"]
+    norm = np.max(data["spec"])
+    scale = 1.0
+    g1 = np.where(data["g1"] > 0.02 * norm, data["g1"], np.nan)
+    g2 = np.where(data["g2"] > 0.02 * norm, data["g2"], np.nan)
+    ax.fill_between(v, pos + scale * g1 / norm, pos, color="b", lw=0.5, alpha=0.3)
+    ax.fill_between(v, pos + scale * g2 / norm, pos, color="r", lw=0.5, alpha=0.3)
+    if abs(pos) > 20.0:
+        gs = np.where(data["gs"] > 0.01 * norm, data["gs"], np.nan)
+        ax.plot(v, pos + scale * gs / norm, color="g", lw=1.3)
+    ax.plot(v, pos + scale * data["spec"] / norm, color="k", alpha=0.4, drawstyle="steps-mid")
+
+
+# And for southern lobe
+
+fig, ax = plt.subplots(figsize=(8, 8))
+for pos in fine_positions:
+    if pos > -12.0:
+        continue
+    data = fineprofiles[pos]
+    v = data["v"]
+    norm = np.max(data["spec"])
+    scale = 1.0
+    g1 = np.where(data["g1"] > 0.02 * norm, data["g1"], np.nan)
+    g2 = np.where(data["g2"] > 0.02 * norm, data["g2"], np.nan)
+    ax.fill_between(v, pos + scale * g1 / norm, pos, color="b", lw=0.5, alpha=0.3)
+    ax.fill_between(v, pos + scale * g2 / norm, pos, color="r", lw=0.5, alpha=0.3)
+    if abs(pos) > 20.0:
+        gs = np.where(data["gs"] > 0.01 * norm, data["gs"], np.nan)
+        ax.plot(v, pos + scale * gs / norm, color="g", lw=1.3)
+    ax.plot(v, pos + scale * data["spec"] / norm, color="k", alpha=0.4, drawstyle="steps-mid")
+
+fig, ax = plt.subplots(figsize=(8, 8))
+for pos in fine_positions:
+    if abs(pos) > 12.0:
+        continue
+    data = fineprofiles[pos]
+    v = data["v"]
+    norm = np.max(data["spec"])
+    scale = 1.0
+    g1 = np.where(data["g1"] > 0.02 * norm, data["g1"], np.nan)
+    g2 = np.where(data["g2"] > 0.02 * norm, data["g2"], np.nan)
+    ax.fill_between(v, pos + scale * g1 / norm, pos, color="b", lw=0.5, alpha=0.3)
+    ax.fill_between(v, pos + scale * g2 / norm, pos, color="r", lw=0.5, alpha=0.3)
+    if abs(pos) > 20.0:
+        gs = np.where(data["gs"] > 0.01 * norm, data["gs"], np.nan)
+        ax.plot(v, pos + scale * gs / norm, color="g", lw=1.3)
+    ax.plot(v, pos + scale * data["spec"] / norm, color="k", alpha=0.4, drawstyle="steps-mid")
+
+
+

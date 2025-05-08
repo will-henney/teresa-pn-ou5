@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.13.0
+#       jupytext_version: 1.16.7
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -77,12 +77,9 @@ mes.convert_pv_offset_vels(c0.ra.deg, c0.dec.deg, line_id="ha", verbose=True)
 
 mes.convert_pv_offset_vels(c0.ra.deg, c0.dec.deg, line_id="oiii", verbose=True)
 
-# + tags=[]
 mes.convert_pv_offset_vels(c0.ra.deg, c0.dec.deg, line_id="heii", verbose=True)
 
-# + tags=[]
 mes.convert_pv_offset_vels(c0.ra.deg, c0.dec.deg, line_id="nii", verbose=True)
-# -
 
 pvpath = dpath / "pv-offset-vels"
 
@@ -175,7 +172,8 @@ pvpath2.mkdir(exist_ok=True)
 
 for filepath in file_list:
     hdu, = fits.open(filepath)
-    hdu2 = mes.regrid_pv(hdu)
+    # Use output pixels of 2 km/s by 1 arcsec
+    hdu2 = mes.regrid_pv(hdu, pixscale=(2.0, 1.0))
     filepath2 = pvpath2 / f"{filepath.stem}-regrid.fits" 
     hdu2.writeto(filepath2, overwrite=True)
 
@@ -205,7 +203,7 @@ for i, filepath in enumerate(file_list):
     bg2 = np.median(hdu.data[y2-10:y2+10], axis=0)
     im = hdu.data - 0.5 * (bg1 + bg2)
     im /= im.max()
-    ax.imshow(im, vmin=-0.1, vmax=1.0)
+    ax.imshow(im, vmin=-0.1, vmax=1.0, aspect="auto")
     ims = convolve_fft(im, kernel)
     ax.contour(
         ims, 
@@ -247,7 +245,7 @@ hdu.writeto(pvpath2 / "oiii-pv-coadd.fits", overwrite=True)
 
 # ## Repeat for all the Ha slits
 
-# + tags=[]
+# +
 file_list = sorted(pvpath.glob("*-ha-*.fits"), key=fkey)
 
 N = len(file_list)
@@ -284,9 +282,49 @@ for i, filepath in enumerate(file_list):
 ...;
 # -
 
+# Fit gaussian to profile along horizontal slit
+
+w
+
+filepath = file_list[4]
+hdu, = fits.open(filepath)
+w = WCS(hdu.header)
+ny, nx = hdu.data.shape
+_, yy = w.array_index_to_world(np.arange(ny), [0] * ny)
+yy
+
+_, [i1, i2] = w.world_to_array_index_values([-70, 0], [0, 0])
+i1, i2, _
+
+from astropy.modeling import models, fitting
+
+# +
+fig, ax = plt.subplots()
+profile = np.mean(hdu.data[:, i1:i2], axis=1)
+profile -= np.median(profile)
+g1 = models.Gaussian1D(amplitude=50, mean=-4, stddev=4)
+g2 = models.Gaussian1D(amplitude=70, mean=5, stddev=4)
+init_model = g1 + g2
+mask = np.abs(yy) < 25 * u.arcsec
+fitter = fitting.LevMarLSQFitter()
+fitted_model = fitter(init_model, yy[mask], profile[mask])
+gg1, gg2 = fitted_model
+ax.plot(yy, profile)
+ax.plot(yy, fitted_model(yy))
+ax.axvline(0)
+ax.axvline(gg1.mean.value)
+ax.axvline(gg2.mean.value)
+
+ax.set_xlim(-25, 25)
+# -
+
+# Calculate offset between the two peaks:
+
+gg2.mean - gg1.mean
+
 for filepath in file_list:
     hdu, = fits.open(filepath)
-    hdu2 = mes.regrid_pv(hdu)
+    hdu2 = mes.regrid_pv(hdu, pixscale=(2.0, 1.0))
     filepath2 = pvpath2 / f"{filepath.stem}-regrid.fits" 
     hdu2.writeto(filepath2, overwrite=True)
 
@@ -313,7 +351,7 @@ for i, filepath in enumerate(file_list):
     bg2 = np.median(hdu.data[y2:y2+10], axis=0)
     im = hdu.data - 0.5 * (bg1 + bg2)
     im /= im.max()
-    ax.imshow(im, vmin=-0.1, vmax=1.0)
+    ax.imshow(im, vmin=-0.1, vmax=1.0, aspect="auto")
     ims = convolve_fft(im, kernel)
     ax.contour(
         ims, 
@@ -384,6 +422,7 @@ for i, filepath in enumerate(file_list):
 for filepath in file_list:
     hdu, = fits.open(filepath)
     hdu2 = mes.regrid_pv(hdu)
+    hdu2 = mes.regrid_pv(hdu, pixscale=(2.0, 1.0))
     filepath2 = pvpath2 / f"{filepath.stem}-regrid.fits" 
     hdu2.writeto(filepath2, overwrite=True)
 
@@ -415,7 +454,7 @@ for i, filepath in enumerate(file_list):
     scale = np.percentile(im[y1:y2, x1:x0], 99)
     im /= scale
     ims = convolve_fft(im, kernel)
-    ax.imshow(ims, vmin=-0.1, vmax=1.0)
+    ax.imshow(ims, vmin=-0.1, vmax=1.0, aspect="auto")
     #ax.contour(
     #    ims, 
     #    levels=[0.005, 0.01, 0.02, 0.04, 0.08], 
@@ -481,7 +520,7 @@ for i, filepath in enumerate(file_list):
 
 for filepath in file_list:
     hdu, = fits.open(filepath)
-    hdu2 = mes.regrid_pv(hdu)
+    hdu2 = mes.regrid_pv(hdu, pixscale=(2.0, 1.0))
     filepath2 = pvpath2 / f"{filepath.stem}-regrid.fits" 
     hdu2.writeto(filepath2, overwrite=True)
 
@@ -513,7 +552,7 @@ for i, filepath in enumerate(file_list):
     scale = np.percentile(im[y1:y2, x1:x0], 99.9)
     im /= scale
     ims = convolve_fft(im, kernel)
-    ax.imshow(ims, vmin=-0.1, vmax=1.0)
+    ax.imshow(ims, vmin=-0.1, vmax=1.0, aspect="auto")
     #ax.contour(
     #    ims, 
     #    levels=[0.005, 0.01, 0.02, 0.04, 0.08], 
@@ -547,13 +586,12 @@ hdu.writeto(pvpath2 / "nii-pv-coadd.fits", overwrite=True)
 import seaborn as sns
 sns.set_context("talk")
 
+# Update this to be more similar to what we do for oiii in the 04-02 notebook. Write the normalized bg-subtracted images first 
+
 # +
 file_list = sorted(pvpath2.glob("*-pv-coadd.fits"))
 
 N = len(file_list)
-ncols = 2
-nrows = (N // ncols) + 1
-fig = plt.figure(figsize=(8 * ncols, 10 * nrows))
 
 vsys = -33
 v1, v2 = vsys - 100, vsys + 100
@@ -564,7 +602,6 @@ kernel = Gaussian2DKernel(x_stddev=2.0)
 for i, filepath in enumerate(file_list):
     hdu, = fits.open(filepath)
     w = WCS(hdu.header)
-    ax = plt.subplot(nrows, ncols, i + 1, projection=w)
     xlims, ylims = w.world_to_pixel_values([v1, v2], [s1, s2])
     y1, y2 = [int(_) for _ in ylims]
     x1, x2 = [int(_) for _ in xlims]
@@ -583,12 +620,38 @@ for i, filepath in enumerate(file_list):
         str(filepath).replace(".fits", "-bgsub.fits"),
         overwrite=True,
     )
-    ax.imshow(im, vmin=-0.1, vmax=1.0)
-    ims = convolve_fft(im, kernel)
+# -
+
+# And then do the plot separately
+
+# +
+file_list = sorted(pvpath2.glob("*-pv-coadd-bgsub.fits"))
+
+N = len(file_list)
+ncols = 2
+nrows = (N // ncols)
+fig = plt.figure(figsize=(8 * ncols, 10 * nrows))
+
+vsys = -33
+v1, v2 = vsys - 100, vsys + 100
+s1, s2 = -35, 35
+
+contours = "oiii", "ha"
+kernel = Gaussian2DKernel(x_stddev=0.1)
+for i, filepath in enumerate(file_list):
+    hdu, = fits.open(filepath)
+    im = hdu.data
+    w = WCS(hdu.header)
+    ax = plt.subplot(nrows, ncols, i + 1, projection=w)
+    xlims, ylims = w.world_to_pixel_values([v1, v2], [s1, s2])
+    y1, y2 = [int(_) for _ in ylims]
+    x1, x2 = [int(_) for _ in xlims]
+    ax.imshow(im, vmin=-0.1, vmax=1.0, aspect="auto")
+    # ims = convolve_fft(im, kernel)
     if filepath.stem.startswith(contours):
         ax.contour(
-            ims, 
-            levels=[0.005, 0.01, 0.02, 0.04, 0.08], 
+            im, 
+            levels=[0.01, 0.02, 0.04, 0.08, 0.16], 
             colors="w",
             linewidths=[0.5, 1.0, 1.5, 2.0, 2.5],
         )
@@ -599,9 +662,53 @@ for i, filepath in enumerate(file_list):
     ax.set_title(filepath.stem, pad=16)
 figfile = "ou5-coadd-2dspec.pdf"
 fig.savefig(figfile)
-fig.savefig(figfile.replace(".pdf", ".jpg"))
+fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
 ...;
 # -
+
+# And do the spatial profiles along the slit
+
+fig, ax = plt.subplots(
+    figsize=(10, 6),
+)
+labels = {
+    "oiii": "[O III]",
+    "ha": r"H$\alpha$",
+    "nii": "[N II]",
+    "heii": "He II",
+}
+vsys = -33
+v1, v2 = -75, -10
+s1, s2 = -40, 40
+offset = 0.0
+for i, filepath in enumerate(file_list):
+    hdu, = fits.open(filepath)
+    line_label = filepath.stem.split("-")[0]
+    im = hdu.data
+    w = WCS(hdu.header)
+    ns, nv = hdu.data.shape
+    xlims, ylims = w.world_to_pixel_values([v1, v2], [s1, s2])
+    x1, x2 = [int(_) for _ in xlims]
+    y1, y2 = [int(_) for _ in ylims]
+    profile = hdu.data[y1:y2, x1:x2].mean(axis=1)
+    _, pos = w.pixel_to_world_values([0]*ns, np.arange(ns))
+    pos = pos[y1:y2]
+    profile *= 1/ np.max(profile)
+    line, = ax.plot(pos, profile + offset, label=line_label, ds="steps-mid")
+    ax.text(-30, offset + 0.15, labels[line_label], color=line.get_color())
+    ax.axhline(offset, linestyle="dashed", c="k", lw=1,)
+    offset += 0.5
+ax.axvline(0.0, linestyle="dashed", c="k", lw=1,)
+#ax.legend(ncol=2)
+ax.set(
+    xlabel="Displacement along slit, arcsec",
+)
+figfile = "ou5-coadd-spatial-profiles-1d.pdf"
+fig.savefig(figfile)
+fig.savefig(figfile.replace(".pdf", ".jpg"))
+...;
+
+pos
 
 # ### Some comments on the results
 #
@@ -623,66 +730,7 @@ fig.savefig(figfile.replace(".pdf", ".jpg"))
 #
 #
 
-# ## Exploratory material
-
-# Try out reprojection of a PV onto a common grid.  We will test it with FITS_utils since reproject says it cannot handle non-celestial data
-
-import FITS_tools
-
-# +
-hdu0, = fits.open(file_list[6])
-hdu1, = fits.open(file_list[8])
-weight0 = hdu0.header["WEIGHT"]
-weight1 = hdu1.header["WEIGHT"]
-
-
-hdu10 = fits.PrimaryHDU(
-    header=hdu0.header,
-    data=FITS_tools.hcongrid.hcongrid(hdu1.data, hdu1.header, hdu0.header),
-)
-hduav = fits.PrimaryHDU(
-    header=hdu0.header,
-    data=(hdu10.data * weight1 + hdu0.data * weight0) / (weight1 + weight0),
-)
-
-# +
-ncols, nrows = 3, 1
-fig = plt.figure(figsize=(4 * ncols, 8 * nrows))
-
-vsys = -33
-v1, v2 = vsys - 100, vsys + 100
-s1, s2 = -35, 35
-
-kernel = Gaussian2DKernel(x_stddev=2.0)
-for i, hdu in enumerate([hdu0, hdu1, hduav]):
-    w = WCS(hdu.header)
-    ax = plt.subplot(nrows, ncols, i + 1, projection=w)
-    xlims, ylims = w.world_to_pixel_values([v1, v2], [s1, s2])
-    y1, y2 = [int(_) for _ in ylims]
-    bg1 = np.median(hdu.data[y1-10:y1], axis=0)
-    bg2 = np.median(hdu.data[y2:y2+10], axis=0)
-    im = hdu.data - 0.5 * (bg1 + bg2)
-    im /= im.max()
-    ax.imshow(im, vmin=-0.1, vmax=1.0)
-    ims = convolve_fft(im, kernel)
-    ax.contour(
-        ims, 
-        levels=[0.0025, 0.005, 0.01, 0.02, 0.04, 0.08], 
-        colors="w",
-        linewidths=[0.3, 0.5, 1.0, 1.5, 2.0, 2.5],
-    )
-
-    ax.set(xlim=xlims, ylim=ylims)
-...;
-# -
-
 # That seems to have worked fine.  Now we will try it with a pre-defined common grid. Say, 1 km/s and 0.2 arcsec.
-
-# +
-# FITS_tools.hcongrid.hcongrid_hdu??
-# -
-
-WCS(hdu1.header)
 
 # Helium lines. Not very good.
 

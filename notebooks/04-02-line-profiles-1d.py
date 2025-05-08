@@ -136,7 +136,7 @@ for ax, [pos_label, [s1, s2]] in zip(axes, positions):
         spec = hdu.data[y1:y2, x1:x2].mean(axis=0)
         vels, _ = w.pixel_to_world_values(np.arange(nv), [0]*nv)
         vels = vels[x1:x2]
-        dataline, = ax.plot(vels, spec, label=line_label)
+        dataline, = ax.plot(vels, spec, label=line_label, ds="steps-mid")
         c = dataline.get_color()
         
         # Fit two Gaussians
@@ -263,6 +263,8 @@ for ax, [pos_label, [s1, s2]] in zip(axes, cpos.items()):
             vels, 
             spec - fitted_model(vels), 
             label=f"{line_label} residuals",
+            ds="steps-mid",
+
         )
         c = dataline.get_color()
         ax.fill_between(vels, 0.0, spec, color=c, alpha=0.1, label=f"{line_label} observed")
@@ -327,14 +329,14 @@ vsys = -33
 v1, v2 = vsys - 100, vsys + 100
 s1, s2 = -35, 35
 
-kernel = Gaussian2DKernel(x_stddev=2.0)
+kernel = Gaussian2DKernel(x_stddev=1.0)
 hdu = linehdus["oiii"]
 w = WCS(hdu.header)
 xlims, ylims = w.world_to_pixel_values([v1, v2], [s1, s2])
 y1, y2 = [int(_) for _ in ylims]
 x1, x2 = [int(_) for _ in xlims]
 im = hdu.data
-ax.imshow(im, vmin=-0.1, vmax=1.0)
+ax.imshow(im, vmin=-0.1, vmax=1.0, aspect="auto")
 ims = convolve_fft(im, kernel)
 ax.contour(
     ims, 
@@ -467,16 +469,20 @@ fdf[["stddev_0", "stddev_1", "stddev"]].plot().set_ylim(0.0, 25.0)
 
 
 fig, ax = plt.subplots(figsize=(8, 8))
-ax.scatter(
+bluepaths = ax.scatter(
     fdf["mean_0"], 
     fdf.index,
     s=100 * fdf["amplitude_0"] * fdf["stddev_0"] / 7,    
+    color="b",
 )
-ax.scatter(
+redpaths = ax.scatter(
     fdf["mean_1"], 
     fdf.index,
-    s=100 * fdf["amplitude_1"] * fdf["stddev_1"] / 7,    
+    s=100 * fdf["amplitude_1"] * fdf["stddev_1"] / 7,   
+    color="r",
 )
+bluecolor = bluepaths.get_facecolor()
+redcolor = redpaths.get_facecolor()
 # ax.scatter(
 #     fdf["mean"], 
 #     fdf.index,
@@ -486,19 +492,79 @@ ax.plot(
     fdf["wmean"], 
     fdf.index,
     color="k",
-#    s=100 * fdf["amplitude"] * fdf["stddev"] / 14,    
+    ds="steps-mid",
+    lw=1,
 )
+# Indicate the turning points in the velocity profiles
+blue_tp = [
+    (-45.8, 7.5),
+    (-49.5, 3.5),
+    (-46.5, -0.5),
+    (-47.8, -3.7),
+    (-44.8, -7.0),
+]
+red_tp = [
+    (-25.6, 8.4),
+    (-21.9, 4.5),
+    (-22.7, 1.1),
+    (-20.4, -2.5),
+    (-23.4, -6.2),
+]
+dv = 1.5
+alpha = 0.5
+for v0, y0 in blue_tp:
+    ax.axhline(y0, color=bluecolor, alpha=alpha, ls="dotted")
+    ax.plot(
+        [v0 - dv, v0 + dv], 
+        [y0, y0], 
+        color=bluecolor,
+        lw=3,
+        alpha=alpha,
+        zorder=100,
+    )
+for v0, y0 in red_tp:
+    ax.axhline(y0, color=redcolor, alpha=alpha, ls="dotted")
+    ax.plot(
+        [v0 - dv, v0 + dv], 
+        [y0, y0], 
+        color=redcolor,
+        lw=3,
+        alpha=alpha,
+        zorder=100,
+    )
+# ax.plot(
+#     0.5 * (fdf["mean_0"] + fdf["mean_1"]), 
+#     fdf.index,
+#     color="0.5",
+# )
 ax.axhline(0.0, color="k", ls="dashed", lw=2, alpha=0.3)
 ax.axvline(vsys, color="k", ls="dashed", lw=2, alpha=0.3)
+# ax.axvline(-36, color="k", ls="dotted", lw=2, alpha=0.3)
 ax.set(
     xlabel="Heliocentric velocity, km/s",
     ylabel="Offset from star, arcsec",
+    xlim=[-83.0, -13.0],
 )
 ax.set_title("[O III] 5007 Gaussian components", pad=12)
 figfile = "ou5-coadd-pv-oiii-gaussians.pdf"
 fig.savefig(figfile)
 fig.savefig(figfile.replace(".pdf", ".jpg"))
 ...;
+
+redblue_shifts = [_r[1] - _b[1] for _r, _b in zip(red_tp, blue_tp)]
+redblue_shifts
+
+print(
+f"""
+Average redblue offset in turning points
+is {np.mean(redblue_shifts):.1f} +/- {np.std(redblue_shifts):.1f} arcsec
+""")
+
+# From the profile along slit G we find that the cylindrical diameter of the nebula is $D = 8.7 +/- 0.1 arcsec. 
+#
+# The offset should be $dz = D \cos i$, which gives $i = 83 \pm 2$
+
+# This compares very well with the Jones value of $82 \pm 1$
 
 # ## Look at the individua profile fits in more detail                                                                                                                        
 # We want to see whether it makes sense to fit two gaussians in the outer lobes

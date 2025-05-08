@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.13.0
+#       jupytext_version: 1.16.7
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -36,7 +36,7 @@ sns.set_context("talk")
 c0 = SkyCoord("21 14 20.03 +43 41 36.0", unit=(u.hourangle, u.deg))
 c0.ra.deg, c0.dec.deg
 
-# + tags=[]
+# +
 fig, axes = plt.subplots(
     1, 6, 
     figsize=(15, 8), 
@@ -89,7 +89,7 @@ fig.colorbar(im, ax=axes)
 
 # It looks like there might be a flux calibration problem with one of the slits, which is the second from the left. 
 
-# + tags=[]
+# +
 fig, axes = plt.subplots(
     1, 6, 
     figsize=(15, 8), 
@@ -165,44 +165,70 @@ fig.suptitle("PN Ou 5 - He I")
 fig.colorbar(im, ax=axes)
 # -
 
-# ## Fine velocity slices of 5 km/s
+# ## Fine velocity slices of 6 km/s
 
-vels = np.arange(-90, 30, 5)
+vsys = -33
+dv = 10
+vels = vsys + (dv // 2) + np.arange(-50, 50, dv)
 nv = len(vels)
 vels[:nv//2] = vels[nv//2 - 1::-1]
 vels, len(vels)
 
+# Make one hdu just to set up the wcs
+#
+
+# +
+hdulist = mes.make_vmap(
+    vsys, c0.ra.deg, c0.dec.deg, slit_width_scale=2.5, dvel=dv, line_id="oiii",
+)
+hdu = hdulist["scaled"]
+
+w = WCS(hdu.header)
+w
+# -
+
+trimy, trimx = 80, 210
+pixscale = 3600 * w.wcs.cdelt[1]
+
+d_ra, d_dec = c0.spherical_offsets_to(w.pixel_to_world(trimx, trimy))
+ww, hh = d_ra.to_value(u.arcsec), d_dec.to_value(u.arcsec)
+ww, hh
+
+extent = [ww, -ww, hh, -hh]
+
 # +
 fig, axes = plt.subplots(
-    2, 12, 
-    figsize=(15, 7), 
+    2, len(vels)//2, 
+    figsize=(10, 10), 
     sharex=True,
     sharey=True,
-    #subplot_kw=dict(projection=w)
 )
 
 for v0, ax in zip(vels, axes.flat):
 
     hdulist = mes.make_vmap(
-        v0, c0.ra.deg, c0.dec.deg, slit_width_scale=2.5, dvel=5.0, line_id="oiii",
+        v0, c0.ra.deg, c0.dec.deg, slit_width_scale=2.5, dvel=dv, line_id="oiii",
     )
     hdu = hdulist["scaled"]
     hdu.data -= np.nanmedian(hdu.data)
     im = ax.imshow(
         hdu.data[80:-80, 210:-210], 
-        norm=PowerNorm(gamma=0.5, vmin=-0.5, vmax=150.0), 
+        norm=PowerNorm(gamma=0.5, vmin=-0.2, vmax=300.0), 
         cmap=cmr.rainforest_r,
+        extent=extent,
         origin="lower",
     )
-    ax.set_title(fr"${v0:+d}$")
-fig.suptitle("PN Ou 5 - [O III] 5007")
+    ax.axhline(0.0, linestyle="dashed", color="k", linewidth=1)
+    ax.axvline(0.0, linestyle="dashed", color="k", linewidth=1)
+    ax.set_title(fr"$V_\odot = {v0:+d}$", fontsize="small")
+#fig.suptitle("PN Ou 5 - [O III] 5007")
 fig.colorbar(im, ax=axes)
-fig.savefig("pn-ou5-isovel-oiii.jpg");
+fig.savefig("pn-ou5-isovel-oiii.pdf");
 
 # +
 fig, axes = plt.subplots(
-    2, 12, 
-    figsize=(15, 7), 
+    2, len(vels)//2, 
+    figsize=(10, 10), 
     sharex=True,
     sharey=True,
     #subplot_kw=dict(projection=w)
@@ -217,19 +243,22 @@ for v0, ax in zip(vels, axes.flat):
     hdu.data -= np.nanmedian(hdu.data, axis=0, keepdims=True)
     im = ax.imshow(
         hdu.data[80:-80, 210:-210], 
-        norm=PowerNorm(gamma=0.5, vmin=-0.5, vmax=150.0), 
+        norm=PowerNorm(gamma=0.5, vmin=-0.2, vmax=300.0), 
         cmap=cmr.sunburst_r,
         origin="lower",
+        extent=extent,
     )
-    ax.set_title(fr"${v0:+d}$")
-fig.suptitle("PN Ou 5 - Ha 6563")
+    ax.axhline(0.0, linestyle="dashed", color="k", linewidth=1)
+    ax.axvline(0.0, linestyle="dashed", color="k", linewidth=1)
+    ax.set_title(fr"$V_\odot = {v0:+d}$", fontsize="small")
+# fig.suptitle("PN Ou 5 - Ha 6563")
 fig.colorbar(im, ax=axes)
-fig.savefig("pn-ou5-isovel-ha.jpg");
+fig.savefig("pn-ou5-isovel-ha.pdf");
 
 # +
 fig, axes = plt.subplots(
-    2, 12, 
-    figsize=(15, 7), 
+    2, len(vels)//2, 
+    figsize=(10, 10), 
     sharex=True,
     sharey=True,
     #subplot_kw=dict(projection=w)
@@ -244,14 +273,18 @@ for v0, ax in zip(vels, axes.flat):
     hdu.data -= np.nanmedian(hdu.data)
     im = ax.imshow(
         hdu.data[80:-80, 210:-210], 
-        norm=PowerNorm(gamma=0.5, vmin=-0.05, vmax=6.0), 
+        norm=PowerNorm(gamma=0.5, vmin=-0.01, vmax=10.0), 
         cmap=cmr.flamingo_r,
         origin="lower",
+        extent=extent,
     )
-    ax.set_title(fr"${v0:+d}$")
-fig.suptitle("PN Ou 5 - He II 6560")
+    ax.set_title(fr"$V_\odot = {v0:+d}$", fontsize="small")
+    ax.axhline(0.0, linestyle="dashed", color="k", linewidth=1)
+    ax.axvline(0.0, linestyle="dashed", color="k", linewidth=1)
+
+# fig.suptitle("PN Ou 5 - He II 6560")
 fig.colorbar(im, ax=axes)
-fig.savefig("pn-ou5-isovel-heii.jpg");
+fig.savefig("pn-ou5-isovel-heii.pdf");
 
 # +
 fig, axes = plt.subplots(

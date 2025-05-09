@@ -1,6 +1,103 @@
 
 * Comments on the paper
 
+* Empirical measurements
+- Diameters:
+  - Inner shell
+    - 9 to 12 arcsec
+    - mean 10.4 \pm 0.4
+    - [[id:22069844-53A0-4130-8CF6-B86D0526053F][details here]]
+  - Outer shell
+    - end bits have diameter of 16 to 17 arcsec
+  - Third shell (cone and fishtails)
+    - 26 arcsec, but very uncertain
+- Heights
+  - Both shells have a sharpish outer boundary
+  - Inner shell
+    - 16 or so    
+  - Outer shell
+    - 26 or so
+    - although co-added spectrum would argue for 32
+- Aspect ratios: H / D
+  - inner 16 / 10.4 +/- 0.4 = 1.54 +/- 0.06
+  - outer 26 / 16.5 = 1.58 with large uncertainty
+  - these are amazingly consistent
+- Velocity splitting
+  - Inner shell
+    - 26 km/s
+  - Outer shell
+    - 37 km/s
+  - Third shell
+    - 70 km/s
+  - D / V
+    - Inner: 0.4
+    - Outer: 0.43
+    - Third: 0.37
+    - So almost the same for all of them within 10%
+    
+** Width of inner lobes and inclination angle
+:PROPERTIES:
+:ID:       22069844-53A0-4130-8CF6-B86D0526053F
+:END:
+- Measured in ds9
+
+|            |                |
+|------------+----------------|
+| core       |           9.57 |
+| N bulge A  |          10.50 |
+| N bulge B  |          11.69 |
+| N edge     |          10.42 |
+| S bulge  A |          11.52 |
+| S bulge B  |          11.83 |
+| S edge     |           9.14 |
+| slit G     |            8.7 |
+|------------+----------------|
+| mean       | 10.42 +/- 0.43 |
+| i          |     84. +/- 2. |
+|            |                |
+#+TBLFM: @10$2=vmeane(@I..@II);f2::@11$2=arccos(1.1 +/- 0.3 / @-1);f0
+
+This is different from what I measured in the slit G of 8.7
+
+So I now get arccos(1.1 +/- 0.3 / 10.4 +/- 0.4) = 84 +/- 2
+
+* Emission measure
+- From Corradi:2014j we have the observed total H alpha flux of the nebula
+  - F(Hα)= 8.5 × 10−13 erg cm−2 s−1
+- And radio flux
+  - 3.6 ± 0.5 mJy at 1.4 GHz.
+  - Supposedly
+    F(Hα) = 1.73e-10 erg cm−2 s−1 (S_{1.4} / mJy)
+  - I do not think this is right. It should be about 1e-12
+- This means that the intrinsic Ha flux is
+  - 1e-12 3.6 = 3.6e-12 = 4.2 times observed flux
+- So c(H a) = log10(4.2) = 0.62
+- So c(H b) = 0.62 / 0.77 = 0.80
+  - whereas the paper says 1.23 +/- 0.3 for c(H b) derived in this way
+  - perhaps because they are using the T = 13 kK, which will reduce the conversion factor a bit
+  - From the Balmer lines they find c(Hb) = 0.95 ± 0.25 assuming R_V = 3.1
+    - so intrinsic / observed Ha flux is 10**(0.95 0.77) = 5.39
+    - so intrinsic flux is 4.5815e-12 erg cm−2 s−1
+- Ha luminosity = 4 pi D^2 F = 5.4817e+32 D_kpc^2 erg/s = 0.1435 D_kpc^2 L_sun
+- Conversion to VEM
+  - H alpha emissivity = 4 pi j = 3.1e-25 erg cm^3 / s
+  - VEM = \int n_e n_p d V = L / 4 pi j = 1.77e+57 D_kpc^2 cm^-3 = 60.25 D_kpc^2 pc^3 cm^-6
+- Total recombination rate
+  - \alpha_B VEM = 3.83e+44 D_kpc^2 s^-1
+
+* Electron density
+- The [S II] density is 125 \pm 40 from Corradi
+- With an angular radius of \theta in arcsec, the radius is
+  R = 4.8481e-03 \theta D_kpc pc
+- So this gives an alternative way of estimating the VEM
+  - assuming a filling factor of f for the dense gas
+- VEM = (4 pi / 3) n^2 R^3 f = 7.46e-03 \theta^3 D_kpc^3 f pc^3 cm^-6
+
+* Kinetic temperature from Ha widths
+- Given the very similar distribution of the oiii and ha emission, it should be reliable to estimate the kinetic T from the Ha broadening
+- We can do this from the gaussian fits along the central slits
+- And could also do it for slit a, which has the narrowest widths because it is tangent to the barrel
+
 * Velocity splitting
 
 ** Table of gaussian fits

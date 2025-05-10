@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.13.0
+#       jupytext_version: 1.16.7
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -78,9 +78,7 @@ hp_1.cone_search_skycoord(c, radius=5 * u.arcminute)
 
 # So that means `index500[5-7]-03.fits`
 
-# + tags=[]
 hp_2.cone_search_lonlat(300 * u.deg, 50 * u.deg, 0.1 * u.deg)
-# -
 
 # ## Look at the HEALpix data files
 #

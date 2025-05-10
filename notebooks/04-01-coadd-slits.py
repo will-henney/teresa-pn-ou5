@@ -23,7 +23,7 @@ from astropy.io import fits
 from astropy.wcs import WCS
 from astropy.coordinates import SkyCoord
 import astropy.units as u
-from astropy.convolution import Gaussian2DKernel, convolve_fft
+from astropy.convolution import Gaussian2DKernel, Gaussian1DKernel, convolve_fft
 from matplotlib import pyplot as plt
 import seaborn as sns
 
@@ -282,6 +282,8 @@ for i, filepath in enumerate(file_list):
 ...;
 # -
 
+# ### Minor axis spatial profile
+#
 # Fit gaussian to profile along horizontal slit
 
 w
@@ -309,18 +311,270 @@ mask = np.abs(yy) < 25 * u.arcsec
 fitter = fitting.LevMarLSQFitter()
 fitted_model = fitter(init_model, yy[mask], profile[mask])
 gg1, gg2 = fitted_model
-ax.plot(yy, profile)
+ax.plot(yy, profile, ds="steps-mid")
 ax.plot(yy, fitted_model(yy))
+ax.plot(yy, gg1(yy), ls="dashed")
+ax.plot(yy, gg2(yy), ls="dashed")
+
 ax.axvline(0)
 ax.axvline(gg1.mean.value)
 ax.axvline(gg2.mean.value)
 
-ax.set_xlim(-25, 25)
+ax.set_xlim(25, -25)
 # -
 
 # Calculate offset between the two peaks:
 
 gg2.mean - gg1.mean
+
+gg1.mean, gg2.mean
+
+# Width of peaks
+
+gg1.fwhm, gg2.fwhm
+
+gg1.stddev
+
+
+# #### Fit with thick shell
+
+def shell_bright(x, r, h, f = 0):
+    """Projected brightness of cylindrical hollow shell
+    
+    Parameters:
+
+    x : array of projected positions perpendicular to cylindrical axis
+    r : shell outer radius
+    h : shell relative thickness
+    f : asymmetry
+    """
+    # line of sight depth through cylinder
+    z_out = np.where(
+        x**2 <= r**2,
+        np.sqrt(r**2 - x**2),
+        0.0
+    )
+    # radius of inner hole
+    r_in = r * (1 - h)
+    # line of sight depth through inner hole
+    z_in = np.where(
+        x**2 <= r_in**2,
+        np.sqrt(r_in**2 - x**2),
+        0.0
+    )
+    # emissivity is linear function of x for simplicity
+    e = np.where(
+        x**2 <= r**2,
+        1 + f * x / (2 * r),
+        0.0,
+    )
+    return e * (z_out - z_in)
+    
+
+
+# +
+fig, ax = plt.subplots()
+rshell, hshell = 9, 0.5
+sprofile = 12 * shell_bright(yy.value, rshell, hshell, f=0.5)
+kernel = Gaussian1DKernel(stddev=3)
+sprofile = convolve_fft(sprofile, kernel)
+
+sg1 = models.Gaussian1D(amplitude=50, mean=-4, stddev=4)
+sg2 = models.Gaussian1D(amplitude=70, mean=5, stddev=4)
+init_model = sg1 + sg2
+mask = np.abs(yy) < 25 * u.arcsec
+sfitted_model = fitter(init_model, yy[mask], sprofile[mask])
+sgg1, sgg2 = sfitted_model
+ax.plot(yy, sprofile, ds="steps-mid")
+ax.plot(yy, sfitted_model(yy))
+ax.plot(yy, sgg1(yy), ls="dashed")
+ax.plot(yy, sgg2(yy), ls="dashed")
+
+ax.axvline(0)
+ax.axvline(sgg1.mean.value)
+ax.axvline(sgg2.mean.value)
+
+ax.axvspan(hshell * rshell, rshell, alpha=0.1, color="k", zorder=100)
+ax.axvspan(-hshell * rshell, -rshell, alpha=0.1, color="k", zorder=100)
+ax.set_xlim(25, -25)
+
+# + jupyter={"source_hidden": true}
+sgg2.mean - sgg1.mean
+
+# + jupyter={"source_hidden": true}
+sgg1.mean, sgg2.mean
+
+# + jupyter={"source_hidden": true}
+sgg1.fwhm, sgg2.fwhm
+# -
+
+hshell * rshell / np.mean([sgg1.fwhm.value, sgg2.fwhm.value])
+
+hshell * rshell / sgg2.fwhm.value
+
+2 * (1 - hshell) * rshell / (sgg2.mean - sgg1.mean).value
+
+# So we find that the peak-peak distance is equal to the *inner* diameter of the shell. 
+#
+# Whereas the shell thickness is about 0.6 times FWHM. 
+
+# Conclusions, the inner lobes have larger diameter than I thought. 
+#
+# Inner radius 4.3. Thickness 4.5 arcsec, so outer radius about 9 arcsec. 
+#
+# If we take half-way point, we have 6.8 +/- 2.2 arcsec. 
+
+# We also reproduce the asymmetry in the peak positions with a simple linear gradient for the emissivity. The weaker side is displaced inward by about 10% and the stronger side displaced outward by the same amount
+
+# #### Fit with power-law shell
+
+# +
+from scipy import integrate
+def shell_bright_powerlaw(x, r_in, a=4, f=0):
+    """Projected brightness of cylindrical hollow shell
+    
+    Parameters:
+
+    x : array of projected positions perpendicular to cylindrical axis
+    r_in : shell inner radius
+    a : power-law index for emissivity
+    f : asymmetry
+    """
+
+    # emissivity is power law in radius
+    rgrid = np.geomspace(r_in, 10 * r_in, 200)
+    egrid = (rgrid/r_in) ** -a
+
+    # integrate to get surface brightness
+    bgrid, sbgrid = brightness_discrete(rgrid, egrid)
+
+    # double up grid to include pos and neg sides
+    bb = np.concatenate([-bgrid[::-1], bgrid])
+    sbb = np.concatenate([sbgrid[::-1], sbgrid])
+
+    # interpolate onto requested grid
+    e = np.interp(x, bb, sbb)
+    print(e.shape, x.shape)
+    # add in a linear asymmetry
+    e = e * (1 + f * x / (2 * r_in))
+    return e
+
+    
+    
+    
+def brightness_discrete(r, e, n_inner=50, verbose=False, integrator=np.trapz):
+    """Perform integral of surface brightness along line of sight
+
+    Suitable values for `integrator` are numpy.trapz or scipy.integrate.simpson
+    """
+
+    # Use the Cloudy radial points with additional uniform grid from origin to inner boundary
+    b_inner = np.linspace(0.0, r.min(), num=n_inner, endpoint=False)
+    b = np.concatenate((b_inner, r))
+    
+    sb = np.zeros_like(b)
+    # For each impact parameter
+    for i, _b in enumerate(b):
+        # Select all radii greater than impact parameter
+        m = r >= _b
+        # Array of LOS positions for each of these radii
+        z = np.sqrt(r[m]**2 - _b**2)
+        _e = e[m]
+        # Integrate along z to find brightness
+        sb[i] = 2 * integrator(_e, z)
+    return b, sb
+
+
+# +
+fig, ax = plt.subplots()
+r_in = 5.5
+s6profile = 25 * shell_bright_powerlaw(yy.value, r_in, a=6, f=0.25)
+kernel = Gaussian1DKernel(stddev=3)
+s6profile = convolve_fft(ssprofile, kernel)
+
+sg1 = models.Gaussian1D(amplitude=50, mean=-4, stddev=4)
+sg2 = models.Gaussian1D(amplitude=70, mean=5, stddev=4)
+init_model = sg1 + sg2
+mask = np.abs(yy) < 25 * u.arcsec
+sfitted_model = fitter(init_model, yy[mask], s6profile[mask])
+sgg1, sgg2 = sfitted_model
+ax.plot(yy, s6profile, ds="steps-mid")
+ax.plot(yy, sfitted_model(yy))
+ax.plot(yy, sgg1(yy), ls="dashed")
+ax.plot(yy, sgg2(yy), ls="dashed")
+
+ax.axvline(0)
+ax.axvline(sgg1.mean.value)
+ax.axvline(sgg2.mean.value)
+
+ax.axvspan(r_in, 25, alpha=0.1, color="k", zorder=100)
+ax.axvspan(-25, -r_in, alpha=0.1, color="k", zorder=100)
+ax.set_xlim(25, -25)
+# -
+
+sgg2.mean - sgg1.mean
+
+sgg1.mean, sgg2.mean
+
+sgg1.fwhm, sgg2.fwhm
+
+# +
+fig, ax = plt.subplots()
+r_in = 4.5
+s3profile = 15 * shell_bright_powerlaw(yy.value, r_in, a=3, f=0.15)
+kernel = Gaussian1DKernel(stddev=3)
+s3profile = convolve_fft(s3profile, kernel)
+
+sg1 = models.Gaussian1D(amplitude=50, mean=-4, stddev=2)
+sg2 = models.Gaussian1D(amplitude=70, mean=5, stddev=2)
+init_model = sg1 + sg2
+mask = np.abs(yy) < 15 * u.arcsec
+sfitted_model = fitter(init_model, yy[mask], s3profile[mask])
+sgg1, sgg2 = sfitted_model
+ax.plot(yy, s3profile, ds="steps-mid")
+ax.plot(yy, sfitted_model(yy))
+ax.plot(yy, sgg1(yy), ls="dashed")
+ax.plot(yy, sgg2(yy), ls="dashed")
+
+ax.axvline(0)
+ax.axvline(sgg1.mean.value)
+ax.axvline(sgg2.mean.value)
+
+ax.axvspan(r_in, 25, alpha=0.1, color="k", zorder=100)
+ax.axvspan(-25, -r_in, alpha=0.1, color="k", zorder=100)
+ax.set_xlim(25, -25)
+# -
+
+sgg2.mean - sgg1.mean
+
+sgg1.mean, sgg2.mean
+
+# + jupyter={"outputs_hidden": true}
+sgg1.fwhm, sgg2.fwhm
+# -
+
+# So the power law model with a=6 does work ok
+
+# +
+fig, ax = plt.subplots()
+
+ax.fill_between(yy.value, profile, step="mid", alpha=0.2, color="k", zorder=100)
+ax.plot(yy, s6profile)
+ax.plot(yy, sprofile)
+ax.plot(yy, s3profile)
+
+ax.axvline(0)
+# ax.axvline(gg1.mean.value)
+# ax.axvline(gg2.mean.value)
+
+ax.set_xlim(25, -25)
+# -
+
+
+
+
+
+# ### Regrid the Ha spectra
 
 for filepath in file_list:
     hdu, = fits.open(filepath)

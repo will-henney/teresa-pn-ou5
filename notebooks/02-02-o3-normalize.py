@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.13.0
+#       jupytext_version: 1.16.7
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -46,10 +46,8 @@ slit_db_list = yaml.safe_load((dpath / "slits-o3.yml").read_text())
 
 # Photometric reference image:
 
-# + tags=[]
 (photom,) = fits.open(dpath / "regrid" / "ha-imslit-median.fits")
 wphot = WCS(photom.header)
-# -
 
 # To start off with, we will analyze a single slit. **This is what we change when we want to try a differnt slit**
 

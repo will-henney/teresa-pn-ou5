@@ -391,6 +391,12 @@ df = df.assign(dv=df.mean_1 - df.mean_0)
 
 df.style.format(na_rep='—')
 
+# ### Compare the line widths to estimate the temperature
+
+df.xs("oiii")[['stddev_0', 'stddev_1']]
+
+df.xs("ha")[['stddev_0', 'stddev_1']]
+
 # ## Try fitting Gaussians to all the rows
 #
 # Use bins of size 1 arcsec

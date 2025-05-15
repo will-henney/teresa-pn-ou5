@@ -487,8 +487,8 @@ def brightness_discrete(r, e, n_inner=50, verbose=False, integrator=np.trapz):
 
 # +
 fig, ax = plt.subplots()
-r_in = 5.5
-s6profile = 25 * shell_bright_powerlaw(yy.value, r_in, a=6, f=0.25)
+r_in = 5.3
+s6profile = 30 * shell_bright_powerlaw(yy.value, r_in, a=6, f=0.35)
 kernel = Gaussian1DKernel(stddev=3)
 s6profile = convolve_fft(ssprofile, kernel)
 
@@ -521,7 +521,7 @@ sgg1.fwhm, sgg2.fwhm
 # +
 fig, ax = plt.subplots()
 r_in = 4.5
-s3profile = 15 * shell_bright_powerlaw(yy.value, r_in, a=3, f=0.15)
+s3profile = 13 * shell_bright_powerlaw(yy.value, r_in, a=3, f=0.2)
 kernel = Gaussian1DKernel(stddev=3)
 s3profile = convolve_fft(s3profile, kernel)
 
@@ -549,28 +549,32 @@ sgg2.mean - sgg1.mean
 
 sgg1.mean, sgg2.mean
 
-# + jupyter={"outputs_hidden": true}
 sgg1.fwhm, sgg2.fwhm
-# -
 
 # So the power law model with a=6 does work ok
+
+# #### Summary of minor axis results
+#
+# Both the thick shell and the steep power law work tolerably well at fitting the profile along the horizontal slit.
 
 # +
 fig, ax = plt.subplots()
 
 ax.fill_between(yy.value, profile, step="mid", alpha=0.2, color="k", zorder=100)
-ax.plot(yy, s6profile)
-ax.plot(yy, sprofile)
-ax.plot(yy, s3profile)
+ax.plot(yy, sprofile, label=r"thick shell $r_\mathrm{in} = 4.5$, $r_\mathrm{out} = 9.0$")
+ax.plot(yy, s6profile, label=r"power law $n = 6$, $r_\mathrm{in} = 5.5$")
+ax.plot(yy, s3profile, label=r"power law $n = 4$, $r_\mathrm{in} = 4.5$")
 
-ax.axvline(0)
+ax.axvline(0, ls="dashed", color="k", lw=1)
 # ax.axvline(gg1.mean.value)
 # ax.axvline(gg2.mean.value)
-
+ax.set_xlabel("Displacement along slit")
+ax.set_ylabel("Brightness")
+ax.legend(fontsize="x-small")
 ax.set_xlim(25, -25)
 # -
 
-
+#
 
 
 

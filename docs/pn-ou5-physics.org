@@ -127,6 +127,9 @@ So I now get arccos(1.1 +/- 0.3 / 10.4 +/- 0.4) = 84 +/- 2
 |        |      |
 - Strangely, this is smaller than the seeing width
 * Emission measure
+:PROPERTIES:
+:ID:       5AF3E337-9F70-48B0-B21D-04C9BA7740FE
+:END:
 - From Corradi:2014j we have the observed total H alpha flux of the nebula
   - F(Hα)= 8.5e−13 erg cm−2 s−1
 - And radio flux
@@ -176,14 +179,84 @@ So I now get arccos(1.1 +/- 0.3 / 10.4 +/- 0.4) = 84 +/- 2
     - so intrinsic / observed Ha flux is 10**(0.68 (0.95 ± 0.25) ) = 4.4259 +/- 1.7325
     - so intrinsic flux is 8.5e−13 (4.4259 +/- 1.7325) = (3.8 +/- 1.5)e-12  erg cm−2 s−1
     - so that is a 40% uncertainty in the flux, which is mainly due to uncertainty in the reddening correction
-- Ha luminosity = 4 pi D^2 F = 5.4817e+32 D_kc^2 erg/s = 0.1435 D_kpc^2 L_sun
+- Ha luminosity = 4 pi D^2 F = (4.5467e+32 +/- 1.7947e+32) D_kpc^2 erg/s = 0.1435 D_kpc^2 L_sun
 - Conversion to VEM
-  - H alpha emissivity = 4 pi j = 3.1e-25 erg cm^3 / s
-  - VEM = \int n_e n_p d V = L / 4 pi j = 1.77e+57 D_kpc^2 cm^-3 = 60.25 D_kpc^2 pc^3 cm^-6
+  - H alpha emissivity = \epsilon = 4 pi j / n_e n_p = 3.1e-25 erg cm^3 / s
+  - VEM = \int n_e n_p d V = L / \epsilon = (1.4667 +/- 0.5789) 1e57 D_kpc^2 cm^-3 = (49.9210 +/- 19.7051) D_kpc^2 pc^3 cm^-6
 - Total recombination rate
   - \alpha_B VEM = 3.83e+44 D_kpc^2 s^-1
-
+- Volume of nebula
+  - V = (4 pi / 3) R^3
+  - V = 4.7731e-07 \theta^3 D_kpc^3 pc^3
+  - /long distance 4.5 kpc/ V = 0.0644 pc^3 = 1.8932e+54 cm^3
+  - 
+* Return to emission measure versus radio and optical surface brightness
+- I want to get to the bottom of the discrepancy in the distance scales, so I need to have a reliable conversion between radio free-free brightness temperature and optical Balmer line surface brightness
+** Free-free emission versus emission measure
+:PROPERTIES:
+:ID:       3307B442-9BDE-4F51-9730-EBDC609D91CC
+:END:
+- From Osterbrock & Ferland
+  : \tau_\nu = 8.24e-2 T^-1.35 \nu^-2.1 EM
+  - where EM is in cm^-6 pc, T is in K and \nu is in GHz
+- So with T_e = 13,000 K and \nu = 5 GHz we have
+  - \tau_5 = 9.2080e-09 EM
+- Brightness temperature, T_b = T_e (1 - exp(-\tau)) \approx \tau T_e
+- T_b = 1.1970e-04 EM
+** Balmer line surface brightness versus emission measure
+- First do H alpha version in units per steradian
+- Osterbrock has emission coefficient (4 \pi j / n_e n_p) = 2.87 1.24e-25 erg cm^3 /s at 1e4 K = 3.5588e-25 erg cm^3 /s
+  - Alternative derivation: emission coefficient = \alpha_Ha E_Ha
+  - E_Ha = h c / 6563 ang = 6.62606876e-27 2.99792458e10 / 6563 1e-8 = 3.0267e-12 erg
+  - \alpha_Ha = 2.87 (6563/4861) 3.03e-14 = 1.1741e-13
+  - => emission coefficient = 3.5536e-25 at 1e4, which is the same
+- T dependence is roughly T^-0.5, so at 13,000 K this is 3.1213e-25 erg cm^3 /s
+- S(Ha) = \int j d z =  (4 \pi j / n_e n_p) \int n_e n_p dz / 4 \pi
+- S(Ha) = 3.1213e-25 EM pc / 4 \pi = 7.6644e-8 EM erg /cm^2 /s /sr
+- Now convert to H beta and to square arcsec
+- S(Hb) = S(Ha) / 2.87 (206265)**2 = 6.2769e-19 EM erg /cm^2 /s /arcsec^2
+- Check for Ou 5
+  - S(Ha) = 3.9598e-04 erg /cm^2 /s /sr => EM = 5166.5 pc cm^-6
+  - S(Hb) = 3.1024e-15 erg /cm^2 /s /arcsec^2 => EM = 4942.6 pc cm^-6
+  - These are not quite the same because S(Hb) was calculated assuming a Balmer decrement of 3 instead of 2.87 
+** Radio-to-optical conversion factors
+- Combining the previous two sections, we can put the Balmer line surface brightness in terms of the radio brightness temperature at 5GHz
+- T_b / K = 1.1970e-04 EM
+- S(Ha) / (erg /cm^2 /s /sr) = 7.6644e-8 EM = 6.4030e-04 (T_b / K)
+- S(Hb) / (erg /cm^2 /s /arcsec^2) = 6.2769e-19 EM = 5.2439e-15 (T_b / K)
+** Compare the distance scales
+- I will look at a brightness temperature of 1 K, which is more or less in the middle of all the PN samples, and compare what the different methods predict for the nebula radius
+*** Frew 2016
+- Principal scale is S(Ha), so 1 K corresponds to 6.4e-4 erg /cm^2 /s /sr
+  - log S = -3.19
+- From the full sample they have log S = −3.63(±0.06) log r− 5.34(±0.05)
+  - log R = (-3.19 + 5.34) / −3.63 = -0.5923
+- R = 10**-0.5923 = 0.2557 pc
+*** Bucciarelli & Stanghellini 2023
+- Scale is S(Hb), so 1 K corresponds 5.2439e-15 erg /cm^2 /s /arcsec^2
+  - log S = -14.2803
+- log R = (−0.242 ±0.0042) log S − (4.2 ±0.057)
+- log R = -0.7442
+- R = 10**-0.7442 = 0.1802 pc
+*** Ali 2022
+- This uses T_b, so we can directly read off their intercept value
+- log R = -0.5987
+- R = 0.2519 pc
+- Basically the same as Frew
+*** Other scales
+- Smith:2015a Fig 9
+  - 5 GHz brightness temperature
+  - log R = -0.625
+  - Similar to Frew
+- Stanghellini+ 2020
+  - Earlier incarnation of H beta method
+  - 1og (R) = -(0.226 \pm 0.0155) log(S) - (3.920 \pm 0.215)
+  - log R = -0.6926522
+  - Similar to BS2023
 * Electron density
+:PROPERTIES:
+:ID:       8364D506-2D23-4723-B497-4A57513C7E98
+:END:
 - The [S II] density is 125 \pm 40 from Corradi
 - With an angular radius of \theta in arcsec, the radius is
   R = 4.8481e-03 \theta D_kpc pc
@@ -206,10 +279,56 @@ So I now get arccos(1.1 +/- 0.3 / 10.4 +/- 0.4) = 84 +/- 2
     - R = 0.24 pc
     - => D_kpc = 4.34
   - D = 4.34 +/- 0.30 kpc
-    - 
-
+- This is good, but better to use the more recent statistical distance scales (see below), and then we can compare [S II] density with rms density
+** RMS density
+- n_rms = sqrt(VEM / V)
+  - sqrt((49.9210 +/- 19.7051) cm^-6 / 4.7731e-07 \theta^3 D_kpc)
+  - (1.0 +/- 0.2) 1e4 / sqrt(\theta^3 D_kpc)
+  - Arguably, the filling factor f should also go in that sqrt 
+  - With long distance scale
+    - n = 122.5 pcc
+    - remarkably close to the [S II] value, but this is assuming no filling factor
+*** Ionized mass
+- M_i = \mu m_h V n / Msun
+- 1.3 1.67262158e-24 1.8932e+54 122.5 / 1.989e33
+- M_i = 0.2535 Msun
+- Compare with equation in Stanghellini
+  - \mu =(2.266 × 10^-21 p^-5 \theta^3 F_5)^0.5
+  - p = 0.001 / D_kpc
+  - \mu = sqrt(2.266e-6 D_kpc^5 \theta^3 F_5)
+- For Ou 5
+  - D = 4.5 if we accept long scale
+  - \theta = 11.4
+  - F_5 = 3.2 +/- 0.4
+  - \mu = sqrt(2.266e-6 4.5**5 11.4**3 (3.2 +/- 0.4)) = 4.4524 +/- 0.2783
+    - /this makes no sense/
+**** General equation for ionized mass
+:PROPERTIES:
+:ID:       0286DBF7-6AE3-41C7-8EEE-419B88500095
+:END:
+- In terms of the 5GHz flux F_5 in mJy
+- T_b = 17.6311 F_5 / \theta^2 from [[id:5AF3E337-9F70-48B0-B21D-04C9BA7740FE][Emission measure]]
+- T_b = 1.1970e-04 EM from [[id:3307B442-9BDE-4F51-9730-EBDC609D91CC][Free-free emission versus emission measure]]
+- => EM / pc cm^-6 = 147294.068505 F_5 / \theta^2
+- R / pc = 4.8481e-03 \theta D_kpc from [[id:8364D506-2D23-4723-B497-4A57513C7E98][Electron density]]
+  - V / pc^3 = (4 pi / 3) (4.8481e-03 \theta D_kpc)^3 = 4.7731e-07 \theta^3 D_kpc^3
+  - V / cm^3 = 1.4023e+49 \theta^3 D_kpc^3
+- VEM / pc^3 cm^-6 = \pi R^2 EM = n^2 (V / pc^3)
+- => n^2 = \pi R^2 EM / V = 3 EM / 4 R = 154.6998 EM / \theta D_kpc = 2.2786e+07 F_5 / \theta^3 D_kpc
+- M_i / Msun = m V n = 1.3 mp (1.4023e+49 \theta^3 D_kpc^3) sqrt(2.2786e+07 F_5 / \theta^3 D_kpc) / Msun
+- M_i / Msun = 7.3178e-05 \theta^1.5 D_kpc^2.5 F_5^0.5 = 7.3178e-05 sqrt(\theta^3 D_kpc^5 F_5)
+- For Ou 5 @ 4.5 kpc
+  - M_i = 7.3178e-05 sqrt(\theta^3 D_kpc^5 F_5) = 7.3178e-05 sqrt(11.4**3 4.5**5 (3.2 +/- 0.4))
+  - M_i = (0.2164 +/- 0.0135) M_sun
+- For Ou 5 @ 3 kpc
+  - M_i = (0.0785 +/- 0.0049) M_sun
+- *The ionized mass is the quantity that depends most steeply on the distance* M_i \prop D^2.5
+* 
 * Distance determinations
 - *Summary*
+  - Two possible distances
+    - /long/ 4.5 kpc
+    - /short/ 3.0 kpc
   - Angular radius is 11.4 arcsec from geometric mean of major and minor axes of the 10% brightness contour (Frew+ 2016)
   - De-reddened Ha flux is (3.8 +/- 1.5)e-12 erg /s /cm^2
     - Ha mean surface brightness: 9.3073e-15 +/- 3.6739e-15 per square arcsec

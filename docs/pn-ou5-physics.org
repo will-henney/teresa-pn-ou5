@@ -1,6 +1,8 @@
 
 * Comments on the paper
 
+
+
 * Empirical measurements
 - Diameters:
   - Inner shell
@@ -35,7 +37,22 @@
     - Outer: 0.43
     - Third: 0.37
     - So almost the same for all of them within 10%
-    
+
+
+** Summary table of the components
+- Bringing together material from below
+- Dynamic time
+  - t / yr = R / V = (R/arcsec) 0.0194 pc / (V/km/s) km yr = 1.90e4 (R/arcsec) / V
+
+
+| Component   | (r_1, r_2)    | (Z_1, Z_2) | mean R         | Splitting |      V_exp | t_din              |
+|-------------+-------------+----------+----------------+-----------+-----------+-------------------|
+| Inner lobes | [4.3, 8.8]  | [0, 8]   | 7.67 +/- 2.83  |        26 |        13 | 1.12e4 +/- 4.14e3 |
+| Outer lobes | [8.5, 11.3] | [8, 15]  | 15.17 +/- 2.81 |        37 |        20 | 1.44e4 +/- 2.67e3 |
+| Outermost   | [15, 18]    | [0, 3]   | 16.57 +/- 1.50 |        70 |        35 | 9.00e3 +/- 8.14e2 |
+| Polar Knots | [0, 4]      | [21, 29] | 25.08 +/- 3.99 |         7 | 33 +/- 11 | 1.44e4 +/- 5.33e3 |
+#+TBLFM: $4=sqrt(vmeane($2)**2 + vmeane($3)**2);f2::$7=1.90e4 $4 / $6;s3
+
 ** Width of inner lobes and inclination angle
 :PROPERTIES:
 :ID:       22069844-53A0-4130-8CF6-B86D0526053F
@@ -63,6 +80,9 @@ This is different from what I measured in the slit G of 8.7
 So I now get arccos(1.1 +/- 0.3 / 10.4 +/- 0.4) = 84 +/- 2
 
 *** More sophisticated shell measurements
+:PROPERTIES:
+:ID:       DAE29C3F-03B0-47F3-88F1-B5814A08E940
+:END:
 - See the notebook [[file:../notebooks/04-01-coadd-slits.py][04-01-coadd-slits]] in section "Minor axis spatial profile"
 - I look at fitting gaussians to the brightness profile of a thick cylindrical shell with inner, outer radii r_in, r_out
 - Results as follows:
@@ -79,6 +99,7 @@ So I now get arccos(1.1 +/- 0.3 / 10.4 +/- 0.4) = 84 +/- 2
   - r_out = 8.1 \pm 0.2
   - mean r = 6.6
   - mean diameter D = 13.2
+- /update [2025-05-20 Tue]/ In the notebook I have r_in, r_out = 4.3, 8.8, which seems more reliable
 - *So I need to reconcile this with the above measurements*
   - It means that the diameters I have above are from the peaks, so are the inner surface
     - So we all agree that this is about 9 arcsec on the equator
@@ -126,6 +147,200 @@ So I now get arccos(1.1 +/- 0.3 / 10.4 +/- 0.4) = 84 +/- 2
 | N20011 |  1.4 |
 |        |      |
 - Strangely, this is smaller than the seeing width
+** Flux and surface brightness
+- Using the ha-imslit-median.fits image, I will try and do a flux calibration, so we can measure the surface brightness in physical units
+  - The naive way is just to use the mean surface brightness for the big box and put that equal to the mean surface brightness from the Ha flux
+  - But we need to subtract off the contribution of 3 stars (the central star and two others)
+- Total flux
+  - From a rectangular box that is 20 * 26 arcsec, which corresponds to the 10% peak brightness contour
+    |       sum |  npix |     mean |  median |       min |     max |   stddev |
+    | 6182.1348 | 12998 | 0.475622 | 0.30956 | -0.158432 | 3.38938 | 0.427497 |
+  - Or from box that is 18 x 16 to just include the inner lobes
+     |       sum | npix |     mean |   median |       min |     max |   stddev |
+     | 5253.4374 | 7201 | 0.729543 | 0.692103 | -0.104003 | 3.38938 | 0.417428 |
+- Stars measured in smaller boxes
+  - For each star I calculate the bg-subtracted flux in the last row of the following tables
+  - Star 1 (bright SW)
+    |      |       sum | npix |    mean |   median |      min |     max |   stddev |
+    |------+-----------+------+---------+----------+----------+---------+----------|
+    | star |  411.2064 |  235 | 1.74981 |  1.56299 |  0.75171 | 3.38938 | 0.599059 |
+    | BG   | 79.095383 |   91 | 0.86918 | 0.852293 | 0.601711 | 1.19085 | 0.112659 |
+    |------+-----------+------+---------+----------+----------+---------+----------|
+    |      |  206.9491 |      |         |          |          |         |          |
+    #+TBLFM: @4$2=@I - @I$3 @-1$4
+  - Star 2 (central)
+    |      |       sum | npix |    mean |  median |      min |     max |    stddev |
+    |------+-----------+------+---------+---------+----------+---------+-----------|
+    | star | 160.75441 |  100 | 1.60754 |  1.5394 |  1.13148 | 2.43199 |   0.32306 |
+    | BG   | 113.42896 |   99 | 1.14575 | 1.14598 | 0.911278 | 1.46006 | 0.0949353 |
+    |------+-----------+------+---------+---------+----------+---------+-----------|
+    |      |  46.17941 |      |         |         |          |         |           |
+    #+TBLFM: @4$2=@I - @I$3 @-1$4
+  - Star 3 (outer N)
+    |      |       sum | npix |     mean |   median |        min |      max |    stddev |
+    |------+-----------+------+----------+----------+------------+----------+-----------|
+    | star | 53.733485 |  101 | 0.532015 | 0.501091 |   0.233906 |  1.08626 |  0.178465 |
+    | BG   | 10.263493 |   98 |  0.10473 | 0.101843 | -0.0282633 | 0.252535 | 0.0630404 |
+    |------+-----------+------+----------+----------+------------+----------+-----------|
+    |      | 43.155755 |      |          |          |            |          |           |
+    #+TBLFM: @4$2=@I - @I$3 @-1$4
+- *Important correction*
+  - In order to capture all the flux from the nebula, we need to use the biggest box possible
+    - Assuming the bg subtraction is good enough, there should be little penalty from using a bigger box (except it would include more stars that we would need to subtract)
+  - *But* for comparison with the mean surface brightness, we need to use the npix area of the nominal ellipse of semi-axes = 10, 13 arcsec, which gives the 11.4 arcsec nominal radius
+  - I have now measured the npix area of this ellipse and get npix = 10209
+  - As opposed to the 12998 I was using earlier
+  - This means that the reference brightness will be higher, which means that the derived EM will be lower, which is what I want to get the density down a bit
+- Accounting
+  |        |       All | Inner 18 x 16 |
+  |--------+-----------+---------------|
+  | Total  | 6182.1348 |     5253.4374 |
+  |--------+-----------+---------------|
+  | Star 1 |  206.9491 |      206.9491 |
+  | Star 2 |  46.17941 |      46.17941 |
+  | Star 3 | 43.155755 |             0 |
+  |--------+-----------+---------------|
+  | Net    | 5885.8505 |     5000.3089 |
+  |--------+-----------+---------------|
+  | npix   |     10209 |          7201 |
+  |--------+-----------+---------------|
+  | MEAN   |    0.5765 |               |
+  #+TBLFM: @6$2..@6$3=@I - vsum(@II..@III)::@8$2=@III/@IIII;f4
+  - Here I subtract the 3 stars from the total to get the net flux, then divide by the number of pixels in the big bo to get the mean surface brightness
+  - So the answer is that 0.5765 value in the FITS image corresponds to the mean surface brightness of
+    - S(Ha) = 3.96e-04 erg /cm^2 /s /sr
+    - EM = 5200 pc cm^-6
+    - T_5 = 0.43 K
+- Inner shell versus outer shell fluxes
+  - We can do the same but for a smaller box that only includes the inner shell
+  - Use a 18 x 16 box
+  - Total flux is 5253.4374
+  - Only first two stars fall in this box
+    - Net inner flux = 5000.3 = 5000.3089 / 5885.8505 = 0.8495 of total flux
+    - Net outer flux = 885  / 5885.8505 = 0.1504 of total flux
+- Variations in brightnesses from image
+  - Inner shell
+    - E Maximum: 1.6
+    - W Maximum: 1.2
+    - Center: 1.1
+  - Outer shell
+    - limb-brightened horns
+      - 0.2 (NE), 0.3 (SE), 0.3 (SW)
+- Variations in brightness from spectra
+  |      |         | amplitude | mean   | stddev | amplitude_0 |  mean_0 | stddev_0 | amplitude_1 |  mean_1 | stddev_1 |
+  |------+---------+-----------+--------+--------+------------+--------+---------+------------+--------+---------|
+  | ha   | N knot  | 0.04      | -40.62 | 12.90  |          — |      — |       — |          — |      — |       — |
+  | oiii | N knot  | 0.04      | -37.99 | 13.45  |          — |      — |       — |          — |      — |       — |
+  | ha   | N outer | —         | —      | —      |       0.07 | -43.67 |   16.22 |       0.08 | -25.16 |    7.74 |
+  | oiii | N outer | —         | —      | —      |       0.05 | -52.84 |   11.29 |       0.14 | -24.20 |    7.98 |
+  | ha   | N inner | —         | —      | —      |       0.61 | -47.56 |   10.04 |       0.77 | -23.86 |    9.74 |
+  | oiii | N inner | —         | —      | —      |       0.64 | -48.94 |    7.85 |       0.94 | -22.20 |    6.86 |
+  | ha   | Core    | —         | —      | —      |       0.77 | -44.57 |   11.08 |       0.80 | -21.83 |    8.86 |
+  | oiii | Core    | —         | —      | —      |       0.75 | -46.44 |    6.72 |       0.97 | -21.64 |    7.05 |
+  | ha   | S inner | —         | —      | —      |       0.45 | -44.50 |   11.09 |       0.42 | -22.42 |    8.71 |
+  | oiii | S inner | —         | —      | —      |       0.51 | -47.14 |    7.45 |       0.60 | -21.89 |    6.91 |
+  | ha   | S outer | —         | —      | —      |       0.03 | -51.35 |   13.75 |       0.03 | -22.81 |    8.28 |
+  | oiii | S outer | —         | —      | —      |       0.03 | -54.64 |    8.49 |       0.05 | -19.39 |    7.84 |
+  | ha   | S knot  | 0.02      | -33.72 | 11.15  |          — |      — |       — |          — |      — |       — |
+  | oiii | S knot  | 0.02      | -30.75 | 10.94  |          — |      — |       — |          — |      — |       — |
+  |      |         |           |        |        |            |        |         |            |        |         |
+  - Inner 12.63 +/- 2.07
+    - core 0.77 11.08 + 0.80 8.86 = 15.62
+    - N inner 0.61 10.04 + 0.77 9.74 = 13.62
+    - S inner 0.45  11.09 + 0.42  8.71 = 8.65
+  - Outer = 1.21 +/- 0.55
+    - N outer 0.07 16.22 + 0.08  7.74 = 1.75
+    - S outer 0.03 13.75 + 0.03 8.28  = 0.66
+  - Knots 0.37 +/- 0.15
+    - N knot  0.04 12.90 = 0.52
+    - S knot 0.02  10.94 = 0.22
+** Emission measures, densities and masses of components
+- We can estimate densities from observed emission measures if we assume a geometry
+- We will use a distance of 4.0 kpc (uncertainty 0.7 pc or 0.18 relative or 0.08 dex)
+  - 1 arcsec = 4000 au / pc = 0.0194 pc
+- Inner shell geometry from [[id:DAE29C3F-03B0-47F3-88F1-B5814A08E940][More sophisticated shell measurements]]
+  - r_in, r_out = 4.3, 8.8 arcsec
+  - height 16 arcsec (-8 to +8)
+    - easiest to determine from the kinematics
+  - Path lengths through shell
+    - On axis 2 (r_out - r_in) = 9.0 arcsec = 0.1746 +/- 0.0314 pc
+    - Max value 2 sqrt(r_out^2 - r_in^2) = 15.4 arcsec = 0.2988 +/- 0.0538
+  - Volume pi (r_out^2 - r_in^2) H = 2963.15019086 arcsec^3 = 0.0216 pc^3
+    - Compare with the equivalent spherical volume using the nominal radius of 11.4 arcsec
+    - (4 pi / 3) 11.4**3 = 6206 arcsec^3 = 0.0453 pc^3
+- Outer lobes geometry
+  - Easiest thing to measure is its height
+    - Extends to +18 in N and -16 in S
+    - But the central (-8 to +8) section seems missing
+    - So height of 34 but with 16 removed
+  - Inner radius from peak-peak distance of the ears gives D = 17 +/- 0.2, R = 8.5 +/- 0.1
+  - Outer radius will have to come from width
+    - In notebook I found that thickness is about 0.6 times fwhm
+    - Measurements of outer half-width hm for the ears after masking out stars: 2.2, 2.3, 3.1, 1.8
+    - H = 2 0.6 vmeane([2.2, 2.3, 3.1, 1.8]) = 2.82 +/- 0.33
+  - Therefore, r_in, r_out = 8.5, 11.3
+  - On-axis path length = 5.6 +/- 0.6 = 0.1086 +/- 0.0116 pc
+  - Ears path length = 14.9 +/- 0.9 = 0.2891 +/- 0.0175
+  - Volume pi (r_out^2 - r_in^2) (H_out - H_in) = (11.3**2 - 8.5**2) pi (34 - 16) = 3135 arcsec^3 = 0.0229 pc^3
+- Polar knots geometry
+  - Extent along slit is 8 arcsec, so assume sphere of radius 4 arcsec
+    - This is consistent with fact that they are still seen in the slit with displacement of +3 arcsec
+  - z = 2 4 = 8 +/- 2 arcsec = 0.1552 +/- 0.0388 pc
+  - Volume = 2 4 pi 4**3 / 3 = 536 arcsec^3 = 3.9147e-03 pc^3
+- Outermost lobes geometry
+  - Assume "cones" are the outer part of an ellipse
+    - i =  84 +/- 2 so sin i = 0.1045 +/- 0.0347
+    - So a/b of ellipse will be about 10
+  - Inner radius is about 15 arcsec
+  - Thickness looks similar to outer lobes - so about 3 arcsec
+  - Question is, what is height?
+  - With infinite height, then peak depth d z = sqrt( (15 + 3)**2 - 15**2) = 9.9499
+    - But at a small angle with a finite height, we are limited to h / sin i = 10 h
+    - So this only becomes important when h < 1 arcsec, which seems unlikely
+  - Simplest assumption is that h is same as thickness, so about 3 arcsec
+  - so d z = 10 +/- 3 arcsec = 0.194 +/- 0.0582 pc
+  - Volume pi (r_out^2 - r_in^2) H = ((15 + 3)**2 - 15**2) pi 3 = 933 arcsec^3 = 6.8126e-03 pc^3
+*** Table of EM, density, M_i
+- First row gives mean surface brightness and equivalent EM in pc cm^-6, which comes from the dereddened Ha flux.
+- This is used with the measurements of surface brightness from median image to find EM for other components (inner shell and outer ears)
+- And the inner shell one is used to calibrate in turn the spectral slit intensities to find the EM of components that are seen in the spectra
+- The line-of-sight depths dz in pc are calculated for each component according to its geometry (see above)
+- The rms density is calculated as sqrt(EM / dz)
+- The volume V is also calculated for each component in pc^3
+- The ionized mass is calculated as
+  - M_i / M_sun = (m_p / M_sun) n V (pc/cm)**3 = 0.0247 n V 
+  |            |  image | spectra        |                EM | d z               | n              |          V | M_i                |
+  |------------+--------+----------------+-------------------+-------------------+----------------+------------+-------------------|
+  | Mean       | 0.5765 |                |              5200 |                   | sqrt(5200/0)   |            | 0.0000            |
+  |------------+--------+----------------+-------------------+-------------------+----------------+------------+-------------------|
+  | inner      |    1.1 | 12.63 +/- 2.07 |            9.92e3 | 0.1746 +/- 0.0314 | 238.4 +/- 21.4 |     0.0216 | 0.1272 +/- 0.0114 |
+  | outer ears |    0.2 |                |            1.80e3 | 0.2891 +/- 0.0175 | 78.9 +/- 2.4   |            | 0.0000            |
+  | outermost  |   0.05 |                |            4.51e2 | 0.194 +/- 0.0582  | 48.2 +/- 7.2   | 6.8126e-03 | 0.0081 +/- 0.0012 |
+  | outer axis |        | 1.21 +/- 0.55  | 9.50e2 +/- 4.59e2 | 0.1086 +/- 0.0116 | 93.5 +/- 23.1  |     0.0229 | 0.0529 +/- 0.0131 |
+  | knots      |        | 0.37 +/- 0.15  | 2.91e2 +/- 1.27e2 | 0.1552 +/- 0.0388 | 43.3 +/- 10.9  | 3.9147e-03 | 0.0042 +/- 0.0011 |
+  |------------+--------+----------------+-------------------+-------------------+----------------+------------+-------------------|
+  |            |        |                |                   |                   | sqrt(0/0)      |     0.0552 | 0.1924 +/- 0.0174 |
+  #+TBLFM: $6=sqrt($4 / $5);f1::$8=0.0247 $6 $7;f4::@3$4..@5$4=@I $2 / @I$2;s3::@6$4..@7$4=@II $3 / @II$3;s3::@8$7..@8$8=vsum(@II..@III);f4
+*** Summary table of the components
+|           |     dz |          V |      A |     EM |    VEM | F frac |     M_i | M frac |
+|-----------+--------+------------+--------+--------+--------+--------+--------+--------|
+| inner     | 0.1746 |     0.0216 | 0.1237 | 9.92e3 | 1.23e3 | 0.8425 | 0.1272 | 0.6734 |
+| outer     | 0.1086 |     0.0229 | 0.2109 | 9.50e2 | 2.00e2 | 0.1370 | 0.0529 | 0.2800 |
+| outermost |  0.194 | 6.8126e-03 | 0.0351 | 4.51e2 | 1.58e1 | 0.0108 | 0.0081 | 0.0429 |
+| knots     | 0.0776 | 3.9147e-03 | 0.0504 | 2.91e2 | 1.47e1 | 0.0101 | 0.0007 | 0.0037 |
+|-----------+--------+------------+--------+--------+--------+--------+--------+--------|
+|           |        |            |    0/0 |        | 1.46e3 | 1.0000 |        | 0.0000 |
+#+TBLFM: $4=$3/$2;f4::$6=$4 $5;s3::$7=$6 / @II$6;f4::$9=$8/vsum(@I$8..@II$8);f4::@6$6=vsum(@I..@II);s3
+- So this calculation says that the inner shell is 84% of the total flux from the nebula
+- This is consistent with when I did this using apertures, for which I got 85%
+  - Originally I got 71% but I had made two mistakes
+    - Partly because the box I was using for the inner shell was 14x14, whereas elsewhere I am assuming r_out = 8.8 and h = 16, so I should use an 18 x 16 box
+    - And partly because I was not calculating the reference surface brightness correctly. Now that is fixed by using the number of pixels in the nominal ellipse
+  - 
+*** Discussion of density and ionized mass
+- The density in the inner lobes now comes out to be more than twice as large as the density from the [S II] ratio
+  - The reason for this is that the volume is now less than the equivalent spherical volume that I was using earlier
+- The 
 * Emission measure
 :PROPERTIES:
 :ID:       5AF3E337-9F70-48B0-B21D-04C9BA7740FE
@@ -223,6 +438,7 @@ So I now get arccos(1.1 +/- 0.3 / 10.4 +/- 0.4) = 84 +/- 2
 - Combining the previous two sections, we can put the Balmer line surface brightness in terms of the radio brightness temperature at 5GHz
 - T_b / K = 1.1970e-04 EM
 - S(Ha) / (erg /cm^2 /s /sr) = 7.6644e-8 EM = 6.4030e-04 (T_b / K)
+  - log T_b = 0 is log S(Ha) = -3.1936
 - S(Hb) / (erg /cm^2 /s /arcsec^2) = 6.2769e-19 EM = 5.2439e-15 (T_b / K)
 ** Compare the distance scales
 - I will look at a brightness temperature of 1 K, which is more or less in the middle of all the PN samples, and compare what the different methods predict for the nebula radius
@@ -253,6 +469,10 @@ So I now get arccos(1.1 +/- 0.3 / 10.4 +/- 0.4) = 84 +/- 2
   - 1og (R) = -(0.226 \pm 0.0155) log(S) - (3.920 \pm 0.215)
   - log R = -0.6926522
   - Similar to BS2023
+- Smith:2015a Fig 16
+  - S(Ha)
+  - H07 and F14: log R = -0.61
+  - C99: log R = -0.7
 * Electron density
 :PROPERTIES:
 :ID:       8364D506-2D23-4723-B497-4A57513C7E98
@@ -302,6 +522,7 @@ So I now get arccos(1.1 +/- 0.3 / 10.4 +/- 0.4) = 84 +/- 2
   - F_5 = 3.2 +/- 0.4
   - \mu = sqrt(2.266e-6 4.5**5 11.4**3 (3.2 +/- 0.4)) = 4.4524 +/- 0.2783
     - /this makes no sense/
+    - I re-derive this equation in the following section and get a different coefficient
 **** General equation for ionized mass
 :PROPERTIES:
 :ID:       0286DBF7-6AE3-41C7-8EEE-419B88500095
@@ -320,15 +541,19 @@ So I now get arccos(1.1 +/- 0.3 / 10.4 +/- 0.4) = 84 +/- 2
 - For Ou 5 @ 4.5 kpc
   - M_i = 7.3178e-05 sqrt(\theta^3 D_kpc^5 F_5) = 7.3178e-05 sqrt(11.4**3 4.5**5 (3.2 +/- 0.4))
   - M_i = (0.2164 +/- 0.0135) M_sun
+  - log M = -0.6647 +/- 0.0271
 - For Ou 5 @ 3 kpc
   - M_i = (0.0785 +/- 0.0049) M_sun
+  - log M = -1.1051 +/- 0.0271
 - *The ionized mass is the quantity that depends most steeply on the distance* M_i \prop D^2.5
+- Strangely, this mass is not particularly small
 * 
 * Distance determinations
 - *Summary*
-  - Two possible distances
-    - /long/ 4.5 kpc
-    - /short/ 3.0 kpc
+  - We now have a better concordance between the different distance estimates
+    - /long/ 4.3 +/- 0.7 kpc from FPB16
+    - /short/ 3.7 +/- 0.6 kpc from BS23
+    - *average* 4.0 +/- 0.7 kpc
   - Angular radius is 11.4 arcsec from geometric mean of major and minor axes of the 10% brightness contour (Frew+ 2016)
   - De-reddened Ha flux is (3.8 +/- 1.5)e-12 erg /s /cm^2
     - Ha mean surface brightness: 9.3073e-15 +/- 3.6739e-15 per square arcsec
@@ -340,12 +565,13 @@ So I now get arccos(1.1 +/- 0.3 / 10.4 +/- 0.4) = 84 +/- 2
   - Radius from surface brightness:
     - BS23
       : log RPN = (−0.242 ±0.0042) ×log S Hβ−(4.2 ±0.057)
-      - with an additional offset of -0.1 dex for optically thin nebulae (low ionized mass)
+      - *new 2025-05-17* from the ionized mass estimate of about 0.1 Msun,
+         should be close to the mean relation, so we are canceling the 0.1 dex offset
       - Slope of about 1/4 means that 0.2 dex uncertainty in S becomes 0.05 in R
-      - log R = (−0.242) (-14.5083 +/- 0.1714) − (4.2 ±0.057) - 0.1
-      - log R = -0.7890 +/- 0.0705
+      - log R = (−0.242) (-14.5083 +/- 0.1714) − (4.2 ±0.057)
+      - log R = -0.6890 +/- 0.0705
         - Roughly equal contributions to uncertainty from intrinsic flux (mainly reddening uncertainty) and dispersion about mean surface brightness relation
-      - R = 10**(-0.7890 +/- 0.0705) = 0.1626 +/- 0.0264 pc
+      - R = 10**(-0.6890 +/- 0.0705) = 0.2046 +/- 0.0332 pc
     - FPB16
       - log R = (-0.2667) (-3.4023 +/- 0.1714) - (1.528 +/- 0.0486) = -0.6206 +/- 0.0667
       - R = 10**(-0.6206 +/- 0.0667) = 0.2396 +/- 0.0368 pc
@@ -354,7 +580,7 @@ So I now get arccos(1.1 +/- 0.3 / 10.4 +/- 0.4) = 84 +/- 2
   - Distance
     - D / kpc = (R / pc) / (\theta / arcsec) / (1000 au / pc)
     - D = 206.3 (R / \theta)
-    - BS23: D = (2.9425 +/- 0.4777) kpc
+    - BS23: D = (3.7025 +/- 0.6008) kpc
     - FPB16: D = (4.3359 +/- 0.6660) kpc
     - AAMA22: D = 4.5296 kpc
     - The difference is *approximately* consistent with the values
@@ -362,7 +588,8 @@ So I now get arccos(1.1 +/- 0.3 / 10.4 +/- 0.4) = 84 +/- 2
       that they find for their scale
       : ⟨K_FPB⟩= ⟨D_FPB \times \varpi_c⟩ = 1.272
       that they find for FPB16
-    - As an aside, I do not understand why their best distance scale dies not have K=1 by definition, but never mind.
+    - As an aside, I do not understand why their best distance scale does not have K=1 by definition, but never mind.
+      - This is because the parallaxes have distant-dependent biases I think
       
   - \theta dependence
     - S \sim \theta^-2 and R \sim S^{-1/4}, so R \prop \theta^{1/2}, so D \sim \theta^{-1/2}

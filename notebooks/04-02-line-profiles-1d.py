@@ -463,10 +463,13 @@ fdf = fdf.assign(
     wmean = lambda x: (
         x.mean_0 * x.stddev_0 * x.amplitude_0
         + x.mean_1 * x.stddev_1 * x.amplitude_1
-    ) / (x.stddev_0 * x.amplitude_0 + x.stddev_1 * x.amplitude_1)
+    ) / (x.stddev_0 * x.amplitude_0 + x.stddev_1 * x.amplitude_1),
+    ratio_1_0 = lambda x: x.amplitude_1 / x.amplitude_0,
 )
 
+# + jupyter={"source_hidden": true}
 fdf[["mean_0", "mean_1", "mean", "wmean"]].plot()
+# -
 
 fdf[["amplitude_0", "amplitude_1", "amplitude"]].plot().set_yscale("log")
 
@@ -572,7 +575,229 @@ is {np.mean(redblue_shifts):.1f} +/- {np.std(redblue_shifts):.1f} arcsec
 
 # This compares very well with the Jones value of $82 \pm 1$
 
-# ## Look at the individua profile fits in more detail                                                                                                                        
+# ## Revisit the kinetic temperature measurement
+#
+# The fact that Corradi et al 2015 are suggesting low temperature for the H emission means that it is vital to have an independent estimate of the temperature. 
+#
+# I think that with the line width kinetic temperature we an get a good estimate
+
+# ### Fine-scale fits for Ha
+#
+# We just copy what we did for oiii above.  We reuse all these variables since the oiii results got saved in a dataframe `fdf`
+#
+# We had to change the allowed bounds on the widths
+
+# +
+sys = -33
+v1, v2 = vsys - 100, vsys + 100
+fitter = fitting.LevMarLSQFitter()
+hfinefits = {}
+hfinesingles = {}
+hfineprofiles = {}
+hdu = linehdus["ha"]
+w = WCS(hdu.header)
+ns, nv = hdu.data.shape
+
+for finepos in fine_positions:
+    s1, s2 = finepos - 0.5 * fine_pix, finepos + 0.5 * fine_pix 
+    xlims, ylims = w.world_to_pixel_values([v1, v2], [s1, s2])
+    x1, x2 = [int(_) for _ in xlims]
+    y1, y2 = [int(_) for _ in ylims]
+    spec = hdu.data[y1:y2+1, x1:x2+1].mean(axis=0)
+    vels, _ = w.pixel_to_world_values(np.arange(nv), [0]*nv)
+    vels = vels[x1:x2+1]
+    sm = spec.max()
+    g1 = models.Gaussian1D(amplitude=sm, mean=-50, stddev=10.0)
+    g1.stddev.bounds = (7.0, 15.0)
+    g2 = models.Gaussian1D(amplitude=sm, mean=-20, stddev=10.0)
+    g2.stddev.bounds = (7.0, 15.0)
+    init_model = g1 + g2
+    fitted_model = fitter(init_model, vels, spec)
+    gs = models.Gaussian1D(amplitude=sm, mean=sys, stddev=10.0)
+    fitted_single = fitter(gs, vels, spec)
+    hfinefits[finepos] = fitted_model
+    hfinesingles[finepos] = fitted_single
+    hfineprofiles[finepos] = {
+        "v": vels,
+        "spec": spec,
+        "model": fitted_model(vels),
+        "g1": fitted_model[0](vels),
+        "g2": fitted_model[1](vels),
+        "gs": fitted_single(vels),
+    }
+...;
+# -
+fdf_h = pd.DataFrame(
+    {k: dict(zip(m.param_names, m.parameters)) for k, m in hfinefits.items()}
+).T
+fdf_h.style.format(na_rep='—')
+
+fdfs_h = pd.DataFrame(
+    {k: dict(zip(m.param_names, m.parameters)) for k, m in hfinesingles.items()}
+).T
+fdfs_h.style.format(na_rep='—')
+
+fdf_h = fdf_h.join(fdfs_h)
+fdf_h = fdf_h.assign(
+    wmean = lambda x: (
+        x.mean_0 * x.stddev_0 * x.amplitude_0
+        + x.mean_1 * x.stddev_1 * x.amplitude_1
+    ) / (x.stddev_0 * x.amplitude_0 + x.stddev_1 * x.amplitude_1),
+    ratio_1_0 = lambda x: x.amplitude_1 / x.amplitude_0,
+)
+
+# #### Compare velocities
+
+ax = fdf_h[["mean_0", "mean_1"]].join(
+    fdf[["mean_0", "mean_1"]],
+    lsuffix="_h", rsuffix="_o",
+).plot(colormap="Paired")
+ax.set_xlim(-20, 20)
+ax.legend(ncol=2, fontsize="x-small")
+
+# #### Compare widths
+
+# +
+ax = fdf_h[["stddev_0", "stddev_1"]].join(
+    fdf[["stddev_0", "stddev_1"]],
+    lsuffix="_h", rsuffix="_o",
+).plot(colormap="Paired")
+fdf_h[["stddev"]].join(
+    fdf[["stddev"]],
+    lsuffix="_h", rsuffix="_o",
+).plot(ax=ax)
+ax.set_ylim(0.0, 25.0)
+ax.set_xlim(-20, 20)
+
+ax.legend(ncol=3, fontsize="x-small")
+# -
+
+
+# #### Compare intensities
+
+ax = fdf_h[["amplitude_0", "amplitude_1"]].join(
+    fdf[["amplitude_0", "amplitude_1"]],
+    lsuffix="_h", rsuffix="_o",
+).plot(colormap="Paired")
+ax.legend(ncol=2, fontsize="x-small")
+ax.set_yscale("log")
+
+
+ax = fdf_h[["ratio_1_0"]].join(
+    fdf[["ratio_1_0"]],
+    lsuffix="_h", rsuffix="_o",
+).plot(colormap="Paired")
+ax.legend(ncol=2, fontsize="x-small")
+ax.set_ylim(0.0, 4.0)
+ax.set_xlim(-20, 20)
+ax.axhline(1.0, color="k", ls="dotted")
+
+# #### Compare everything
+
+# +
+fig, axes = plt.subplots(3, 1, sharex=True, figsize=(8, 12))
+
+ax = axes[0]
+fdf_h[["mean_0", "mean_1"]].join(
+    fdf[["mean_0", "mean_1"]],
+    lsuffix="_h", rsuffix="_o",
+).plot(ax = ax, colormap="Paired")
+ax.set_xlim(-20, 20)
+ax.legend(ncol=2, fontsize="x-small")
+
+ax = axes[1]
+fdf_h[["stddev_0", "stddev_1"]].join(
+    fdf[["stddev_0", "stddev_1"]],
+    lsuffix="_h", rsuffix="_o",
+).plot(ax=ax, colormap="Paired")
+fdf_h[["stddev"]].join(
+    fdf[["stddev"]],
+    lsuffix="_h", rsuffix="_o",
+).plot(ax=ax)
+ax.set_ylim(0.0, 25.0)
+ax.set_xlim(-20, 20)
+ax.legend(ncol=3, fontsize="x-small")
+
+ax = axes[2]
+ax = fdf_h[["ratio_1_0"]].join(
+    fdf[["ratio_1_0"]],
+    lsuffix="_h", rsuffix="_o",
+).plot(ax=ax, colormap="Paired")
+ax.legend(ncol=2, fontsize="x-small")
+ax.set_ylim(0.0, 4.0)
+ax.set_xlim(-20, 20)
+ax.axhline(1.0, color="k", ls="dotted")
+# -
+
+# ### Compare variances from fits
+#
+# If we assume that the non-thermal broadening is the same for Ha and [O III], then the variances should be related as 
+# $$
+# \sigma^2(\mathrm{H\alpha}) = \sigma^2(\mathrm{[O III]}) + 77.34 T_4 + 10.233
+# $$
+# where the constant term is from the fine-structure broadening (see Garcia-Díaz & Henney 2008). Although there may also be a difference in the instrumental width.
+
+w_h = 3e5 * 0.26 / 6563
+w_o = 3e5 * 0.19 / 5007
+w_h, w_o
+
+# So the instrumental width in km/s is almost identical for the two lines. Hence we will not try to correct for it. 
+
+w_o ** 2 / (8 * np.log(2))
+
+vardf = fdf_h[["stddev_0", "stddev_1", "stddev"]].join(
+    fdf[["stddev_0", "stddev_1", "stddev", "amplitude_1"]],
+    lsuffix="_h", rsuffix="_o",
+)
+
+fig, ax = plt.subplots()
+scale = np.where(
+    vardf["amplitude_1"] > 0.5,
+    vardf["amplitude_1"],
+    np.nan,
+)
+ax.scatter(
+    vardf["stddev_0_o"]**2,
+    vardf["stddev_0_h"]**2,
+    s=30 * scale,
+    c=vardf.index,
+    cmap="PuBuGn",    
+    vmin=-10, vmax=10,
+    label="blueshifted",
+)
+ax.scatter(
+    vardf["stddev_1_o"]**2,
+    vardf["stddev_1_h"]**2,
+    s=30 * scale,
+    c=vardf.index,
+    cmap="OrRd",
+    vmin=-10, vmax=10,
+    label="redshifted",
+) 
+# ax.scatter(
+#     vardf["stddev_o"]**2,
+#     vardf["stddev_h"]**2,
+#     s=100 * scale,
+# ) 
+xx = np.array([0, 200])
+ax.plot(xx, xx + 10.233, c="0.8")
+ax.plot(xx, xx + 10.233 + 77.34 / 2, c="0.6")
+ax.plot(xx, xx + 10.233 + 77.34, c="0.4")
+ax.set_xlim(0, 150)
+ax.set_ylim(0, 150)
+ax.set_yticks([0, 50, 100, 150])
+ax.set_aspect("equal")
+ax.set_xlabel(r"$\sigma^2$ ( [O III] ), km/s")
+ax.set_ylabel(r"$\sigma^2$ ( H$\alpha$ ), km/s")
+
+
+
+
+# ### Non-parametric version
+#
+# Directly compare the moments in a window about the line
+
+# ## Look at the individual profile fits in more detail                                                                                                                        
 # We want to see whether it makes sense to fit two gaussians in the outer lobes
 
 fig, ax = plt.subplots(figsize=(8, 8))
@@ -580,7 +805,7 @@ for pos in fine_positions:
     data = fineprofiles[pos]
     v = data["v"]
     norm = np.max(data["spec"])
-    g1 = np.where(data["g1"] > 0.02 * norm, data["g1"], np.nan)
+    g1 = np.where(data["g1"] > 0.02 * norm, data["g1"] , np.nan)
     g2 = np.where(data["g2"] > 0.02 * norm, data["g2"], np.nan)
     ax.fill_between(v, pos + 4 * g1 / norm, pos, color="b", lw=0.5, alpha=0.3)
     ax.fill_between(v, pos + 4 * g2 / norm, pos, color="r", lw=0.5, alpha=0.3)
@@ -629,6 +854,8 @@ for pos in fine_positions:
         ax.plot(v, pos + scale * gs / norm, color="g", lw=1.3)
     ax.plot(v, pos + scale * data["spec"] / norm, color="k", alpha=0.4, drawstyle="steps-mid")
 
+# ### Central region for [O III]
+
 fig, ax = plt.subplots(figsize=(8, 8))
 for pos in fine_positions:
     if abs(pos) > 12.0:
@@ -646,5 +873,41 @@ for pos in fine_positions:
         ax.plot(v, pos + scale * gs / norm, color="g", lw=1.3)
     ax.plot(v, pos + scale * data["spec"] / norm, color="k", alpha=0.4, drawstyle="steps-mid")
 
+# ### Central region for Ha
+
+fig, ax = plt.subplots(figsize=(8, 8))
+for pos in fine_positions:
+    if abs(pos) > 12.0:
+        continue
+    data = hfineprofiles[pos]
+    v = data["v"]
+    norm = np.max(data["spec"])
+    scale = 1.0
+    g1 = np.where(data["g1"] > 0.02 * norm, data["g1"], np.nan)
+    g2 = np.where(data["g2"] > 0.02 * norm, data["g2"], np.nan)
+    ax.fill_between(v, pos + scale * g1 / norm, pos, color="b", lw=0.5, alpha=0.3)
+    ax.fill_between(v, pos + scale * g2 / norm, pos, color="r", lw=0.5, alpha=0.3)
+    if abs(pos) > 20.0:
+        gs = np.where(data["gs"] > 0.01 * norm, data["gs"], np.nan)
+        ax.plot(v, pos + scale * gs / norm, color="g", lw=1.3)
+    ax.plot(v, pos + scale * data["spec"] / norm, color="k", alpha=0.4, drawstyle="steps-mid")
+
+# ### Inner lobes for both
+
+
+fig, ax = plt.subplots(figsize=(8, 12))
+for pos in fine_positions:
+    if abs(pos) > 8.0:
+        continue
+    for shift, data in (-0.25, hfineprofiles[pos]), (0.25, fineprofiles[pos]):
+        v = data["v"]
+        norm = np.sum(data["spec"])
+        scale = 15
+        g1 = data["g1"]
+        g2 = data["g2"]
+        ax.fill_between(v, pos + scale * g1 / norm, pos, color="b", lw=0.5, alpha=0.3)
+        ax.fill_between(v, pos + scale * g2 / norm, pos, color="r", lw=0.5, alpha=0.3)
+        ax.plot(v, pos + scale * data["spec"] / norm, color="k", alpha=0.4, drawstyle="steps-mid")
+ax.set_xlim(-90, 10)
 
 

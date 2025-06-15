@@ -81,6 +81,8 @@ mes.convert_pv_offset_vels(c0.ra.deg, c0.dec.deg, line_id="heii", verbose=True)
 
 mes.convert_pv_offset_vels(c0.ra.deg, c0.dec.deg, line_id="nii", verbose=True)
 
+mes.convert_pv_offset_vels(c0.ra.deg, c0.dec.deg, line_id="niis", verbose=True)
+
 pvpath = dpath / "pv-offset-vels"
 
 
@@ -369,7 +371,7 @@ def shell_bright(x, r, h, f = 0):
         0.0,
     )
     return e * (z_out - z_in)
-    
+
 
 
 # +
@@ -490,7 +492,7 @@ fig, ax = plt.subplots()
 r_in = 5.3
 s6profile = 30 * shell_bright_powerlaw(yy.value, r_in, a=6, f=0.35)
 kernel = Gaussian1DKernel(stddev=3)
-s6profile = convolve_fft(ssprofile, kernel)
+s6profile = convolve_fft(s6profile, kernel)
 
 sg1 = models.Gaussian1D(amplitude=50, mean=-4, stddev=4)
 sg2 = models.Gaussian1D(amplitude=70, mean=5, stddev=4)
@@ -562,7 +564,7 @@ fig, ax = plt.subplots()
 
 ax.fill_between(yy.value, profile, step="mid", alpha=0.2, color="k", zorder=100)
 ax.plot(yy, sprofile, label=r"thick shell $r_\mathrm{in} = 4.5$, $r_\mathrm{out} = 9.0$")
-ax.plot(yy, s6profile, label=r"power law $n = 6$, $r_\mathrm{in} = 5.5$")
+ax.plot(yy, 0.8 * s6profile, label=r"power law $n = 6$, $r_\mathrm{in} = 5.5$")
 ax.plot(yy, s3profile, label=r"power law $n = 4$, $r_\mathrm{in} = 4.5$")
 
 ax.axvline(0, ls="dashed", color="k", lw=1)
@@ -758,8 +760,8 @@ for i, filepath in enumerate(file_list):
     ax = plt.subplot(nrows, ncols, i + 1, projection=w)
     xlims, ylims = w.world_to_pixel_values([v1, v2], [s1, s2])
     y1, y2 = [int(_) for _ in ylims]
-    bg1 = np.median(hdu.data[y1-10:y1], axis=0)
-    bg2 = np.median(hdu.data[y2:y2+10], axis=0)
+    bg1 = np.median(hdu.data[y1:y1+30], axis=0)
+    bg2 = np.median(hdu.data[y2-30:y2], axis=0)
     im = hdu.data - 0.5 * (bg1 + bg2)
     im /= im.max()
     ax.imshow(im, vmin=-0.1, vmax=1.0)
@@ -804,8 +806,8 @@ for i, filepath in enumerate(file_list):
     x1, x2 = [int(_) for _ in xlims]
     x0, y0 = w.world_to_pixel_values(0.0, 0.0)
     x0 = int(x0)
-    bg1 = np.median(hdu.data[y1-10:y1], axis=0)
-    bg2 = np.median(hdu.data[y2:y2+10], axis=0)
+    bg1 = np.median(hdu.data[y1:y1+30], axis=0)
+    bg2 = np.median(hdu.data[y2-30:y2], axis=0)
     im = hdu.data - 0.5 * (bg1 + bg2)
     scale = np.percentile(im[y1:y2, x1:x0], 99.9)
     im /= scale
@@ -865,8 +867,12 @@ for i, filepath in enumerate(file_list):
     x1, x2 = [int(_) for _ in xlims]
     x0, y0 = w.world_to_pixel_values(0.0, 0.0)
     x0 = int(x0)
-    bg1 = np.median(hdu.data[y1-10:y1], axis=0)
-    bg2 = np.median(hdu.data[y2:y2+10], axis=0)
+    if filepath.stem.startswith("nii"):
+        bg1 = np.mean(hdu.data[y1:y1+30], axis=0)
+        bg2 = np.mean(hdu.data[y2-30:y2], axis=0)
+    else:
+        bg1 = np.median(hdu.data[y1-10:y1], axis=0)
+        bg2 = np.median(hdu.data[y2:y2+10], axis=0)
     im = hdu.data - 0.5 * (bg1 + bg2)
     scale = np.percentile(im[y1:y2, x1:x0], 99.99)
     im /= scale
@@ -926,6 +932,9 @@ fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
 
 # And do the spatial profiles along the slit
 
+# +
+file_list = sorted(pvpath2.glob("*-pv-coadd-bgsub.fits"))
+
 fig, ax = plt.subplots(
     figsize=(10, 6),
 )
@@ -936,8 +945,8 @@ labels = {
     "heii": "He II",
 }
 vsys = -33
-v1, v2 = -75, -10
-s1, s2 = -40, 40
+v1, v2 = -75, 10
+s1, s2 = -35, 35
 offset = 0.0
 for i, filepath in enumerate(file_list):
     hdu, = fits.open(filepath)
@@ -955,7 +964,7 @@ for i, filepath in enumerate(file_list):
     line, = ax.plot(pos, profile + offset, label=line_label, ds="steps-mid")
     ax.text(-30, offset + 0.15, labels[line_label], color=line.get_color())
     ax.axhline(offset, linestyle="dashed", c="k", lw=1,)
-    offset += 0.5
+    offset += 1
 ax.axvline(0.0, linestyle="dashed", c="k", lw=1,)
 #ax.legend(ncol=2)
 ax.set(
@@ -966,7 +975,131 @@ fig.savefig(figfile)
 fig.savefig(figfile.replace(".pdf", ".jpg"))
 ...;
 
-pos
+# +
+file_list = sorted(pvpath2.glob("*-pv-coadd-bgsub.fits"))
+
+fig, ax = plt.subplots(
+    figsize=(10, 6),
+)
+labels = {
+    "oiii": "[O III]",
+    "ha": r"H$\alpha$",
+    "nii": "[N II]",
+    "heii": "He II",
+}
+vprofiles = {}
+vsys = -33
+v1, v2 = -120, 40
+s1, s2 = -6, 6
+offset = 0.0
+for i, filepath in enumerate(file_list):
+    hdu, = fits.open(filepath)
+    line_label = filepath.stem.split("-")[0]
+    im = hdu.data
+    w = WCS(hdu.header)
+    ns, nv = hdu.data.shape
+    xlims, ylims = w.world_to_pixel_values([v1, v2], [s1, s2])
+    x1, x2 = [int(_) for _ in xlims]
+    y1, y2 = [int(_) for _ in ylims]
+    profile = hdu.data[y1:y2, x1:x2].mean(axis=0)
+    vels, _ = w.pixel_to_world_values(np.arange(nv), [0]*nv)
+    vels = vels[x1:x2]
+    profile *= 1/ np.max(profile)
+    vprofiles[line_label] = profile
+    line, = ax.plot(vels, profile + offset, label=line_label, ds="steps-mid")
+    ax.text(-100, offset + 0.15, labels[line_label], color=line.get_color())
+    ax.axhline(offset, linestyle="dashed", c="k", lw=1,)
+    offset += 1
+ax.axvline(0.0, linestyle="dashed", c="k", lw=1,)
+#ax.legend(ncol=2)
+ax.set(
+    xlabel="Heliocentric velocity",
+)
+figfile = "ou5-coadd-velocity-profiles-1d.pdf"
+fig.savefig(figfile)
+fig.savefig(figfile.replace(".pdf", ".jpg"))
+...;
+# -
+
+# ### Convolve [O III] with Gaussian to match Ha
+
+from astropy.convolution import convolve, Gaussian1DKernel
+
+# +
+fig, ax = plt.subplots()
+boost = np.sum(vprofiles["ha"]) / np.sum(vprofiles["oiii"])
+ax.plot(vels, vprofiles["ha"], lw=4, color="k")
+ax.plot(vels, boost * vprofiles["oiii"])
+
+sprofile = convolve(vprofiles["oiii"], Gaussian1DKernel(stddev=3.8))
+ax.plot(vels, boost * sprofile)
+
+# -
+
+ss_list = np.linspace(0.0, 8.0, 25)
+skip = 3
+sns.set_palette("rocket", 1 + len(ss_list) // skip)
+fig, ax = plt.subplots()
+boost = np.sum(vprofiles["ha"]) / np.sum(vprofiles["oiii"])
+sum_square_residuals = []
+sum_square_residuals_core = []
+sum_square_residuals_wings = []
+core_width = 18
+core = np.abs(vels + 33) < core_width
+for index, ss in enumerate(ss_list):
+    if ss > 0:
+        sprofile = convolve(vprofiles["oiii"], Gaussian1DKernel(stddev=ss))
+    else:
+        sprofile = vprofiles["oiii"]
+    residuals = boost * sprofile - vprofiles["ha"]
+    if index % skip == 0:
+        if index % skip*2 == 0:
+            label = f"sig = {ss:.0f}"
+        else:
+            label = None
+        ax.plot(vels, residuals, label=label)
+    sum_square_residuals.append(np.sum(residuals**2))
+    sum_square_residuals_core.append(np.sum(residuals[core]**2))
+    sum_square_residuals_wings.append(np.sum(residuals[~core]**2))
+ax.axvline(-33, ls="dashed", color="k", lw=1)
+ax.axhline(0, ls="dashed", color="k", lw=1)
+ax.axvspan(-33 - core_width, -33 + core_width, color="k", alpha=0.1)
+ax.legend(ncol=3, fontsize="x-small")
+ax.set_ylim(None, 0.8)
+
+sns.color_palette()
+
+dv = np.diff(vels)[0]
+
+with sns.color_palette("tab10", n_colors=3):
+    fig, ax = plt.subplots()
+    line, = ax.plot(dv * ss_list, sum_square_residuals, label="all velocities")
+    ss_opt = np.interp(0.0, np.gradient(sum_square_residuals), ss_list)
+    c = line.get_color()
+    ax.axvline(ss_opt * dv, linestyle="dotted", color=c, ymin=0.15, ymax=0.3)
+    
+    line, = ax.plot(dv * ss_list, sum_square_residuals_core, label="core only")
+    ss_opt_core = np.interp(0.0, np.gradient(sum_square_residuals_core), ss_list)
+    c = line.get_color()
+    ax.axvline(ss_opt_core * dv, linestyle="dotted", color=c, ymin=0.1, ymax=0.25)
+
+    line, = ax.plot(dv * ss_list, sum_square_residuals_wings, label="wings only")
+    ss_opt_wings = np.interp(0.0, np.gradient(sum_square_residuals_wings), ss_list)
+    c = line.get_color()
+    ax.axvline(ss_opt_wings * dv, linestyle="dotted", color=c, ymax=0.1)
+    
+    ax.set_ylim(0.0, None)
+    ax.set_xlabel(r"Extra broadening, $\sigma$, km/s")
+    ax.set_ylabel("Sum squared residuals")
+    ax.legend(fontsize="x-small")
+
+np.diff(sum_square_residuals)
+
+np.interp(0.0, np.gradient(sum_square_residuals_wings), ss_list)
+
+# +
+# ax.axvline?
+# -
 
 # ### Some comments on the results
 #

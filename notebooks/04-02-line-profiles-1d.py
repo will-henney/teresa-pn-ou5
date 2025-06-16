@@ -779,8 +779,8 @@ ax.set_aspect("equal")
 ax.set_xlabel(r"$\sigma^2$ ( [O III] ), km$^2$ / s$^2$")
 ax.set_ylabel(r"$\sigma^2$ ( H$\alpha$ ), km$^2$ / s$^2$")
 figfile = "pn-ou5-gaussfit-temperature.pdf"
-fig.savefig(figfile)
-fig.savefig(figfile.replace(".pdf", ".jpg"))
+fig.savefig(figfile, bbox_inches="tight")
+fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
 
 
 dsigsq = vardf["stddev_0_h"]**2 - vardf["stddev_0_o"]**2

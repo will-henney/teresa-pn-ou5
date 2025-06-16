@@ -971,8 +971,8 @@ ax.set(
     xlabel="Displacement along slit, arcsec",
 )
 figfile = "ou5-coadd-spatial-profiles-1d.pdf"
-fig.savefig(figfile)
-fig.savefig(figfile.replace(".pdf", ".jpg"))
+fig.savefig(figfile, bbox_inches="tight")
+fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
 ...;
 # -
 
@@ -1020,8 +1020,8 @@ ax.set(
     xlabel="Heliocentric velocity",
 )
 figfile = "ou5-coadd-velocity-profiles-1d.pdf"
-fig.savefig(figfile)
-fig.savefig(figfile.replace(".pdf", ".jpg"))
+fig.savefig(figfile, bbox_inches="tight")
+fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
 ...;
 # -
 
@@ -1171,8 +1171,8 @@ with sns.color_palette("rocket", 1 + len(ss_list) // skip):
     ax.set_xlabel("Heliocentric velocity, km/s")
     ax.set_ylabel(r"Residual: $ \left\{ I(\mathrm{[O III]}) \circ K(\sigma) \right\} - I(\mathrm{H\alpha})$")
     figfile = "pn-ou5-convolution-residuals.pdf"
-    fig.savefig(figfile)
-    fig.savefig(figfile.replace(".pdf", ".jpg"))
+    fig.savefig(figfile, bbox_inches="tight")
+    fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
 
 
 with sns.color_palette("colorblind", n_colors=3):
@@ -1200,8 +1200,8 @@ with sns.color_palette("colorblind", n_colors=3):
     ax.set_ylabel("Sum squared residuals")
     ax.legend(fontsize="small")
     figfile = "pn-ou5-convolution-optimum.pdf"
-    fig.savefig(figfile)
-    fig.savefig(figfile.replace(".pdf", ".jpg"))
+    fig.savefig(figfile, bbox_inches="tight")
+    fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
 
 
 sns.set_color_codes()
@@ -1242,8 +1242,8 @@ with sns.color_palette("dark"):
     ax.legend()
     
     figfile = "pn-ou5-convolution-fits.pdf"
-    fig.savefig(figfile)
-    fig.savefig(figfile.replace(".pdf", ".jpg"))
+    fig.savefig(figfile, bbox_inches="tight")
+    fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
 
 
 # +

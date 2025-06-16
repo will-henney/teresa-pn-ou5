@@ -406,7 +406,7 @@ fine_positions = np.arange(-28, 29) * fine_pix
 fine_positions
 
 # +
-sys = -33
+vsys = -33
 v1, v2 = vsys - 100, vsys + 100
 fitter = fitting.LevMarLSQFitter()
 finefits = {}
@@ -430,8 +430,10 @@ for finepos in fine_positions:
     g2 = models.Gaussian1D(amplitude=sm, mean=-20, stddev=10.0)
     g2.stddev.bounds = (5.0, 10.0)
     init_model = g1 + g2
+    # Tie together the component widths
+    init_model.stddev_1.tied = lambda model: model.stddev_0
     fitted_model = fitter(init_model, vels, spec)
-    gs = models.Gaussian1D(amplitude=sm, mean=sys, stddev=10.0)
+    gs = models.Gaussian1D(amplitude=sm, mean=vsys, stddev=10.0)
     fitted_single = fitter(gs, vels, spec)
     finefits[finepos] = fitted_model
     finesingles[finepos] = fitted_single
@@ -588,7 +590,7 @@ is {np.mean(redblue_shifts):.1f} +/- {np.std(redblue_shifts):.1f} arcsec
 # We had to change the allowed bounds on the widths
 
 # +
-sys = -33
+vsys = -33
 v1, v2 = vsys - 100, vsys + 100
 fitter = fitting.LevMarLSQFitter()
 hfinefits = {}
@@ -612,8 +614,10 @@ for finepos in fine_positions:
     g2 = models.Gaussian1D(amplitude=sm, mean=-20, stddev=10.0)
     g2.stddev.bounds = (7.0, 15.0)
     init_model = g1 + g2
+    # Tie together the component widths
+    init_model.stddev_1.tied = lambda model: model.stddev_0
     fitted_model = fitter(init_model, vels, spec)
-    gs = models.Gaussian1D(amplitude=sm, mean=sys, stddev=10.0)
+    gs = models.Gaussian1D(amplitude=sm, mean=vsys, stddev=10.0)
     fitted_single = fitter(gs, vels, spec)
     hfinefits[finepos] = fitted_model
     hfinesingles[finepos] = fitted_single
@@ -658,18 +662,14 @@ ax.legend(ncol=2, fontsize="x-small")
 # #### Compare widths
 
 # +
-ax = fdf_h[["stddev_0", "stddev_1"]].join(
-    fdf[["stddev_0", "stddev_1"]],
+ax = fdf_h[["stddev_0", "stddev"]].join(
+    fdf[["stddev_0", "stddev"]],
     lsuffix="_h", rsuffix="_o",
 ).plot(colormap="Paired")
-fdf_h[["stddev"]].join(
-    fdf[["stddev"]],
-    lsuffix="_h", rsuffix="_o",
-).plot(ax=ax)
 ax.set_ylim(0.0, 25.0)
 ax.set_xlim(-20, 20)
 
-ax.legend(ncol=3, fontsize="x-small")
+ax.legend(ncol=2, fontsize="x-small")
 # -
 
 
@@ -706,17 +706,13 @@ ax.set_xlim(-20, 20)
 ax.legend(ncol=2, fontsize="x-small")
 
 ax = axes[1]
-fdf_h[["stddev_0", "stddev_1"]].join(
-    fdf[["stddev_0", "stddev_1"]],
+fdf_h[["stddev_0", "stddev"]].join(
+    fdf[["stddev_0", "stddev"]],
     lsuffix="_h", rsuffix="_o",
 ).plot(ax=ax, colormap="Paired")
-fdf_h[["stddev"]].join(
-    fdf[["stddev"]],
-    lsuffix="_h", rsuffix="_o",
-).plot(ax=ax)
 ax.set_ylim(0.0, 25.0)
 ax.set_xlim(-20, 20)
-ax.legend(ncol=3, fontsize="x-small")
+ax.legend(ncol=2, fontsize="x-small")
 
 ax = axes[2]
 ax = fdf_h[["ratio_1_0"]].join(
@@ -750,48 +746,57 @@ vardf = fdf_h[["stddev_0", "stddev_1", "stddev"]].join(
     lsuffix="_h", rsuffix="_o",
 )
 
-fig, ax = plt.subplots()
+fig, ax = plt.subplots(figsize=(8, 8))
 scale = np.where(
-    vardf["amplitude_1"] > 0.5,
+    vardf["amplitude_1"] > 0.3,
     vardf["amplitude_1"],
     np.nan,
 )
 ax.scatter(
     vardf["stddev_0_o"]**2,
     vardf["stddev_0_h"]**2,
-    s=30 * scale,
+    s=100 * scale,
     c=vardf.index,
-    cmap="PuBuGn",    
+    cmap="plasma",    
     vmin=-10, vmax=10,
-    label="blueshifted",
+    zorder=100,
+    alpha=1.0,
+    edgecolors="k",
+    linewidths=0.5,
 )
-ax.scatter(
-    vardf["stddev_1_o"]**2,
-    vardf["stddev_1_h"]**2,
-    s=30 * scale,
-    c=vardf.index,
-    cmap="OrRd",
-    vmin=-10, vmax=10,
-    label="redshifted",
-) 
-# ax.scatter(
-#     vardf["stddev_o"]**2,
-#     vardf["stddev_h"]**2,
-#     s=100 * scale,
-# ) 
 xx = np.array([0, 200])
 ax.plot(xx, xx + 10.233, c="0.8")
+ax.text(5, 5 - 5 + 10.233, r"$T = 0$ K", rotation=45, c="0.8")
 ax.plot(xx, xx + 10.233 + 77.34 / 2, c="0.6")
+ax.text(5, 5 - 5 + 10.233 + 77.34 / 2, r"$T = 5000$ K", rotation=45, c="0.6")
 ax.plot(xx, xx + 10.233 + 77.34, c="0.4")
-ax.set_xlim(0, 150)
-ax.set_ylim(0, 150)
-ax.set_yticks([0, 50, 100, 150])
+ax.text(5, 5 - 5 + 10.233 + 77.34, r"$T = 10\,000$ K", rotation=45, c="0.4")
+ax.set_xlim(0, 120)
+ax.set_ylim(0, 120)
+# ax.set_yticks([0, 50, 100, 150])
+ax.set_xticks(ax.get_yticks())
 ax.set_aspect("equal")
-ax.set_xlabel(r"$\sigma^2$ ( [O III] ), km/s")
-ax.set_ylabel(r"$\sigma^2$ ( H$\alpha$ ), km/s")
+ax.set_xlabel(r"$\sigma^2$ ( [O III] ), km$^2$ / s$^2$")
+ax.set_ylabel(r"$\sigma^2$ ( H$\alpha$ ), km$^2$ / s$^2$")
+figfile = "pn-ou5-gaussfit-temperature.pdf"
+fig.savefig(figfile)
+fig.savefig(figfile.replace(".pdf", ".jpg"))
 
 
+dsigsq = vardf["stddev_0_h"]**2 - vardf["stddev_0_o"]**2
+weights = scale
+m = np.isfinite(scale)
+mean_dsigsq = np.average(dsigsq[m], weights=weights[m])
+std_dsigsq = np.sqrt(
+    np.average((dsigsq[m] - mean_dsigsq)**2, weights=weights[m])
+)
+mean_dsigsq, std_dsigsq
 
+mean_T4 = (mean_dsigsq - 10.233) / 77.34
+std_T4 = std_dsigsq / 77.34
+mean_T4, std_T4
+
+# So $T = 5700 \pm 1300$ K
 
 # ### Non-parametric version
 #
@@ -899,14 +904,14 @@ fig, ax = plt.subplots(figsize=(8, 12))
 for pos in fine_positions:
     if abs(pos) > 8.0:
         continue
-    for shift, data in (-0.25, hfineprofiles[pos]), (0.25, fineprofiles[pos]):
+    for shift, data, bc, rc in (-0.25, hfineprofiles[pos], "g", "y"), (0.25, fineprofiles[pos], "b", "r"):
         v = data["v"]
         norm = np.sum(data["spec"])
         scale = 15
         g1 = data["g1"]
         g2 = data["g2"]
-        ax.fill_between(v, pos + scale * g1 / norm, pos, color="b", lw=0.5, alpha=0.3)
-        ax.fill_between(v, pos + scale * g2 / norm, pos, color="r", lw=0.5, alpha=0.3)
+        ax.fill_between(v, pos + scale * g1 / norm, pos, color=bc, lw=0.5, alpha=0.3)
+        ax.fill_between(v, pos + scale * g2 / norm, pos, color=rc, lw=0.5, alpha=0.3)
         ax.plot(v, pos + scale * data["spec"] / norm, color="k", alpha=0.4, drawstyle="steps-mid")
 ax.set_xlim(-90, 10)
 

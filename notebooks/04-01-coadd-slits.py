@@ -930,7 +930,7 @@ fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
 ...;
 # -
 
-# And do the spatial profiles along the slit
+# ### And do the spatial profiles along the slit
 
 # +
 file_list = sorted(pvpath2.glob("*-pv-coadd-bgsub.fits"))
@@ -974,6 +974,10 @@ figfile = "ou5-coadd-spatial-profiles-1d.pdf"
 fig.savefig(figfile)
 fig.savefig(figfile.replace(".pdf", ".jpg"))
 ...;
+# -
+
+# ### Summed spectrum of entire inner lobes
+#
 
 # +
 file_list = sorted(pvpath2.glob("*-pv-coadd-bgsub.fits"))
@@ -987,7 +991,7 @@ labels = {
     "nii": "[N II]",
     "heii": "He II",
 }
-vprofiles = {}
+vprofiles_all = {}
 vsys = -33
 v1, v2 = -120, 40
 s1, s2 = -6, 6
@@ -1005,7 +1009,7 @@ for i, filepath in enumerate(file_list):
     vels, _ = w.pixel_to_world_values(np.arange(nv), [0]*nv)
     vels = vels[x1:x2]
     profile *= 1/ np.max(profile)
-    vprofiles[line_label] = profile
+    vprofiles_all[line_label] = profile
     line, = ax.plot(vels, profile + offset, label=line_label, ds="steps-mid")
     ax.text(-100, offset + 0.15, labels[line_label], color=line.get_color())
     ax.axhline(offset, linestyle="dashed", c="k", lw=1,)
@@ -1021,85 +1025,236 @@ fig.savefig(figfile.replace(".pdf", ".jpg"))
 ...;
 # -
 
+# ### Summed spectrum for $1.5 < |z| < 6.0$
+
+# Repeat but excluding the equatorial plane, in order to avoid the high-velocity wings. 
+
+# +
+file_list = sorted(pvpath2.glob("*-pv-coadd-bgsub.fits"))
+
+fig, ax = plt.subplots(
+    figsize=(10, 6),
+)
+labels = {
+    "oiii": "[O III]",
+    "ha": r"H$\alpha$",
+    "nii": "[N II]",
+    "heii": "He II",
+}
+vprofiles_ilobes = {}
+vsys = -33
+v1, v2 = -120, 40
+s1, s2 = 3.5, 8
+offset = 0.0
+for i, filepath in enumerate(file_list):
+    hdu, = fits.open(filepath)
+    line_label = filepath.stem.split("-")[0]
+    im = hdu.data
+    w = WCS(hdu.header)
+    ns, nv = hdu.data.shape
+
+    # North lobe
+    xlims, ylims = w.world_to_pixel_values([v1, v2], [s1, s2])
+    x1, x2 = [int(_) for _ in xlims]
+    y1, y2 = [int(_) for _ in ylims]
+    profile = hdu.data[y1:y2, x1:x2].mean(axis=0)
+
+    # South lobe
+    xlims, ylims = w.world_to_pixel_values([v1, v2], [-s2, -s1])
+    x1, x2 = [int(_) for _ in xlims]
+    y1, y2 = [int(_) for _ in ylims]
+    profile += hdu.data[y1:y2, x1:x2].mean(axis=0)
+
+    vels, _ = w.pixel_to_world_values(np.arange(nv), [0]*nv)
+    vels = vels[x1:x2]
+    profile *= 1/ np.max(profile)
+    vprofiles_ilobes[line_label] = profile
+    line, = ax.plot(vels, profile + offset, label=line_label, ds="steps-mid")
+    ax.text(-100, offset + 0.15, labels[line_label], color=line.get_color())
+    ax.axhline(offset, linestyle="dashed", c="k", lw=1,)
+    offset += 1
+ax.axvline(0.0, linestyle="dashed", c="k", lw=1,)
+#ax.legend(ncol=2)
+ax.set(
+    xlabel="Heliocentric velocity",
+)
+figfile = "ou5-coadd-velocity-profiles-1d-avoid-equator.pdf"
+fig.savefig(figfile)
+fig.savefig(figfile.replace(".pdf", ".jpg"))
+...;
+# -
+
 # ### Convolve [O III] with Gaussian to match Ha
 
 from astropy.convolution import convolve, Gaussian1DKernel
 
+# Choose whether to excluide equatorial region or not
+
+vprofiles = vprofiles_all
+#vprofiles = vprofiles_ilobes
+
+# Small correction to the [O III] zero level
+
+vprofiles["oiii"] -= 0.01
+
+# Shift the Ha profile to match the mean velocities
+
+vmean_h = np.average(vels, weights=vprofiles["ha"])
+vmean_o = np.average(vels, weights=vprofiles["oiii"])
+vmean_h, vmean_o
+
+vshift = vmean_h - vmean_o
+vshift
+
+shifted = np.interp(vels + vshift, vels, vprofiles["ha"])
+fig, ax = plt.subplots(figsize=(6, 2))
+ax.plot(vels, vprofiles["ha"])
+ax.plot(vels, shifted)
+
+# That seems to have worked correctly by shifting it to the right.
+
+vprofiles["ha"] = shifted
+
+# Ensure that total flux is same for [O III] and Ha
+
+boost = np.sum(vprofiles["ha"]) / np.sum(vprofiles["oiii"])
+vprofiles["oiii"] *= boost
+boost
+
 # +
 fig, ax = plt.subplots()
-boost = np.sum(vprofiles["ha"]) / np.sum(vprofiles["oiii"])
+
 ax.plot(vels, vprofiles["ha"], lw=4, color="k")
-ax.plot(vels, boost * vprofiles["oiii"])
+ax.plot(vels, vprofiles["oiii"])
 
 sprofile = convolve(vprofiles["oiii"], Gaussian1DKernel(stddev=3.8))
-ax.plot(vels, boost * sprofile)
+ax.plot(vels, sprofile)
 
 # -
 
-ss_list = np.linspace(0.0, 8.0, 25)
-skip = 3
-sns.set_palette("rocket", 1 + len(ss_list) // skip)
-fig, ax = plt.subplots()
-boost = np.sum(vprofiles["ha"]) / np.sum(vprofiles["oiii"])
-sum_square_residuals = []
-sum_square_residuals_core = []
-sum_square_residuals_wings = []
-core_width = 18
-core = np.abs(vels + 33) < core_width
-for index, ss in enumerate(ss_list):
-    if ss > 0:
-        sprofile = convolve(vprofiles["oiii"], Gaussian1DKernel(stddev=ss))
-    else:
-        sprofile = vprofiles["oiii"]
-    residuals = boost * sprofile - vprofiles["ha"]
-    if index % skip == 0:
-        if index % skip*2 == 0:
-            label = f"sig = {ss:.0f}"
-        else:
-            label = None
-        ax.plot(vels, residuals, label=label)
-    sum_square_residuals.append(np.sum(residuals**2))
-    sum_square_residuals_core.append(np.sum(residuals[core]**2))
-    sum_square_residuals_wings.append(np.sum(residuals[~core]**2))
-ax.axvline(-33, ls="dashed", color="k", lw=1)
-ax.axhline(0, ls="dashed", color="k", lw=1)
-ax.axvspan(-33 - core_width, -33 + core_width, color="k", alpha=0.1)
-ax.legend(ncol=3, fontsize="x-small")
-ax.set_ylim(None, 0.8)
-
-sns.color_palette()
+sprofile.sum() / np.sum(vprofiles["ha"])
 
 dv = np.diff(vels)[0]
 
-with sns.color_palette("tab10", n_colors=3):
-    fig, ax = plt.subplots()
-    line, = ax.plot(dv * ss_list, sum_square_residuals, label="all velocities")
-    ss_opt = np.interp(0.0, np.gradient(sum_square_residuals), ss_list)
-    c = line.get_color()
-    ax.axvline(ss_opt * dv, linestyle="dotted", color=c, ymin=0.15, ymax=0.3)
-    
-    line, = ax.plot(dv * ss_list, sum_square_residuals_core, label="core only")
-    ss_opt_core = np.interp(0.0, np.gradient(sum_square_residuals_core), ss_list)
-    c = line.get_color()
-    ax.axvline(ss_opt_core * dv, linestyle="dotted", color=c, ymin=0.1, ymax=0.25)
+ss_list = np.linspace(0.0, 8.0, 25)
+skip = 3
+with sns.color_palette("rocket", 1 + len(ss_list) // skip):
+    fig, ax = plt.subplots(figsize=(8, 5))
+    boost = np.sum(vprofiles["ha"]) / np.sum(vprofiles["oiii"])
+    sum_square_residuals = []
+    sum_square_residuals_core = []
+    sum_square_residuals_wings = []
+    core_width = 20
+    core = np.abs(vels + 33) < core_width
+    for index, ss in enumerate(ss_list):
+        if ss > 0:
+            sprofile = convolve(vprofiles["oiii"], Gaussian1DKernel(stddev=ss, mode="oversample"))
+        else:
+            sprofile = vprofiles["oiii"]
+        residuals = boost * sprofile - vprofiles["ha"]
+        if index % skip == 0:
+            if index % (skip*2) == 0:
+                label = f"$\sigma = {dv * ss:.0f}$ km/s"
+                lw = 2.5
+            else:
+                label = None
+                lw = 1.0
+            ax.plot(vels, residuals, label=label, lw=lw)
+        sum_square_residuals.append(np.sum(residuals**2))
+        sum_square_residuals_core.append(np.sum(residuals[core]**2))
+        sum_square_residuals_wings.append(np.sum(residuals[~core]**2))
+    ax.axvline(-33, ls="dashed", color="k", lw=1)
+    ax.axhline(0, ls="dashed", color="k", lw=1)
+    ax.axvspan(-33 - core_width, -33 + core_width, color="b", alpha=0.1, zorder=-100)
+    ax.legend(fontsize="small", title="Extra broadening")
+    ax.set_ylim(None, 0.9)
+    ax.set_xlabel("Heliocentric velocity, km/s")
+    ax.set_ylabel(r"Residual: $ \left\{ I(\mathrm{[O III]}) \circ K(\sigma) \right\} - I(\mathrm{H\alpha})$")
+    figfile = "pn-ou5-convolution-residuals.pdf"
+    fig.savefig(figfile)
+    fig.savefig(figfile.replace(".pdf", ".jpg"))
 
-    line, = ax.plot(dv * ss_list, sum_square_residuals_wings, label="wings only")
-    ss_opt_wings = np.interp(0.0, np.gradient(sum_square_residuals_wings), ss_list)
+
+with sns.color_palette("colorblind", n_colors=3):
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ss_opt = np.interp(0.0, np.gradient(sum_square_residuals), ss_list)
+    label = f"All velocities, $\sigma_\mathrm{{opt}} = {dv * ss_opt:.1f}$ km/s"
+    line, = ax.plot(dv * ss_list, sum_square_residuals, label=label)
     c = line.get_color()
-    ax.axvline(ss_opt_wings * dv, linestyle="dotted", color=c, ymax=0.1)
+    ax.axvline(ss_opt * dv, linestyle="dotted", color=c, ymax=0.15)
+    
+    ss_opt_core = np.interp(0.0, np.gradient(sum_square_residuals_core), ss_list)
+    label = f"Core only, $\sigma_\mathrm{{opt}} = {dv * ss_opt_core:.1f}$ km/s"
+    line, = ax.plot(dv * ss_list, sum_square_residuals_core, label=label)
+    c = line.get_color()
+    ax.axvline(ss_opt_core * dv, linestyle="dotted", color=c, ymax=0.15)
+
+    ss_opt_wings = np.interp(0.0, np.gradient(sum_square_residuals_wings), ss_list)
+    label = f"Wings only, $\sigma_\mathrm{{opt}} = {dv * ss_opt_wings:.1f}$ km/s"
+    line, = ax.plot(dv * ss_list, sum_square_residuals_wings, label=label)
+    c = line.get_color()
+    ax.axvline(ss_opt_wings * dv, linestyle="dotted", color=c, ymax=0.15)
     
     ax.set_ylim(0.0, None)
     ax.set_xlabel(r"Extra broadening, $\sigma$, km/s")
     ax.set_ylabel("Sum squared residuals")
-    ax.legend(fontsize="x-small")
+    ax.legend(fontsize="small")
+    figfile = "pn-ou5-convolution-optimum.pdf"
+    fig.savefig(figfile)
+    fig.savefig(figfile.replace(".pdf", ".jpg"))
 
-np.diff(sum_square_residuals)
 
-np.interp(0.0, np.gradient(sum_square_residuals_wings), ss_list)
+sns.set_color_codes()
+with sns.color_palette("dark"):
+
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ds = "default"
+    #ds = "steps-mid"
+    olw, hlw = 2, 4
+    ocolor = (1, 0.2, 0.2)
+    offset_step = 0.5
+    offset = 0
+    ax.plot(vels, offset + vprofiles["ha"], lw=hlw, color="k", ds=ds, label=r"H$\alpha$")
+    ax.plot(vels, offset + boost * vprofiles["oiii"], color=ocolor, lw=olw, ds=ds, label="[O III]")
+    text = "No broadening\n" + r"$\sigma = 0$ km/s"
+    ax.text(-120, offset + 0.1, text, fontsize="small")
+    ax.axhline(offset, ls="dashed", color="k", lw=1)
+
+    offset += offset_step
+    sprofile = convolve(vprofiles["oiii"], Gaussian1DKernel(stddev=ss_opt_wings, mode="oversample"))
+    ax.plot(vels, offset + vprofiles["ha"], lw=hlw, color="k")
+    ax.plot(vels, offset + boost * sprofile, color=ocolor, lw=olw)
+    text = "Optimize wings\n" + rf"$\sigma = {ss_opt_wings * dv:.1f}$ km/s"
+    ax.text(-120, offset + 0.1, text, fontsize="small")
+    ax.axhline(offset, ls="dashed", color="k", lw=1)
+    
+    offset += offset_step
+    sprofile = convolve(vprofiles["oiii"], Gaussian1DKernel(stddev=ss_opt_core, mode="oversample"))
+    ax.plot(vels, offset + vprofiles["ha"], lw=hlw, color="k")
+    ax.plot(vels, offset + boost * sprofile, color=ocolor, lw=olw)
+    text = "Optimize core\n" + rf"$\sigma = {ss_opt_core * dv:.1f}$ km/s"
+    ax.text(-120, offset + 0.1, text, fontsize="small")
+    ax.axhline(offset, ls="dashed", color="k", lw=1)
+
+    ax.axvspan(-33 - core_width, -33 + core_width, color="b", alpha=0.1, zorder=-100)
+    ax.axvline(-33, ls="dashed", color="k", lw=1)
+    ax.set_xlabel("Heliocentric velocity, km/s")
+    ax.legend()
+    
+    figfile = "pn-ou5-convolution-fits.pdf"
+    fig.savefig(figfile)
+    fig.savefig(figfile.replace(".pdf", ".jpg"))
+
 
 # +
-# ax.axvline?
+T4_opt = ((ss_opt * dv)**2 - 10.233) / 77.34
+T4_opt_core = ((ss_opt_core * dv)**2 - 10.233) / 77.34
+T4_opt_wings = ((ss_opt_wings * dv)**2 - 10.233) / 77.34
+
+T4_opt_wings, T4_opt, T4_opt_core
 # -
+
+# So this gives $T = 6000_{-3000}^{+600}$ K
 
 # ### Some comments on the results
 #

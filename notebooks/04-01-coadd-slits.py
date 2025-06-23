@@ -1025,7 +1025,7 @@ fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
 ...;
 # -
 
-# ### Summed spectrum for $1.5 < |z| < 6.0$
+# ### Summed spectrum for $3.5 < |z| < 8.0$
 
 # Repeat but excluding the equatorial plane, in order to avoid the high-velocity wings. 
 
@@ -1099,9 +1099,11 @@ vprofiles["oiii"] -= 0.01
 
 # Shift the Ha profile to match the mean velocities
 
+# + editable=true slideshow={"slide_type": ""}
 vmean_h = np.average(vels, weights=vprofiles["ha"])
 vmean_o = np.average(vels, weights=vprofiles["oiii"])
 vmean_h, vmean_o
+# -
 
 vshift = vmean_h - vmean_o
 vshift
@@ -1140,7 +1142,6 @@ ss_list = np.linspace(0.0, 8.0, 25)
 skip = 3
 with sns.color_palette("rocket", 1 + len(ss_list) // skip):
     fig, ax = plt.subplots(figsize=(8, 5))
-    boost = np.sum(vprofiles["ha"]) / np.sum(vprofiles["oiii"])
     sum_square_residuals = []
     sum_square_residuals_core = []
     sum_square_residuals_wings = []
@@ -1151,7 +1152,7 @@ with sns.color_palette("rocket", 1 + len(ss_list) // skip):
             sprofile = convolve(vprofiles["oiii"], Gaussian1DKernel(stddev=ss, mode="oversample"))
         else:
             sprofile = vprofiles["oiii"]
-        residuals = boost * sprofile - vprofiles["ha"]
+        residuals = sprofile - vprofiles["ha"]
         if index % skip == 0:
             if index % (skip*2) == 0:
                 label = f"$\sigma = {dv * ss:.0f}$ km/s"
@@ -1181,21 +1182,21 @@ with sns.color_palette("colorblind", n_colors=3):
     label = f"All velocities, $\sigma_\mathrm{{opt}} = {dv * ss_opt:.1f}$ km/s"
     line, = ax.plot(dv * ss_list, sum_square_residuals, label=label)
     c = line.get_color()
-    ax.axvline(ss_opt * dv, linestyle="dotted", color=c, ymax=0.15)
+    ax.axvline(ss_opt * dv, linestyle="dotted", color=c, ymax=0.25)
     
     ss_opt_core = np.interp(0.0, np.gradient(sum_square_residuals_core), ss_list)
     label = f"Core only, $\sigma_\mathrm{{opt}} = {dv * ss_opt_core:.1f}$ km/s"
     line, = ax.plot(dv * ss_list, sum_square_residuals_core, label=label)
     c = line.get_color()
-    ax.axvline(ss_opt_core * dv, linestyle="dotted", color=c, ymax=0.15)
+    ax.axvline(ss_opt_core * dv, linestyle="dotted", color=c, ymax=0.25)
 
     ss_opt_wings = np.interp(0.0, np.gradient(sum_square_residuals_wings), ss_list)
     label = f"Wings only, $\sigma_\mathrm{{opt}} = {dv * ss_opt_wings:.1f}$ km/s"
     line, = ax.plot(dv * ss_list, sum_square_residuals_wings, label=label)
     c = line.get_color()
-    ax.axvline(ss_opt_wings * dv, linestyle="dotted", color=c, ymax=0.15)
+    ax.axvline(ss_opt_wings * dv, linestyle="dotted", color=c, ymax=0.25)
     
-    ax.set_ylim(0.0, None)
+    ax.set_ylim(0.0, 0.8)
     ax.set_xlabel(r"Extra broadening, $\sigma$, km/s")
     ax.set_ylabel("Sum squared residuals")
     ax.legend(fontsize="small")
@@ -1215,7 +1216,7 @@ with sns.color_palette("dark"):
     offset_step = 0.5
     offset = 0
     ax.plot(vels, offset + vprofiles["ha"], lw=hlw, color="k", ds=ds, label=r"H$\alpha$")
-    ax.plot(vels, offset + boost * vprofiles["oiii"], color=ocolor, lw=olw, ds=ds, label="[O III]")
+    ax.plot(vels, offset + vprofiles["oiii"], color=ocolor, lw=olw, ds=ds, label="[O III]")
     text = "No broadening\n" + r"$\sigma = 0$ km/s"
     ax.text(-120, offset + 0.1, text, fontsize="small")
     ax.axhline(offset, ls="dashed", color="k", lw=1)
@@ -1223,7 +1224,7 @@ with sns.color_palette("dark"):
     offset += offset_step
     sprofile = convolve(vprofiles["oiii"], Gaussian1DKernel(stddev=ss_opt_wings, mode="oversample"))
     ax.plot(vels, offset + vprofiles["ha"], lw=hlw, color="k")
-    ax.plot(vels, offset + boost * sprofile, color=ocolor, lw=olw)
+    ax.plot(vels, offset + sprofile, color=ocolor, lw=olw)
     text = "Optimize wings\n" + rf"$\sigma = {ss_opt_wings * dv:.1f}$ km/s"
     ax.text(-120, offset + 0.1, text, fontsize="small")
     ax.axhline(offset, ls="dashed", color="k", lw=1)
@@ -1231,7 +1232,7 @@ with sns.color_palette("dark"):
     offset += offset_step
     sprofile = convolve(vprofiles["oiii"], Gaussian1DKernel(stddev=ss_opt_core, mode="oversample"))
     ax.plot(vels, offset + vprofiles["ha"], lw=hlw, color="k")
-    ax.plot(vels, offset + boost * sprofile, color=ocolor, lw=olw)
+    ax.plot(vels, offset + sprofile, color=ocolor, lw=olw)
     text = "Optimize core\n" + rf"$\sigma = {ss_opt_core * dv:.1f}$ km/s"
     ax.text(-120, offset + 0.1, text, fontsize="small")
     ax.axhline(offset, ls="dashed", color="k", lw=1)
@@ -1256,25 +1257,999 @@ T4_opt_wings, T4_opt, T4_opt_core
 
 # So this gives $T = 6000_{-3000}^{+600}$ K
 
-# ### Some comments on the results
+# # Two-phase model
+#
+# We will now repeat this with the two-phase model from the other notebook, with $\alpha \equiv T_c / T_w = 0.1$ and $\omega \equiv I_c / (I_c + I_w) = 0.5$.
+
+# ## Data on the fine structure components
+
+from astropy.table import Table
+
+# Read the Clegg 1999 data for $n = 100$ pcc
+
+tab = Table.read(Path.cwd().parent / "docs" / "h-case-b-n2.csv")
+
+tab
+
+np.log10(list(map(float, tab.colnames[3:])))
+
+# + editable=true slideshow={"slide_type": ""}
+itable = Table(tab.columns[3:])
+np.array(itable)
+# -
+
+np.array(tab["d v"])
+
+# ## Calculate profiles with astropy.modeling
+#
+
+from astropy import constants
+from astropy.modeling import models
+
+# Normalization for the rms widths
+
+sig0 = np.sqrt( 
+    constants.k_B * 10_000 * u.K / constants.m_p 
+).to(u.km / u.s)
+sig0
+
+# Fine structure profile for T = 1000 K
+
+vmean_1000 = np.average(tab["d v"], weights=tab["1000"])
+sig_1000 = sig0.value * np.sqrt(0.1 * (1 - 1/16))
+vmean_1000, sig_1000
+
+comps1000 = [
+    models.Gaussian1D(
+        amplitude=_amp / sig_1000, 
+        mean=_mean - vmean_1000,
+        stddev=sig_1000,
+    )
+    for _mean, _amp in zip(tab["d v"], tab["1000"])
+]
+
+kernel1000 = comps1000[0]
+for _comp in comps1000[1:]:
+    kernel1000 += _comp
+kernel1000
+
+fig, ax = plt.subplots()
+finevels = np.linspace(-50, 50, 500)
+ax.plot(finevels, kernel1000(finevels))
+
+# Fine structure profile for T = 10,000 K
+
+vmean_10000 = np.average(tab["d v"], weights=tab["10000"])
+sig_10000 = sig0.value * np.sqrt(1.0 * (1 - 1/16))
+vmean_10000, sig_10000
+
+comps10000 = [
+    models.Gaussian1D(
+        amplitude=_amp / sig_10000, 
+        mean=_mean - vmean_10000,
+        stddev=sig_10000,
+    )
+    for _mean, _amp in zip(tab["d v"], tab["10000"])
+]
+
+kernel10000 = comps10000[0]
+for _comp in comps10000[1:]:
+    kernel10000 += _comp
+kernel10000
+
+fig, ax = plt.subplots()
+finevels = np.linspace(-50, 50, 500)
+ax.plot(finevels, kernel10000(finevels))
+
+kernel1000(finevels).sum(), kernel10000(finevels).sum()
+
+# Now combine the two temperature components
+
+fine_dv = np.diff(finevels)[0]
+
+omega = 0.5
+profile_2temp = (
+    omega * kernel1000(finevels) / np.sum(kernel1000(finevels))
+    + (1 - omega) * kernel10000(finevels) / np.sum(kernel10000(finevels))
+) / fine_dv
+
+# And compare with the one-temperature version with 6000 K
+
+sig_6000 = sig0.value * np.sqrt(0.6 * (1 - 1/16))
+kernel6000 = models.Gaussian1D(
+    amplitude=1, 
+    mean=0,
+    stddev=sig_6000,
+)
+profile_1temp = kernel6000(finevels) / np.sum(kernel6000(finevels))
+profile_1temp /= fine_dv
+
+fig, ax = plt.subplots(figsize=(8, 5))
+finevels = np.linspace(-50, 50, 500)
+ax.plot(
+    finevels, profile_2temp, 
+    label=r"Two-phase: $T_\mathrm{w} = 10\,000$ K, $T_\mathrm{c} = 1000$ K"
+)
+ax.plot(
+    finevels, profile_1temp + 0.01, 
+    label=r"One-phase: $T = 6000$ K",
+)
+ax.legend(fontsize="small", title=r"Thermal + fine-structure H$\alpha$ profiles")
+ax.set_ylim(None, 0.11)
+ax.set_xlabel("Velocity, km/s")
+figfile = "pn-ou5-two-temperature-kernel.pdf"
+fig.savefig(figfile, bbox_inches="tight")
+fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
+
+
+# ## Calculate profiles with discrete gaussian model
+#
+# The idea here is to get away from the astropy.modeling framework, since it was making it hard to move over to the convolution part. 
+#
+# Also, we want to generalise it so we can use different values of $\alpha$ (cool to warm temperature ratio) and $\omega$ (emission fraction from cool phase).
+#
+# Finally, we will make sure that we use the cdf of the profile to account for the finite bin width, although that means specifying the bin width in advance
+
+# ### Class to encapsulate a single phase
+
+# +
+import scipy.stats
+
+_cdf = scipy.stats.norm.cdf
+
+def discrete_gaussian(x, amplitude, mean, stddev, bin_width):
+    "Gaussian profile integrated over finite bins"
+    return amplitude * (
+        _cdf(x + 0.5 * bin_width, loc=mean, scale=stddev)
+        - _cdf(x - 0.5 * bin_width, loc=mean, scale=stddev)
+    )
+
+class PhaseProfile():
+    """Fine structure plus thermal line profile for single temperature
+
+    Currently H alpha only. Fine structure components from Clegg 1999
+    """
+    DATA_PATH = Path.cwd().parent / "docs" 
+    WAV_REF = 6562.8812
+    # RMS thermal broadening at 1e4 K
+    SIG0 = np.sqrt( 
+        constants.k_B * 10_000 * u.K / constants.m_p
+    ).to(u.km / u.s).value
+    
+    def __init__(
+        self, 
+        temperature,
+        datafile="h-case-b-n2.csv",
+        A_other=16,
+        dv=0.1,
+        vmax=50,
+    ):
+        """
+        
+        """
+        self.temperature = temperature
+        self.A_other = A_other
+        self.initialize_components(Table.read(self.DATA_PATH / datafile))
+        # Mean velocity over components
+        self.vmean = np.average(self.vcomps, weights=self.icomps)
+        # Centroid lab wavelength (in air)
+        self.wav0 = self.WAV_REF * (1 + self.vmean / 3e5)
+        # RMS excess thermal sigma of each component
+        self.sigma = self.SIG0 * np.sqrt(
+            (self.temperature / 1e4) * (1 - 1/self.A_other)
+        )
+        # Velocity grid for evaluating profile
+        self.dv = dv
+        self.nvgrid = 1 + int(2 * vmax / dv)
+        self.vgrid = np.linspace(-vmax, vmax, self.nvgrid)
+        self.initialize_igrid()
+
+    def initialize_components(self, table):
+        # Velocity shifts of fs components
+        self.vcomps = np.array(table["d v"])
+        self.ncomps = len(self.vcomps)
+        # Interpolate intensities in log10(T)
+        itable = Table(table.columns[3:])
+        # Array of log T from columns of intensity grid
+        logTs = np.log10(list(map(float, itable.colnames)))
+        # Interpolate the intensity of each component at desired T
+        self.icomps = np.array([
+            np.interp(
+                np.log10(self.temperature),
+                logTs,
+                irow,
+            )
+            for irow in np.array(itable).tolist()
+        ])
+        
+    def initialize_igrid(self):
+        self.igrid = np.zeros_like(self.vgrid)
+        for _icomp, _vcomp in zip(self.icomps, self.vcomps):
+            self.igrid += discrete_gaussian(
+                self.vgrid,
+                _icomp,
+                _vcomp,
+                self.sigma,
+                self.dv,
+            ) / self.dv
+        
+
+
+# -
+
+prof = PhaseProfile(1e2)
+
+prof.vgrid
+
+# ### Plot the profiles for different T
+
+# Tlist = [100, 200, 500, 1000, 2000, 5000, 10000]
+Tlist = [300, 1000, 3000, 10000]
+nT = len(Tlist)
+with sns.color_palette("plasma", n_colors=nT):
+    fig, ax = plt.subplots()
+    for _i, T in enumerate(Tlist):
+        p = PhaseProfile(T, dv=0.1)
+        line, = ax.plot(p.vgrid, p.igrid, label=f"{T} K")
+        ax.axvline(p.vmean, color=line.get_color(), 
+                   lw=2, ymax=1 - (_i/nT), ymin=1 - (1+_i)/nT,
+                   ls="dashed",
+                  )
+    ax.set_xlim(-33, 27)
+    ax.legend(ncol=1, title="Temperature")
+    ax.set_xlabel("Velocity, km/s")
+    figfile = "pn-ou5-fine-structure-ha.pdf"
+    fig.savefig(figfile, bbox_inches="tight")
+    fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
+
+
+# ### Class to encapsulate two phases
+
+# +
+class TwoPhaseProfile():
+    def __init__(self, alpha, omega, Twarm=1e4, dv=0.1):
+        self.Twarm = Twarm
+        self.alpha = alpha
+        self.omega = omega
+        self.Tcool = alpha * Twarm
+        self.warm = PhaseProfile(self.Twarm, dv=dv)
+        self.cool = PhaseProfile(self.Tcool, dv=dv)
+        self.vgrid = self.warm.vgrid
+        self.igrid = (
+            (1 - self.omega) * self.warm.igrid 
+            + self.omega * self.cool.igrid
+        )
+        self.vmean = np.average(self.vgrid, weights=self.igrid)
+
+    def __call__(self, v):
+        """Interpolated profile at velocity shift `v` centered on mean
+        """
+        return np.interp(v + self.vmean, self.vgrid, self.igrid)
+
+
+
+
+# + editable=true slideshow={"slide_type": ""}
+alist = 0.03, 0.1, 0.3
+with sns.color_palette("mako", n_colors=len(alist)):
+    fig, ax = plt.subplots()
+    for alpha in alist:
+        omega = 0.4 + alpha
+        p = TwoPhaseProfile(alpha, omega, dv=0.1)
+        line, = ax.plot(p.vgrid - p.vmean, p.igrid,
+                        label=fr"$\alpha = {alpha:.2f}$, $\omega = {omega:.2f}$")
+    ax.legend(fontsize="x-small", loc="upper left", title="2-phase kernel")
+    ax.set_xlim(-35, 35)
+    ax.set_ylim(None, 0.11)
+    ax.set_xlabel("Velocity, km/s")
+    figfile = "pn-ou5-two-phase-alpha.pdf"
+    fig.savefig(figfile, bbox_inches="tight")
+    fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
+
+# -
+
+# Test that the interpolation function works. Plot on a coarser grid
+
+# + editable=true slideshow={"slide_type": ""}
+alist = 0.03, 0.1, 0.3
+vgrid = np.linspace(-50, 50, 101)
+with sns.color_palette("mako", n_colors=len(alist)):
+    fig, ax = plt.subplots()
+    for alpha in alist:
+        omega = 0.4 + alpha
+        p = TwoPhaseProfile(alpha, omega, dv=0.1)
+        line, = ax.plot(vgrid, p(vgrid),
+                        label=fr"$\alpha = {alpha:.2f}$, $\omega = {omega:.2f}$")
+    ax.legend(fontsize="x-small", loc="upper left", title="2-phase kernel")
+    ax.set_xlim(-35, 35)
+    ax.set_ylim(None, 0.11)
+    ax.set_xlabel("Velocity, km/s")
+    # figfile = "pn-ou5-two-phase-alpha.pdf"
+    # fig.savefig(figfile, bbox_inches="tight")
+    # fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
+
+# -
+
+# ### Test the affect of the typical instrumental plus non-thermal broadening on the 2-phase profile
+#
+# The typical sigma from the [O III] gaussian fits is 7 km/s, so we can convolve the 2-phase profile with this to get an idea of what the individual Ha velocity components are predicted to look like
+
+# + editable=true slideshow={"slide_type": ""}
+def std_dev(x, y):
+    xm = np.average(x, weights=y)
+    xvar = np.average((x - xm)**2, weights=y)
+    return np.sqrt(xvar)
+    
+
+
+alist = 0.03, 0.1, 0.3
+vgrid = np.linspace(-50, 50, 1001)
+vgrid_spacing = np.diff(vgrid)[0]
+with sns.color_palette("mako", n_colors=len(alist)):
+    fig, ax = plt.subplots()
+    for alpha in alist:
+        omega = 0.4 + alpha
+        p = TwoPhaseProfile(alpha, omega, dv=0.1)
+        std0 = std_dev(vgrid, p(vgrid))
+        sprofile = convolve(
+            p(vgrid),
+            Gaussian1DKernel(stddev=7.0 / vgrid_spacing, mode="oversample"),
+        )
+        std = std_dev(vgrid, sprofile)
+        label = (
+            fr"$\alpha = {alpha:.2f}$, $\omega = {omega:.2f}$"
+            fr": $\sigma_0 = {std0:.2f}$, $\sigma = {std:.2f}$"
+        )
+        line, = ax.plot(vgrid, sprofile, label=label, lw=0.5)
+    ax.legend(fontsize="x-small", loc="upper left", title="2-phase kernel")
+    ax.set_xlim(-35, 35)
+    ax.set_ylim(None, 0.11)
+    ax.set_xlabel("Velocity, km/s")
+
+
+# + [markdown] editable=true slideshow={"slide_type": ""}
+# So this shows that there is almost no perceptible difference between the different 2-phase models once we convolve them with the instrumental + non-thermal profile. Everything comes out looking like a gaussian with a total sigma of about 10 km/s, which is consistent with the component widths of the Ha gaussian decomposition. (See 04-02 notebook)
+
+# + [markdown] editable=true slideshow={"slide_type": ""}
+# ### Make a smoothing kernel from 2-phase model
+# -
+
+# Convenience wrapper function for the class
+
+def two_phase_profile(v, alpha=0.1, omega=0.5, Twarm=1e4):
+    _profile = TwoPhaseProfile(alpha, omega, Twarm)
+    return _profile(v)
+
+
+# Try to use `astropy.convolution.utils.discretize_model`, which supposedly can be used with any callable. If we make an instance of `TwoPhaseProfile` first, then that will be our callable. 
+#
+# *We still need to worry about pixel verus velocity units*
+
+from astropy.convolution.utils import discretize_model
+
+p = TwoPhaseProfile(alpha=0.03, omega=0.43)
+PIXEL_SIZE = 2
+def pixel_profile(x):
+    return p(PIXEL_SIZE * x)
+x_range = (-20, 21)
+kernel_ce = discretize_model(pixel_profile, x_range, mode="center")
+kernel_li = discretize_model(pixel_profile, x_range, mode="linear_interp")
+kernel_os = discretize_model(pixel_profile, x_range, mode="oversample")
+kernel_in = discretize_model(pixel_profile, x_range, mode="integrate")
+
+
+fig, ax = plt.subplots()
+x_arr = np.arange(*x_range)
+ax.plot(x_arr, kernel_ce, label="center")
+ax.plot(x_arr, kernel_li, label="linear interpolation")
+ax.plot(x_arr, kernel_os, label="oversample")
+ax.plot(x_arr, kernel_in, label="integrate")
+ax.legend(fontsize="x-small", loc="upper left")
+ax.set_ylim(None, 0.11)
+ax.set_xlabel("Pixel")
+
+from astropy.convolution import CustomKernel
+
+kernel = CustomKernel(kernel_os)
+
+# +
+fig, ax = plt.subplots()
+
+ax.plot(vels, vprofiles["ha"], lw=4, color="k")
+ax.plot(vels, vprofiles["oiii"])
+
+sprofile = convolve(vprofiles["oiii"], kernel)
+ax.plot(vels, sprofile)
+# -
+
+# Well that seems to fit pretty well. Which is a shame if we want to rule out a low-T phase
+
+
+
+
+
+
+
+
+
+
+
+# ## Repeat convolution with [O III] but for two-phase model
+#
+# We will generate the same graphs that we did for the gaussian case
+
+# ### Optimum cool fraction $\omega$ for different cool temperatures
+
+# #### $\alpha = 0.03$
+
+om_list = np.linspace(0.0, 1.0, 41)[::-1]
+skip = 5
+alpha = 0.03
+with sns.color_palette("rocket", 1 + len(om_list) // skip):
+    fig, ax = plt.subplots(figsize=(8, 5))
+    sum_square_residuals = []
+    sum_square_residuals_core = []
+    sum_square_residuals_wings = []
+    core_width = 20
+    core = np.abs(vels + 33) < core_width
+    ax.plot(vels,  vprofiles["oiii"]- vprofiles["ha"], label="Original", lw=2.5, color="b")
+    for index, omega in enumerate(om_list):
+        if omega is not None:
+            p = TwoPhaseProfile(alpha=alpha, omega=omega)
+            kernel = CustomKernel(
+                discretize_model(pixel_profile, x_range, mode="oversample")
+            )
+            sprofile = convolve(vprofiles["oiii"], kernel)
+        else:
+            sprofile = vprofiles["oiii"]
+        residuals = sprofile - vprofiles["ha"]
+        if index % skip == 0:
+            if index % (skip*2) == 0:
+                label = f"$\omega = {omega:.2f}$"
+                lw = 2.5
+            else:
+                label = None
+                lw = 1.0
+            ax.plot(vels, residuals, label=label, lw=lw)
+        sum_square_residuals.append(np.sum(residuals**2))
+        sum_square_residuals_core.append(np.sum(residuals[core]**2))
+        sum_square_residuals_wings.append(np.sum(residuals[~core]**2))
+    ax.axvline(-33, ls="dashed", color="k", lw=1)
+    ax.axhline(0, ls="dashed", color="k", lw=1)
+    ax.axvspan(-33 - core_width, -33 + core_width, color="b", alpha=0.1, zorder=-100)
+    ax.legend(fontsize="small", title="Cool fraction")
+    ax.set_ylim(None, 0.9)
+    ax.set_xlabel("Heliocentric velocity, km/s")
+    ax.set_ylabel(rf"$ \left\{{ I(\mathrm{{[O III]}}) \circ K({alpha:.2f}, \omega) \right\}} - I(\mathrm{{H\alpha}})$")
+    figfile = "pn-ou5-2phase-a003-convolution-residuals.pdf"
+    fig.savefig(figfile, bbox_inches="tight")
+    fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
+
+
+with sns.color_palette("colorblind", n_colors=3):
+    fig, ax = plt.subplots(figsize=(8, 5))
+    om_opt = np.interp(0.0, np.gradient(sum_square_residuals), om_list)
+    label = f"All velocities, $\omega_\mathrm{{opt}} = {om_opt:.2f}$"
+    line, = ax.plot(om_list, sum_square_residuals, label=label)
+    c = line.get_color()
+    ax.axvline(om_opt, linestyle="dotted", color=c, ymax=0.25)
+    
+    om_opt_core = np.interp(0.0, np.gradient(sum_square_residuals_core), om_list)
+    label = f"Core only, $\omega_\mathrm{{opt}} = {om_opt_core:.2f}$"
+    line, = ax.plot(om_list, sum_square_residuals_core, label=label)
+    c = line.get_color()
+    ax.axvline(om_opt_core, linestyle="dotted", color=c, ymax=0.25)
+
+    om_opt_wings = np.interp(0.0, np.gradient(sum_square_residuals_wings), om_list)
+    label = f"Wings only, $\omega_\mathrm{{opt}} = {om_opt_wings:.2f}$"
+    line, = ax.plot(om_list, sum_square_residuals_wings, label=label)
+    c = line.get_color()
+    ax.axvline(om_opt_wings, linestyle="dotted", color=c, ymax=0.25)
+    
+    ax.set_ylim(0.0, 0.8)
+    ax.set_xlabel(r"Cool fraction, $\omega$")
+    ax.set_ylabel("Sum squared residuals")
+    ax.legend(fontsize="small", title=rf"$\alpha = {alpha:.2f}$")
+    figfile = "pn-ou5-2phase-a003-convolution-optimum.pdf"
+    fig.savefig(figfile, bbox_inches="tight")
+    fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
+
+
+min(sum_square_residuals)
+
+# #### $\alpha = 0.1$
+
+om_list = np.linspace(0.0, 1.0, 41)[::-1]
+skip = 5
+alpha = 0.1
+with sns.color_palette("rocket", 1 + len(om_list) // skip):
+    fig, ax = plt.subplots(figsize=(8, 5))
+    sum_square_residuals = []
+    sum_square_residuals_core = []
+    sum_square_residuals_wings = []
+    core_width = 20
+    core = np.abs(vels + 33) < core_width
+    ax.plot(vels,  vprofiles["oiii"]- vprofiles["ha"], label="Original", lw=2.5, color="b")
+    for index, omega in enumerate(om_list):
+        if omega is not None:
+            p = TwoPhaseProfile(alpha=alpha, omega=omega)
+            kernel = CustomKernel(
+                discretize_model(pixel_profile, x_range, mode="oversample")
+            )
+            sprofile = convolve(vprofiles["oiii"], kernel)
+        else:
+            sprofile = vprofiles["oiii"]
+        residuals = sprofile - vprofiles["ha"]
+        if index % skip == 0:
+            if index % (skip*2) == 0:
+                label = f"$\omega = {omega:.2f}$"
+                lw = 2.5
+            else:
+                label = None
+                lw = 1.0
+            ax.plot(vels, residuals, label=label, lw=lw)
+        sum_square_residuals.append(np.sum(residuals**2))
+        sum_square_residuals_core.append(np.sum(residuals[core]**2))
+        sum_square_residuals_wings.append(np.sum(residuals[~core]**2))
+    ax.axvline(-33, ls="dashed", color="k", lw=1)
+    ax.axhline(0, ls="dashed", color="k", lw=1)
+    ax.axvspan(-33 - core_width, -33 + core_width, color="b", alpha=0.1, zorder=-100)
+    ax.legend(fontsize="small", title="Cool fraction")
+    ax.set_ylim(None, 0.9)
+    ax.set_xlabel("Heliocentric velocity, km/s")
+    ax.set_ylabel(rf"$ \left\{{ I(\mathrm{{[O III]}}) \circ K({alpha:.2f}, \omega) \right\}} - I(\mathrm{{H\alpha}})$")
+    figfile = "pn-ou5-2phase-a010-convolution-residuals.pdf"
+    fig.savefig(figfile, bbox_inches="tight")
+    fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
+
+
+with sns.color_palette("colorblind", n_colors=3):
+    fig, ax = plt.subplots(figsize=(8, 5))
+    om_opt = np.interp(0.0, np.gradient(sum_square_residuals), om_list)
+    label = f"All velocities, $\omega_\mathrm{{opt}} = {om_opt:.2f}$"
+    line, = ax.plot(om_list, sum_square_residuals, label=label)
+    c = line.get_color()
+    ax.axvline(om_opt, linestyle="dotted", color=c, ymax=0.25)
+    
+    om_opt_core = np.interp(0.0, np.gradient(sum_square_residuals_core), om_list)
+    label = f"Core only, $\omega_\mathrm{{opt}} = {om_opt_core:.2f}$"
+    line, = ax.plot(om_list, sum_square_residuals_core, label=label)
+    c = line.get_color()
+    ax.axvline(om_opt_core, linestyle="dotted", color=c, ymax=0.25)
+
+    om_opt_wings = np.interp(0.0, np.gradient(sum_square_residuals_wings), om_list)
+    label = f"Wings only, $\omega_\mathrm{{opt}} = {om_opt_wings:.2f}$"
+    line, = ax.plot(om_list, sum_square_residuals_wings, label=label)
+    c = line.get_color()
+    ax.axvline(om_opt_wings, linestyle="dotted", color=c, ymax=0.25)
+    
+    ax.set_ylim(0.0, 0.8)
+    ax.set_xlabel(r"Cool fraction, $\omega$")
+    ax.set_ylabel("Sum squared residuals")
+    ax.legend(fontsize="small", title=rf"$\alpha = {alpha:.2f}$")
+    figfile = "pn-ou5-2phase-a010-convolution-optimum.pdf"
+    fig.savefig(figfile, bbox_inches="tight")
+    fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
+
+
+min(sum_square_residuals)
+
+# Optimum is very slightly better for $\alpha = 0.1$ than for $\alpha = 0.03$
+
+# #### $\alpha = 0.3$
+
+om_list = np.linspace(0.0, 1.0, 41)[::-1]
+skip = 5
+alpha = 0.3
+with sns.color_palette("rocket", 1 + len(om_list) // skip):
+    fig, ax = plt.subplots(figsize=(8, 5))
+    sum_square_residuals = []
+    sum_square_residuals_core = []
+    sum_square_residuals_wings = []
+    core_width = 20
+    core = np.abs(vels + 33) < core_width
+    ax.plot(vels,  vprofiles["oiii"]- vprofiles["ha"], label="Original", lw=2.5, color="b")
+    for index, omega in enumerate(om_list):
+        if omega is not None:
+            p = TwoPhaseProfile(alpha=alpha, omega=omega)
+            kernel = CustomKernel(
+                discretize_model(pixel_profile, x_range, mode="oversample")
+            )
+            sprofile = convolve(vprofiles["oiii"], kernel)
+        else:
+            sprofile = vprofiles["oiii"]
+        residuals = sprofile - vprofiles["ha"]
+        if index % skip == 0:
+            if index % (skip*2) == 0:
+                label = f"$\omega = {omega:.2f}$"
+                lw = 2.5
+            else:
+                label = None
+                lw = 1.0
+            ax.plot(vels, residuals, label=label, lw=lw)
+        sum_square_residuals.append(np.sum(residuals**2))
+        sum_square_residuals_core.append(np.sum(residuals[core]**2))
+        sum_square_residuals_wings.append(np.sum(residuals[~core]**2))
+    ax.axvline(-33, ls="dashed", color="k", lw=1)
+    ax.axhline(0, ls="dashed", color="k", lw=1)
+    ax.axvspan(-33 - core_width, -33 + core_width, color="b", alpha=0.1, zorder=-100)
+    ax.legend(fontsize="small", title="Cool fraction")
+    ax.set_ylim(None, 0.9)
+    ax.set_xlabel("Heliocentric velocity, km/s")
+    ax.set_ylabel(rf"$ \left\{{ I(\mathrm{{[O III]}}) \circ K({alpha:.2f}, \omega) \right\}} - I(\mathrm{{H\alpha}})$")
+    figfile = "pn-ou5-2phase-a030-convolution-residuals.pdf"
+    fig.savefig(figfile, bbox_inches="tight")
+    fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
+
+
+with sns.color_palette("colorblind", n_colors=3):
+    fig, ax = plt.subplots(figsize=(8, 5))
+    om_opt = np.interp(0.0, np.gradient(sum_square_residuals), om_list)
+    label = f"All velocities, $\omega_\mathrm{{opt}} = {om_opt:.2f}$"
+    line, = ax.plot(om_list, sum_square_residuals, label=label)
+    c = line.get_color()
+    ax.axvline(om_opt, linestyle="dotted", color=c, ymax=0.25)
+    
+    om_opt_core = np.interp(0.0, np.gradient(sum_square_residuals_core), om_list)
+    label = f"Core only, $\omega_\mathrm{{opt}} = {om_opt_core:.2f}$"
+    line, = ax.plot(om_list, sum_square_residuals_core, label=label)
+    c = line.get_color()
+    ax.axvline(om_opt_core, linestyle="dotted", color=c, ymax=0.25)
+
+    om_opt_wings = np.interp(0.0, np.gradient(sum_square_residuals_wings), om_list)
+    label = f"Wings only, $\omega_\mathrm{{opt}} = {om_opt_wings:.2f}$"
+    line, = ax.plot(om_list, sum_square_residuals_wings, label=label)
+    c = line.get_color()
+    ax.axvline(om_opt_wings, linestyle="dotted", color=c, ymax=0.25)
+    
+    ax.set_ylim(0.0, 0.8)
+    ax.set_xlabel(r"Cool fraction, $\omega$")
+    ax.set_ylabel("Sum squared residuals")
+    ax.legend(fontsize="small", title=rf"$\alpha = {alpha:.2f}$")
+    figfile = "pn-ou5-2phase-a030-convolution-optimum.pdf"
+    fig.savefig(figfile, bbox_inches="tight")
+    fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
+
+
+min(sum_square_residuals)
+
+# Optimum is even better for $\alpha = 0.3$, but I am not sure I believe it
+
+
+
+# #### $\alpha = 0.5$
+
+om_list = np.linspace(0.0, 1.0, 41)[::-1]
+skip = 5
+alpha = 0.5
+with sns.color_palette("rocket", 1 + len(om_list) // skip):
+    fig, ax = plt.subplots(figsize=(8, 5))
+    sum_square_residuals = []
+    sum_square_residuals_core = []
+    sum_square_residuals_wings = []
+    core_width = 20
+    core = np.abs(vels + 33) < core_width
+    ax.plot(vels,  vprofiles["oiii"]- vprofiles["ha"], label="Original", lw=2.5, color="b")
+    for index, omega in enumerate(om_list):
+        if omega is not None:
+            p = TwoPhaseProfile(alpha=alpha, omega=omega)
+            kernel = CustomKernel(
+                discretize_model(pixel_profile, x_range, mode="oversample")
+            )
+            sprofile = convolve(vprofiles["oiii"], kernel)
+        else:
+            sprofile = vprofiles["oiii"]
+        residuals = sprofile - vprofiles["ha"]
+        if index % skip == 0:
+            if index % (skip*2) == 0:
+                label = f"$\omega = {omega:.2f}$"
+                lw = 2.5
+            else:
+                label = None
+                lw = 1.0
+            ax.plot(vels, residuals, label=label, lw=lw)
+        sum_square_residuals.append(np.sum(residuals**2))
+        sum_square_residuals_core.append(np.sum(residuals[core]**2))
+        sum_square_residuals_wings.append(np.sum(residuals[~core]**2))
+    ax.axvline(-33, ls="dashed", color="k", lw=1)
+    ax.axhline(0, ls="dashed", color="k", lw=1)
+    ax.axvspan(-33 - core_width, -33 + core_width, color="b", alpha=0.1, zorder=-100)
+    ax.legend(fontsize="small", title="Cool fraction")
+    ax.set_ylim(None, 0.9)
+    ax.set_xlabel("Heliocentric velocity, km/s")
+    ax.set_ylabel(rf"$ \left\{{ I(\mathrm{{[O III]}}) \circ K({alpha:.2f}, \omega) \right\}} - I(\mathrm{{H\alpha}})$")
+    figfile = "pn-ou5-2phase-a050-convolution-residuals.pdf"
+    fig.savefig(figfile, bbox_inches="tight")
+    fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
+
+
+with sns.color_palette("colorblind", n_colors=3):
+    fig, ax = plt.subplots(figsize=(8, 5))
+    om_opt = np.interp(0.0, np.gradient(sum_square_residuals), om_list)
+    label = f"All velocities, $\omega_\mathrm{{opt}} = {om_opt:.2f}$"
+    line, = ax.plot(om_list, sum_square_residuals, label=label)
+    c = line.get_color()
+    ax.axvline(om_opt, linestyle="dotted", color=c, ymax=0.25)
+    
+    om_opt_core = np.interp(0.0, np.gradient(sum_square_residuals_core), om_list)
+    label = f"Core only, $\omega_\mathrm{{opt}} = {om_opt_core:.2f}$"
+    line, = ax.plot(om_list, sum_square_residuals_core, label=label)
+    c = line.get_color()
+    ax.axvline(om_opt_core, linestyle="dotted", color=c, ymax=0.25)
+
+    om_opt_wings = np.interp(0.0, np.gradient(sum_square_residuals_wings), om_list)
+    label = f"Wings only, $\omega_\mathrm{{opt}} = {om_opt_wings:.2f}$"
+    line, = ax.plot(om_list, sum_square_residuals_wings, label=label)
+    c = line.get_color()
+    ax.axvline(om_opt_wings, linestyle="dotted", color=c, ymax=0.25)
+    
+    ax.set_ylim(0.0, 0.8)
+    ax.set_xlabel(r"Cool fraction, $\omega$")
+    ax.set_ylabel("Sum squared residuals")
+    ax.legend(fontsize="small", title=rf"$\alpha = {alpha:.2f}$")
+    figfile = "pn-ou5-2phase-a050-convolution-optimum.pdf"
+    fig.savefig(figfile, bbox_inches="tight")
+    fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
+
+
+min(sum_square_residuals)
+
+# #### $\alpha = 0.7$
+#
+# This one is ridiculous really, but I just want the residuals to start increasing
+
+om_list = np.linspace(0.0, 1.0, 41)[::-1]
+skip = 5
+alpha = 0.7
+with sns.color_palette("rocket", 1 + len(om_list) // skip):
+    fig, ax = plt.subplots(figsize=(8, 5))
+    sum_square_residuals = []
+    sum_square_residuals_core = []
+    sum_square_residuals_wings = []
+    core_width = 20
+    core = np.abs(vels + 33) < core_width
+    ax.plot(vels,  vprofiles["oiii"]- vprofiles["ha"], label="Original", lw=2.5, color="b")
+    for index, omega in enumerate(om_list):
+        if omega is not None:
+            p = TwoPhaseProfile(alpha=alpha, omega=omega)
+            kernel = CustomKernel(
+                discretize_model(pixel_profile, x_range, mode="oversample")
+            )
+            sprofile = convolve(vprofiles["oiii"], kernel)
+        else:
+            sprofile = vprofiles["oiii"]
+        residuals = sprofile - vprofiles["ha"]
+        if index % skip == 0:
+            if index % (skip*2) == 0:
+                label = f"$\omega = {omega:.2f}$"
+                lw = 2.5
+            else:
+                label = None
+                lw = 1.0
+            ax.plot(vels, residuals, label=label, lw=lw)
+        sum_square_residuals.append(np.sum(residuals**2))
+        sum_square_residuals_core.append(np.sum(residuals[core]**2))
+        sum_square_residuals_wings.append(np.sum(residuals[~core]**2))
+    ax.axvline(-33, ls="dashed", color="k", lw=1)
+    ax.axhline(0, ls="dashed", color="k", lw=1)
+    ax.axvspan(-33 - core_width, -33 + core_width, color="b", alpha=0.1, zorder=-100)
+    ax.legend(fontsize="small", title="Cool fraction")
+    ax.set_ylim(None, 0.9)
+    ax.set_xlabel("Heliocentric velocity, km/s")
+    ax.set_ylabel(rf"$ \left\{{ I(\mathrm{{[O III]}}) \circ K({alpha:.2f}, \omega) \right\}} - I(\mathrm{{H\alpha}})$")
+    figfile = "pn-ou5-2phase-a070-convolution-residuals.pdf"
+    fig.savefig(figfile, bbox_inches="tight")
+    fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
+
+
+with sns.color_palette("colorblind", n_colors=3):
+    fig, ax = plt.subplots(figsize=(8, 5))
+    om_opt = np.interp(0.0, np.gradient(sum_square_residuals), om_list)
+    label = f"All velocities, $\omega_\mathrm{{opt}} = {om_opt:.2f}$"
+    line, = ax.plot(om_list, sum_square_residuals, label=label)
+    c = line.get_color()
+    ax.axvline(om_opt, linestyle="dotted", color=c, ymax=0.25)
+    
+    om_opt_core = np.interp(0.0, np.gradient(sum_square_residuals_core), om_list)
+    label = f"Core only, $\omega_\mathrm{{opt}} = {om_opt_core:.2f}$"
+    line, = ax.plot(om_list, sum_square_residuals_core, label=label)
+    c = line.get_color()
+    ax.axvline(om_opt_core, linestyle="dotted", color=c, ymax=0.25)
+
+    om_opt_wings = np.interp(0.0, np.gradient(sum_square_residuals_wings), om_list)
+    label = f"Wings only, $\omega_\mathrm{{opt}} = {om_opt_wings:.2f}$"
+    line, = ax.plot(om_list, sum_square_residuals_wings, label=label)
+    c = line.get_color()
+    ax.axvline(om_opt_wings, linestyle="dotted", color=c, ymax=0.25)
+    
+    ax.set_ylim(0.0, 0.8)
+    ax.set_xlabel(r"Cool fraction, $\omega$")
+    ax.set_ylabel("Sum squared residuals")
+    ax.legend(fontsize="small", title=rf"$\alpha = {alpha:.2f}$")
+    figfile = "pn-ou5-2phase-a070-convolution-optimum.pdf"
+    fig.savefig(figfile, bbox_inches="tight")
+    fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
+
+
+min(sum_square_residuals)
+
+# #### $\alpha = 0.9$
+#
+# This one is ridiculous really, but I just want the residuals to start increasing
+
+om_list = np.linspace(0.0, 1.0, 41)[::-1]
+skip = 5
+alpha = 0.9
+with sns.color_palette("rocket", 1 + len(om_list) // skip):
+    fig, ax = plt.subplots(figsize=(8, 5))
+    sum_square_residuals = []
+    sum_square_residuals_core = []
+    sum_square_residuals_wings = []
+    core_width = 20
+    core = np.abs(vels + 33) < core_width
+    ax.plot(vels,  vprofiles["oiii"]- vprofiles["ha"], label="Original", lw=2.5, color="b")
+    for index, omega in enumerate(om_list):
+        if omega is not None:
+            p = TwoPhaseProfile(alpha=alpha, omega=omega)
+            kernel = CustomKernel(
+                discretize_model(pixel_profile, x_range, mode="oversample")
+            )
+            sprofile = convolve(vprofiles["oiii"], kernel)
+        else:
+            sprofile = vprofiles["oiii"]
+        residuals = sprofile - vprofiles["ha"]
+        if index % skip == 0:
+            if index % (skip*2) == 0:
+                label = f"$\omega = {omega:.2f}$"
+                lw = 2.5
+            else:
+                label = None
+                lw = 1.0
+            ax.plot(vels, residuals, label=label, lw=lw)
+        sum_square_residuals.append(np.sum(residuals**2))
+        sum_square_residuals_core.append(np.sum(residuals[core]**2))
+        sum_square_residuals_wings.append(np.sum(residuals[~core]**2))
+    ax.axvline(-33, ls="dashed", color="k", lw=1)
+    ax.axhline(0, ls="dashed", color="k", lw=1)
+    ax.axvspan(-33 - core_width, -33 + core_width, color="b", alpha=0.1, zorder=-100)
+    ax.legend(fontsize="small", title="Cool fraction")
+    ax.set_ylim(None, 0.9)
+    ax.set_xlabel("Heliocentric velocity, km/s")
+    ax.set_ylabel(rf"$ \left\{{ I(\mathrm{{[O III]}}) \circ K({alpha:.2f}, \omega) \right\}} - I(\mathrm{{H\alpha}})$")
+    figfile = "pn-ou5-2phase-a090-convolution-residuals.pdf"
+    fig.savefig(figfile, bbox_inches="tight")
+    fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
+
+
+with sns.color_palette("colorblind", n_colors=3):
+    fig, ax = plt.subplots(figsize=(8, 5))
+    om_opt = np.interp(0.0, np.gradient(sum_square_residuals), om_list)
+    label = f"All velocities, $\omega_\mathrm{{opt}} = {om_opt:.2f}$"
+    line, = ax.plot(om_list, sum_square_residuals, label=label)
+    c = line.get_color()
+    ax.axvline(om_opt, linestyle="dotted", color=c, ymax=0.25)
+    
+    om_opt_core = np.interp(0.0, np.gradient(sum_square_residuals_core), om_list)
+    label = f"Core only, $\omega_\mathrm{{opt}} = {om_opt_core:.2f}$"
+    line, = ax.plot(om_list, sum_square_residuals_core, label=label)
+    c = line.get_color()
+    ax.axvline(om_opt_core, linestyle="dotted", color=c, ymax=0.25)
+
+    om_opt_wings = np.interp(0.0, np.gradient(sum_square_residuals_wings), om_list)
+    label = f"Wings only, $\omega_\mathrm{{opt}} = {om_opt_wings:.2f}$"
+    line, = ax.plot(om_list, sum_square_residuals_wings, label=label)
+    c = line.get_color()
+    ax.axvline(om_opt_wings, linestyle="dotted", color=c, ymax=0.25)
+    
+    ax.set_ylim(0.0, 0.8)
+    ax.set_xlabel(r"Cool fraction, $\omega$")
+    ax.set_ylabel("Sum squared residuals")
+    ax.legend(fontsize="small", title=rf"$\alpha = {alpha:.2f}$")
+    figfile = "pn-ou5-2phase-a090-convolution-optimum.pdf"
+    fig.savefig(figfile, bbox_inches="tight")
+    fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
+
+
+min(sum_square_residuals)
+
+# ### Variation with $\alpha$
+#
+# Taking the results from the previous section
+
+Table(
+    {
+        "alpha": [0.03, 0.1, 0.3, 0.5, 0.7, 0.9],
+        "om_opt": [0.21, 0.36, 0.48, 0.79, 1.0, 1.0],
+        "om_opt_wings": [0.58, 0.63, 0.84, 1.0, 1.0, 1.0],        
+        "chi^2": [0.153, 0.153, 0.150, 0.147, 0.154, 0.195],
+    }
+)
+
+# So there really is no significant variation in the goodness of fit, except when we put the T of the cool component above 7000 K. 
+#
+# Formally, the best fit is for $\alpha = 0.5$, $\omega = 0.8$
+
+# ### Illustrations of the convolved 2-phase profiles
+
+sns.set_color_codes()
+with sns.color_palette("dark"):
+
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ds = "default"
+    #ds = "steps-mid"
+    olw, hlw = 2, 4
+    ocolor = (1, 0.2, 0.2)
+    offset_step = 0.5
+    offset = 0
+    ax.plot(vels, offset + vprofiles["ha"], lw=hlw, color="k", ds=ds, label=r"H$\alpha$")
+    ax.plot(vels, offset + vprofiles["oiii"], color=ocolor, lw=olw, ds=ds, label="[O III]")
+    text = "No convolution"
+    ax.text(-120, offset + 0.1, text, fontsize="small")
+    ax.axhline(offset, ls="dashed", color="k", lw=1)
+
+    for alpha, omega in [
+        [0.3, 0.84],
+        [0.1, 0.63],
+        [0.03, 0.58],
+        [0.03, 0.18],
+    ]:
+            
+        offset += offset_step
+        p = TwoPhaseProfile(alpha=alpha, omega=omega)
+        kernel = CustomKernel(
+            discretize_model(pixel_profile, x_range, mode="oversample")
+        )
+        sprofile = convolve(vprofiles["oiii"], kernel)
+        ax.plot(vels, offset + vprofiles["ha"], lw=hlw, color="k")
+        ax.plot(vels, offset + sprofile, color=ocolor, lw=olw)
+        text = (rf"$\alpha = {alpha:.2f}$" 
+                + "\n" + rf"$\omega = {omega:.2f}$")
+        ax.text(-120, offset + 0.1, text, fontsize="small")
+        ax.axhline(offset, ls="dashed", color="k", lw=1)
+    
+    ax.axvspan(-33 - core_width, -33 + core_width, color="b", alpha=0.1, zorder=-100)
+    ax.axvline(-33, ls="dashed", color="k", lw=1)
+    ax.set_xlabel("Heliocentric velocity, km/s")
+    ax.legend()
+    
+    figfile = "pn-ou5-2phase-convolution-fits.pdf"
+    fig.savefig(figfile, bbox_inches="tight")
+    fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
+
+
+# So these show convolved fits that are extremely similar to the Gaussian ones. The top profile is optimised or core and shows clear excess in the wings
+#
+# The other profiles (optimised for wings) show the degeneracy between $\alpha$ and $\omega$ (only depends on approx $\omega - \alpha$). 
+#
+# The irreducible residuals are again due to the expansion profile slightly more split for [O III] than for H alpha.
+
+
+
+
+
+
+
+# + [markdown] editable=true slideshow={"slide_type": ""} jp-MarkdownHeadingCollapsed=true
+# # Some comments on the results
 #
 # Components
 #
-# #### Inner lobes
+# ## Inner lobes
 #
 # Red component is brighter than blue.
 #
-# #### Outer lobes
+# ## Outer lobes
 #
 # Bend towards blue on both sides (N and S)
 #
-# #### Equatorial high velocity wings
+# ## Equatorial high velocity wings
 # More obvious in oiii. 
 #
-# #### Polar knots
+# ## Polar knots
 #
 #
 #
+# -
 
 # That seems to have worked fine.  Now we will try it with a pre-defined common grid. Say, 1 km/s and 0.2 arcsec.
 
@@ -1325,4 +2300,40 @@ y1, y2
 
 im[y1:y2, x1:x2].max()
 
+# # Things that did not work
 
+
+
+# Make a `Fittable1DModel` for the profile, so we can then convert it into a convolution kernel. We can't just use the decorator since that makes a `FittableModel` instead, which does not work with the convolution `Model1DKernel`. We also need to worry about the pixel size, since the convolution is always done in pixel units
+
+# +
+from astropy.modeling import Fittable1DModel, Parameter
+
+class TwoPhaseModel(Fittable1DModel):
+    alpha = Parameter()
+    omega = Parameter()
+    Twarm = Parameter()
+
+    @staticmethod
+    def evaluate(x, alpha, omega, Twarm):
+        return two_phase_profile(x, alpha, omega, Twarm)
+
+    @staticmethod
+    def fit_deriv(x, alpha, omega, Twarm):
+        return None
+
+
+# -
+
+# This does not seem to work
+
+model = TwoPhaseModel(alpha=0.1, omega=0.5, Twarm=1)
+
+kernel = Model1DKernel(model, x_size=101, mode="oversample")
+
+type(model)
+
+# + jupyter={"source_hidden": true} editable=true slideshow={"slide_type": ""}
+import astropy.modeling
+
+isinstance(model, astropy.modeling.Fittable1DModel)

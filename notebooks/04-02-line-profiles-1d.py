@@ -796,11 +796,37 @@ mean_T4 = (mean_dsigsq - 10.233) / 77.34
 std_T4 = std_dsigsq / 77.34
 mean_T4, std_T4
 
+# + [markdown] editable=true slideshow={"slide_type": ""}
 # So $T = 5700 \pm 1300$ K
+# -
 
 # ### Non-parametric version
 #
-# Directly compare the moments in a window about the line
+# Directly compare the moments in a window about the line. *Cancel this, since it is not going to give anything useful, owing to the fact that line splitting is larger in [O III] than in H alpha*
+
+# + [markdown] editable=true slideshow={"slide_type": ""}
+# ### Two-phase interpretation
+#
+# All of the papers on high-adf pne try to model it as a cool phase with T < 1000 K that contributes a small fraction to the H line emission. This is how the Balmer jump temperature is interpreted in García-Rojas et al (2022) for example. They find that a cold region that contributes 3% of the emission ($\omega = 0.03$) can result in a Balmer jump temperature that is half the warm region temperature (they use 8000 and 800 K). 
+#
+# If we look at how the variance should behave for two components (e.g., García-Díaz & Henney 2008) we have 
+# $$
+# \sigma^2 = (1 - \omega) \sigma_w^2 + \omega \sigma_c^2 + \omega (1 - \omega) (V_w - V_c)^2
+# $$
+# where $\omega, 1 - \omega$ are the fractions of the emission that comes from the cool, warm components. 
+#
+# So if the cool component has $T_c = \alpha T_w$, and the mean velocities are the same ($V_w - V_c$) then this is
+# $$
+# \sigma^2 = (1 + \alpha - \omega) \sigma_w^2 
+# $$ 
+# Since we find that $\sigma^2 \approx 0.6 \sigma_w^2$, this means $\omega \approx 0.4 + \alpha$. For instance, if $\alpha = 0.1$ ($T_c = 1000$ K), then $\omega = 0.5$ and half of the H$\alpha$ emission comes from the cool component. (Note that the implicit assumption is that [O III] comes from only the warm component).
+#
+# *In the other notebook, we will do the convolution using this model*
+#
+
+# + editable=true slideshow={"slide_type": ""}
+
+# -
 
 # ## Look at the individual profile fits in more detail                                                                                                                        
 # We want to see whether it makes sense to fit two gaussians in the outer lobes

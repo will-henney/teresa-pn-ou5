@@ -196,7 +196,7 @@ ww, hh
 
 extent = [ww, -ww, hh, -hh]
 
-# +
+# + editable=true slideshow={"slide_type": ""}
 fig, axes = plt.subplots(
     2, len(vels)//2, 
     figsize=(10, 10), 

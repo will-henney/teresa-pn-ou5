@@ -1095,7 +1095,9 @@ vprofiles = vprofiles_all
 
 # Small correction to the [O III] zero level
 
+# + jupyter={"source_hidden": true}
 vprofiles["oiii"] -= 0.01
+# -
 
 # Shift the Ha profile to match the mean velocities
 
@@ -1227,6 +1229,7 @@ with sns.color_palette("dark"):
     ax.plot(vels, offset + sprofile, color=ocolor, lw=olw)
     text = "Optimize wings\n" + rf"$\sigma = {ss_opt_wings * dv:.1f}$ km/s"
     ax.text(-120, offset + 0.1, text, fontsize="small")
+    ax.text(20, offset + 0.1, "A", fontsize="small")
     ax.axhline(offset, ls="dashed", color="k", lw=1)
     
     offset += offset_step
@@ -1235,6 +1238,7 @@ with sns.color_palette("dark"):
     ax.plot(vels, offset + sprofile, color=ocolor, lw=olw)
     text = "Optimize core\n" + rf"$\sigma = {ss_opt_core * dv:.1f}$ km/s"
     ax.text(-120, offset + 0.1, text, fontsize="small")
+    ax.text(20, offset + 0.1, "B", fontsize="small")
     ax.axhline(offset, ls="dashed", color="k", lw=1)
 
     ax.axvspan(-33 - core_width, -33 + core_width, color="b", alpha=0.1, zorder=-100)
@@ -1256,6 +1260,171 @@ T4_opt_wings, T4_opt, T4_opt_core
 # -
 
 # So this gives $T = 6000_{-3000}^{+600}$ K
+
+# # Look at the 70 micron slit
+#
+# This has higher spectral resolution. And we have one position around +5 arcsec, which hits the tangent point of the inner shell, where the expansion broadening should be minimised
+
+# ## Subtract the background ISM line 
+
+# +
+
+file_dict = {
+    "oiii": "N10045-oiii-PA359-sep+005-regrid.fits",
+    "ha": "N10043-ha-PA359-sep+004-regrid.fits",
+    "heii": "N10043-heii-PA359-sep+004-regrid.fits",
+    "nii": "N10043-nii-PA359-sep+004-regrid.fits",
+}
+
+N = len(file_dict)
+
+vsys = -33
+v1, v2 = vsys - 100, vsys + 100
+s1, s2 = -15, 15
+
+for i, (lineid, filename) in enumerate(file_dict.items()):
+    filepath = pvpath2 / filename
+    hdu, = fits.open(filepath)
+    w = WCS(hdu.header)
+    xlims, ylims = w.world_to_pixel_values([v1, v2], [s1, s2])
+    y1, y2 = [int(_) for _ in ylims]
+    x1, x2 = [int(_) for _ in xlims]
+    x0, y0 = w.world_to_pixel_values(0.0, 0.0)
+    x0 = int(x0)
+    if filepath.stem.startswith("nii"):
+        bg1 = np.mean(hdu.data[y1:y1+30], axis=0)
+        bg2 = np.mean(hdu.data[y2-30:y2], axis=0)
+    else:
+        bg1 = np.median(hdu.data[y1-10:y1], axis=0)
+        bg2 = np.median(hdu.data[y2:y2+10], axis=0)
+    im = hdu.data - 0.5 * (bg1 + bg2)
+    scale = np.percentile(im[y1:y2, x1:x0], 99.99)
+    im /= scale
+    # Save a FITS file of BG-subtracted and normalized image
+    fits.PrimaryHDU(
+        header=hdu.header,
+        data=im,
+    ).writeto(
+        pvpath2 / f"{lineid}-pv-tangent-point-70-bgsub.fits",
+        overwrite=True,
+    )
+# -
+
+# ## Plot the bg-subtracted PV arrays
+
+# +
+file_list = sorted(pvpath2.glob("*-pv-tangent-*-bgsub.fits"))
+
+N = len(file_list)
+ncols = 2
+nrows = (N // ncols)
+fig = plt.figure(figsize=(8 * ncols, 10 * nrows))
+
+vsys = -33
+v1, v2 = vsys - 100, vsys + 100
+s1, s2 = -35, 35
+
+kernel = Gaussian2DKernel(x_stddev=0.1)
+for i, filepath in enumerate(file_list):
+    hdu, = fits.open(filepath)
+    im = hdu.data
+    w = WCS(hdu.header)
+    ax = plt.subplot(nrows, ncols, i + 1, projection=w)
+    xlims, ylims = w.world_to_pixel_values([v1, v2], [s1, s2])
+    y1, y2 = [int(_) for _ in ylims]
+    x1, x2 = [int(_) for _ in xlims]
+    ax.imshow(im, vmin=-0.1, vmax=1.0, aspect="auto")
+    x0, y0 = w.world_to_pixel_values(vsys, 0.0)
+    ax.axhline(y0, color="orange", ls="dashed", lw=4, alpha=0.3)
+    ax.axvline(x0, color="orange", ls="dashed", lw=4, alpha=0.3)
+    ax.set(xlim=xlims, ylim=ylims)
+    ax.set_title(filepath.stem, pad=16)
+figfile = "ou5-tp70-2dspec.pdf"
+fig.savefig(figfile)
+fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
+...;
+# -
+
+# ## Summed spectra over equatorial region
+
+# +
+file_list = sorted(pvpath2.glob("*-pv-tangent-*-bgsub.fits"))
+
+fig, ax = plt.subplots(
+    figsize=(10, 6),
+)
+labels = {
+    "oiii": "[O III]",
+    "ha": r"H$\alpha$",
+    "nii": "[N II]",
+    "heii": "He II",
+}
+vprofiles_tp70 = {}
+vsys = -33
+v1, v2 = -120, 40
+s1, s2 = -2.5, 2.5
+offset = 0.0
+for i, filepath in enumerate(file_list):
+    hdu, = fits.open(filepath)
+    line_label = filepath.stem.split("-")[0]
+    im = hdu.data
+    w = WCS(hdu.header)
+    ns, nv = hdu.data.shape
+    xlims, ylims = w.world_to_pixel_values([v1, v2], [s1, s2])
+    x1, x2 = [int(_) for _ in xlims]
+    y1, y2 = [int(_) for _ in ylims]
+    profile = hdu.data[y1:y2, x1:x2].mean(axis=0)
+    vels, _ = w.pixel_to_world_values(np.arange(nv), [0]*nv)
+    vels = vels[x1:x2]
+    #profile *= 1/ np.max(profile)
+    vprofiles_tp70[line_label] = profile
+    line, = ax.plot(vels, profile + offset, label=line_label, ds="steps-mid")
+    ax.text(-100, offset + 0.15, labels[line_label], color=line.get_color())
+    ax.axhline(offset, linestyle="dashed", c="k", lw=1,)
+    offset += 1
+ax.axvline(0.0, linestyle="dashed", c="k", lw=1,)
+ax.axvline(vsys, linestyle="dashed", c="k", lw=1,)
+#ax.legend(ncol=2)
+ax.set(
+    xlabel="Heliocentric velocity",
+)
+figfile = "ou5-tp70-velocity-profiles-1d.pdf"
+fig.savefig(figfile, bbox_inches="tight")
+fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
+...;
+# -
+
+
+
+# Small correction to the Ha zero level
+
+vprofiles_tp70["ha"] -= 0.02
+
+# Shift the Ha profile to match the mean velocities
+
+# + editable=true slideshow={"slide_type": ""}
+vmean_h = np.average(vels, weights=vprofiles_tp70["ha"])
+vmean_o = np.average(vels, weights=vprofiles_tp70["oiii"])
+vmean_h, vmean_o
+# -
+
+vshift = vmean_h - vmean_o
+vshift
+
+shifted = np.interp(vels + vshift, vels, vprofiles_tp70["ha"])
+fig, ax = plt.subplots(figsize=(6, 2))
+ax.plot(vels, vprofiles_tp70["ha"])
+ax.plot(vels, shifted)
+
+# That seems to have worked correctly by shifting it to the right.
+
+vprofiles_tp70["ha"] = shifted
+
+# Ensure that total flux is same for [O III] and Ha
+
+boost = np.sum(vprofiles_tp70["ha"]) / np.sum(vprofiles_tp70["oiii"])
+vprofiles_tp70["oiii"] *= boost
+boost
 
 # # Two-phase model
 #
@@ -2174,11 +2343,11 @@ Table(
 sns.set_color_codes()
 with sns.color_palette("dark"):
 
-    fig, ax = plt.subplots(figsize=(8, 5))
+    fig, ax = plt.subplots(figsize=(8, 6))
     ds = "default"
     #ds = "steps-mid"
     olw, hlw = 2, 4
-    ocolor = (1, 0.2, 0.2)
+    ocolor = (0.2, 0.5, 1.0)
     offset_step = 0.5
     offset = 0
     ax.plot(vels, offset + vprofiles["ha"], lw=hlw, color="k", ds=ds, label=r"H$\alpha$")
@@ -2187,11 +2356,11 @@ with sns.color_palette("dark"):
     ax.text(-120, offset + 0.1, text, fontsize="small")
     ax.axhline(offset, ls="dashed", color="k", lw=1)
 
-    for alpha, omega in [
-        [0.3, 0.84],
-        [0.1, 0.63],
-        [0.03, 0.58],
-        [0.03, 0.18],
+    for alpha, omega, label in [
+        [0.3, 0.84, "A1"],
+        [0.1, 0.63, "A2"],
+        [0.03, 0.58, "A3"],
+        [0.03, 0.18, "B"],
     ]:
             
         offset += offset_step
@@ -2205,6 +2374,7 @@ with sns.color_palette("dark"):
         text = (rf"$\alpha = {alpha:.2f}$" 
                 + "\n" + rf"$\omega = {omega:.2f}$")
         ax.text(-120, offset + 0.1, text, fontsize="small")
+        ax.text(20, offset + 0.1, label, fontsize="small")
         ax.axhline(offset, ls="dashed", color="k", lw=1)
     
     ax.axvspan(-33 - core_width, -33 + core_width, color="b", alpha=0.1, zorder=-100)
@@ -2222,6 +2392,56 @@ with sns.color_palette("dark"):
 # The other profiles (optimised for wings) show the degeneracy between $\alpha$ and $\omega$ (only depends on approx $\omega - \alpha$). 
 #
 # The irreducible residuals are again due to the expansion profile slightly more split for [O III] than for H alpha.
+
+# ### Tangent-point 70 micron: convolved 2-phase profiles
+
+sns.set_color_codes()
+with sns.color_palette("dark"):
+
+    fig, ax = plt.subplots(figsize=(8, 6))
+    ds = "default"
+    #ds = "steps-mid"
+    olw, hlw = 2, 4
+    ocolor = (0.2, 0.5, 1.0)
+    offset_step = 0.5
+    offset = 0
+    ax.plot(vels, offset + vprofiles_tp70["ha"], lw=hlw, color="k", ds=ds, label=r"H$\alpha$")
+    ax.plot(vels, offset + vprofiles_tp70["oiii"], color=ocolor, lw=olw, ds=ds, label="[O III]")
+    text = "No convolution"
+    ax.text(-120, offset + 0.1, text, fontsize="small")
+    ax.axhline(offset, ls="dashed", color="k", lw=1)
+
+    for alpha, omega, label in [
+        [0.3, 0.84, "A1"],
+        [0.1, 0.63, "A2"],
+        [0.03, 0.58, "A3"],
+        [0.03, 0.18, "B"],
+    ]:
+            
+        offset += offset_step
+        p = TwoPhaseProfile(alpha=alpha, omega=omega)
+        kernel = CustomKernel(
+            discretize_model(pixel_profile, x_range, mode="oversample")
+        )
+        sprofile = convolve(vprofiles_tp70["oiii"], kernel)
+        ax.plot(vels, offset + vprofiles_tp70["ha"], lw=hlw, color="k")
+        ax.plot(vels, offset + sprofile, color=ocolor, lw=olw)
+        text = (rf"$\alpha = {alpha:.2f}$" 
+                + "\n" + rf"$\omega = {omega:.2f}$")
+        ax.text(-120, offset + 0.1, text, fontsize="small")
+        ax.text(20, offset + 0.1, label, fontsize="small")
+        ax.axhline(offset, ls="dashed", color="k", lw=1)
+    
+    ax.axvspan(-33 - core_width, -33 + core_width, color="b", alpha=0.1, zorder=-100)
+    ax.axvline(-33, ls="dashed", color="k", lw=1)
+    ax.set_xlabel("Heliocentric velocity, km/s")
+
+    ax.legend()
+    
+    figfile = "pn-ou5-2phase-tp70-convolution-fits.pdf"
+    fig.savefig(figfile, bbox_inches="tight")
+    fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
+
 
 
 
@@ -2321,19 +2541,12 @@ class TwoPhaseModel(Fittable1DModel):
     @staticmethod
     def fit_deriv(x, alpha, omega, Twarm):
         return None
-
-
 # -
 
 # This does not seem to work
 
-model = TwoPhaseModel(alpha=0.1, omega=0.5, Twarm=1)
+# +
+# model = TwoPhaseModel(alpha=0.1, omega=0.5, Twarm=1)
 
-kernel = Model1DKernel(model, x_size=101, mode="oversample")
-
-type(model)
-
-# + jupyter={"source_hidden": true} editable=true slideshow={"slide_type": ""}
-import astropy.modeling
-
-isinstance(model, astropy.modeling.Fittable1DModel)
+# +
+# kernel = Model1DKernel(model, x_size=101, mode="oversample")

@@ -1,5 +1,27 @@
 ;
 * Comments on the paper
+* Instrumental widths
+| Line  |    lam | d lam |   d v | sigma |
+|-------+--------+-------+-------+-------|
+| Ha    | 6562.8 |  0.26 | 11.89 |       |
+| o iii | 5006.8 |  0.19 | 11.38 |       |
+#+TBLFM: $4=3e5 $3 / $2 ; f2
+
+- But supposedly, it is 11.76 km/s at Ha
+  - which would give
+    - 11.76 6563 / 3e5 = 0.257 at Ha
+    - 11.76 5007 / 3e5 = 0.196 at [O III]
+    - 
+** Crazy idea for estimating the instrumental widths better
+- The narrowest line that I have in the data is the ISM [N II] component
+- We could measure its width with the 150 micron and 70 micron slit
+- Then we could plot \sigma^2 against slit-width^2
+  - The intercept at zero slit width should give the intrinsic sigma of the line
+  - The sqrt of the slope should give the instrumental sigma versus slit width
+  - This is assuming that the "optical" instrumental width is small, and all is due to the finite slit width
+    - Meaburn says that resolution is at least 30 microns, so that seems a reasonable approximation
+** We could also measure the H temperature of the ISM
+Using the linewidth method with Ha and [N II]
 * Clegg fine structure broadening
 ** Tables from Clegg:1999a
 *** Case B Component intensities for Hα: H 3 →2 λ_ref = 6562.8812

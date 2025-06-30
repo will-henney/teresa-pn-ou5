@@ -1095,9 +1095,7 @@ vprofiles = vprofiles_all
 
 # Small correction to the [O III] zero level
 
-# + jupyter={"source_hidden": true}
 vprofiles["oiii"] -= 0.01
-# -
 
 # Shift the Ha profile to match the mean velocities
 
@@ -1125,6 +1123,14 @@ boost = np.sum(vprofiles["ha"]) / np.sum(vprofiles["oiii"])
 vprofiles["oiii"] *= boost
 boost
 
+# Estimate noise from the continuum level
+
+outside = np.abs(vels - vsys) >= 50
+noise_rms_ha = np.std(vprofiles["ha"][outside])
+noise_rms_oiii = np.std(vprofiles["oiii"][outside])
+noise_rms_diff = np.sqrt(noise_rms_ha**2 + noise_rms_oiii**2)
+noise_rms_ha, noise_rms_oiii, noise_rms_diff
+
 # +
 fig, ax = plt.subplots()
 
@@ -1149,12 +1155,13 @@ with sns.color_palette("rocket", 1 + len(ss_list) // skip):
     sum_square_residuals_wings = []
     core_width = 20
     core = np.abs(vels + 33) < core_width
+    wings = (~core) & (~outside)
     for index, ss in enumerate(ss_list):
         if ss > 0:
             sprofile = convolve(vprofiles["oiii"], Gaussian1DKernel(stddev=ss, mode="oversample"))
         else:
             sprofile = vprofiles["oiii"]
-        residuals = sprofile - vprofiles["ha"]
+        residuals = (sprofile - vprofiles["ha"]) / noise_rms_diff
         if index % skip == 0:
             if index % (skip*2) == 0:
                 label = f"$\sigma = {dv * ss:.0f}$ km/s"
@@ -1165,14 +1172,14 @@ with sns.color_palette("rocket", 1 + len(ss_list) // skip):
             ax.plot(vels, residuals, label=label, lw=lw)
         sum_square_residuals.append(np.sum(residuals**2))
         sum_square_residuals_core.append(np.sum(residuals[core]**2))
-        sum_square_residuals_wings.append(np.sum(residuals[~core]**2))
+        sum_square_residuals_wings.append(np.sum(residuals[wings]**2))
     ax.axvline(-33, ls="dashed", color="k", lw=1)
     ax.axhline(0, ls="dashed", color="k", lw=1)
     ax.axvspan(-33 - core_width, -33 + core_width, color="b", alpha=0.1, zorder=-100)
     ax.legend(fontsize="small", title="Extra broadening")
-    ax.set_ylim(None, 0.9)
+    ax.set_ylim(None, 190)
     ax.set_xlabel("Heliocentric velocity, km/s")
-    ax.set_ylabel(r"Residual: $ \left\{ I(\mathrm{[O III]}) \circ K(\sigma) \right\} - I(\mathrm{H\alpha})$")
+    ax.set_ylabel(r"$ (\mathrm{[O III]}^\bigstar - \mathrm{H\alpha})\ / \ s_\mathrm{noise}$")
     figfile = "pn-ou5-convolution-residuals.pdf"
     fig.savefig(figfile, bbox_inches="tight")
     fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
@@ -1198,11 +1205,49 @@ with sns.color_palette("colorblind", n_colors=3):
     c = line.get_color()
     ax.axvline(ss_opt_wings * dv, linestyle="dotted", color=c, ymax=0.25)
     
-    ax.set_ylim(0.0, 0.8)
+    ax.set_ylim(0.0, None)
     ax.set_xlabel(r"Extra broadening, $\sigma$, km/s")
-    ax.set_ylabel("Sum squared residuals")
+    ax.set_ylabel("Sum squared residuals: $\chi^2$")
     ax.legend(fontsize="small")
     figfile = "pn-ou5-convolution-optimum.pdf"
+    fig.savefig(figfile, bbox_inches="tight")
+    fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
+
+
+# Repeat but with the reduced chi-squared. First, calculate the degrees of freedom:
+
+npts_core = np.sum(core).astype(int)
+npts_wings = np.sum(wings).astype(int)
+nu_core = npts_core - 1
+nu_wings = npts_wings - 1
+nu_full = npts_core + npts_wings - 1
+nu_core, nu_wings, nu_full
+
+with sns.color_palette("colorblind", n_colors=3):
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ss_opt = np.interp(0.0, np.gradient(sum_square_residuals), ss_list)
+    label = f"All velocities, $\sigma_\mathrm{{opt}} = {dv * ss_opt:.1f}$ km/s"
+    line, = ax.plot(dv * ss_list, sum_square_residuals / nu_full, label=label)
+    c = line.get_color()
+    ax.axvline(ss_opt * dv, linestyle="dotted", color=c, ymax=0.25)
+    
+    ss_opt_core = np.interp(0.0, np.gradient(sum_square_residuals_core), ss_list)
+    label = f"Core only, $\sigma_\mathrm{{opt}} = {dv * ss_opt_core:.1f}$ km/s"
+    line, = ax.plot(dv * ss_list, sum_square_residuals_core / nu_core, label=label)
+    c = line.get_color()
+    ax.axvline(ss_opt_core * dv, linestyle="dotted", color=c, ymax=0.25)
+
+    ss_opt_wings = np.interp(0.0, np.gradient(sum_square_residuals_wings), ss_list)
+    label = f"Wings only, $\sigma_\mathrm{{opt}} = {dv * ss_opt_wings:.1f}$ km/s"
+    line, = ax.plot(dv * ss_list, sum_square_residuals_wings / nu_wings, label=label)
+    c = line.get_color()
+    ax.axvline(ss_opt_wings * dv, linestyle="dotted", color=c, ymax=0.25)
+    
+    ax.set_ylim(0.0, 900)
+    ax.set_xlabel(r"Extra broadening, $\sigma$, km/s")
+    ax.set_ylabel(r"Goodness of fit: $\chi^2 / \nu$")
+    ax.legend(fontsize="small")
+    figfile = "pn-ou5-convolution-optimum-chi2.pdf"
     fig.savefig(figfile, bbox_inches="tight")
     fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
 
@@ -1211,8 +1256,8 @@ sns.set_color_codes()
 with sns.color_palette("dark"):
 
     fig, ax = plt.subplots(figsize=(8, 5))
-    ds = "default"
-    #ds = "steps-mid"
+    #ds = "default"
+    ds = "steps-mid"
     olw, hlw = 2, 4
     ocolor = (1, 0.2, 0.2)
     offset_step = 0.5
@@ -1223,9 +1268,11 @@ with sns.color_palette("dark"):
     ax.text(-120, offset + 0.1, text, fontsize="small")
     ax.axhline(offset, ls="dashed", color="k", lw=1)
 
+    ds = "default"
+    dsha = "steps-mid"
     offset += offset_step
     sprofile = convolve(vprofiles["oiii"], Gaussian1DKernel(stddev=ss_opt_wings, mode="oversample"))
-    ax.plot(vels, offset + vprofiles["ha"], lw=hlw, color="k")
+    ax.plot(vels, offset + vprofiles["ha"], lw=hlw, ds=dsha, color="k")
     ax.plot(vels, offset + sprofile, color=ocolor, lw=olw)
     text = "Optimize wings\n" + rf"$\sigma = {ss_opt_wings * dv:.1f}$ km/s"
     ax.text(-120, offset + 0.1, text, fontsize="small")
@@ -1234,7 +1281,7 @@ with sns.color_palette("dark"):
     
     offset += offset_step
     sprofile = convolve(vprofiles["oiii"], Gaussian1DKernel(stddev=ss_opt_core, mode="oversample"))
-    ax.plot(vels, offset + vprofiles["ha"], lw=hlw, color="k")
+    ax.plot(vels, offset + vprofiles["ha"], lw=hlw, ds=dsha, color="k")
     ax.plot(vels, offset + sprofile, color=ocolor, lw=olw)
     text = "Optimize core\n" + rf"$\sigma = {ss_opt_core * dv:.1f}$ km/s"
     ax.text(-120, offset + 0.1, text, fontsize="small")
@@ -1298,8 +1345,11 @@ for i, (lineid, filename) in enumerate(file_dict.items()):
         bg1 = np.median(hdu.data[y1-10:y1], axis=0)
         bg2 = np.median(hdu.data[y2:y2+10], axis=0)
     im = hdu.data - 0.5 * (bg1 + bg2)
-    scale = np.percentile(im[y1:y2, x1:x0], 99.99)
+    if not lineid in ["nii", "heii"]:
+        # Re-use ha scale for nii and heii
+        scale = np.percentile(im[y1:y2, x1:x0], 99.99)
     im /= scale
+    print(lineid, scale)
     # Save a FITS file of BG-subtracted and normalized image
     fits.PrimaryHDU(
         header=hdu.header,
@@ -1363,6 +1413,7 @@ vprofiles_tp70 = {}
 vsys = -33
 v1, v2 = -120, 40
 s1, s2 = -2.5, 2.5
+#s1, s2 = -5, 5
 offset = 0.0
 for i, filepath in enumerate(file_list):
     hdu, = fits.open(filepath)
@@ -1371,8 +1422,8 @@ for i, filepath in enumerate(file_list):
     w = WCS(hdu.header)
     ns, nv = hdu.data.shape
     xlims, ylims = w.world_to_pixel_values([v1, v2], [s1, s2])
-    x1, x2 = [int(_) for _ in xlims]
-    y1, y2 = [int(_) for _ in ylims]
+    x1, x2 = np.rint(xlims).astype(int)
+    y1, y2 = np.rint(ylims).astype(int)
     profile = hdu.data[y1:y2, x1:x2].mean(axis=0)
     vels, _ = w.pixel_to_world_values(np.arange(nv), [0]*nv)
     vels = vels[x1:x2]
@@ -1394,13 +1445,50 @@ fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
 ...;
 # -
 
+# ### Remove continuum gradients
+#
+# We want to make sure that the zero line is flat and actually at zero. Later on, we create a window around the mean velocity, but we do not know what that is yet, so we will use a fixed window in velocity. In order to make absolutely sure we are not overlapping with the Ha wings, we will use from -85 to +10 as the line window, and everything outside of that will be used for the continuum fit. 
+
+#is_continuum = (vels <= -85) | (vels > 10)
+is_continuum = (vels <= -75) | (vels > 0)
+
+p_ha = np.polynomial.Polynomial.fit(
+    vels[is_continuum], vprofiles_tp70["ha"][is_continuum], deg=1,
+)
+p_ha.coef
+
+p_oiii = np.polynomial.Polynomial.fit(
+    vels[is_continuum], vprofiles_tp70["oiii"][is_continuum], deg=1,
+)
+p_oiii.coef
+
+fig, ax = plt.subplots()
+line, = ax.plot(vels, p_ha(vels))
+ax.plot(
+    vels[is_continuum], 
+    vprofiles_tp70["ha"][is_continuum], 
+    ".",
+    alpha=0.5,
+    color=line.get_color(),
+)
+line, = ax.plot(vels, p_oiii(vels))
+ax.plot(
+    vels[is_continuum], 
+    vprofiles_tp70["oiii"][is_continuum], 
+    ".",
+    alpha=0.5,
+    color=line.get_color(),
+)
 
 
-# Small correction to the Ha zero level
+# Apply the linear continuum correction
 
-vprofiles_tp70["ha"] -= 0.02
+vprofiles_tp70["ha"] -= p_ha(vels)
+vprofiles_tp70["oiii"] -= p_oiii(vels)
 
-# Shift the Ha profile to match the mean velocities
+# ### Match the mean velocities of the two lines
+#
+# We want to avoid interpolation if we can, since we do not want to be broadening either of the lines
 
 # + editable=true slideshow={"slide_type": ""}
 vmean_h = np.average(vels, weights=vprofiles_tp70["ha"])
@@ -1411,7 +1499,10 @@ vmean_h, vmean_o
 vshift = vmean_h - vmean_o
 vshift
 
-shifted = np.interp(vels + vshift, vels, vprofiles_tp70["ha"])
+ivshift = np.rint(vshift / dv) * dv
+ivshift
+
+shifted = np.interp(vels + ivshift, vels, vprofiles_tp70["ha"])
 fig, ax = plt.subplots(figsize=(6, 2))
 ax.plot(vels, vprofiles_tp70["ha"])
 ax.plot(vels, shifted)
@@ -1425,6 +1516,34 @@ vprofiles_tp70["ha"] = shifted
 boost = np.sum(vprofiles_tp70["ha"]) / np.sum(vprofiles_tp70["oiii"])
 vprofiles_tp70["oiii"] *= boost
 boost
+
+# Save the mean velocity
+
+vmean_o_tp70 = vmean_o
+
+# ### Check the plots of the profiles again
+
+fig, ax = plt.subplots(
+    figsize=(10, 6),
+)
+v1, v2 = -120, 40
+offset = 0.0
+for lineid in "ha", "oiii":
+    line, = ax.plot(vels, vprofiles_tp70[lineid] + offset, ds="steps-mid")
+    ax.text(-100, offset + 0.15, labels[lineid], color=line.get_color())
+    ax.axhline(offset, linestyle="dashed", c="k", lw=1,)
+    offset += 1
+ax.axvline(0.0, linestyle="dashed", c="k", lw=1,)
+# ax.axvline(vsys, linestyle="dashed", c="k", lw=1,)
+ax.axvline(vmean_o_tp70, linestyle="dashed", c="k", lw=1,)
+#ax.legend(ncol=2)
+ax.set(
+    xlabel="Heliocentric velocity",
+)
+figfile = "ou5-tp70-velocity-profiles-corrected-1d.pdf"
+fig.savefig(figfile, bbox_inches="tight")
+fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
+...;
 
 # # Two-phase model
 #
@@ -2343,9 +2462,8 @@ Table(
 sns.set_color_codes()
 with sns.color_palette("dark"):
 
-    fig, ax = plt.subplots(figsize=(8, 6))
-    ds = "default"
-    #ds = "steps-mid"
+    fig, ax = plt.subplots(figsize=(8, 7))
+    ds = "steps-mid"
     olw, hlw = 2, 4
     ocolor = (0.2, 0.5, 1.0)
     offset_step = 0.5
@@ -2369,9 +2487,9 @@ with sns.color_palette("dark"):
             discretize_model(pixel_profile, x_range, mode="oversample")
         )
         sprofile = convolve(vprofiles["oiii"], kernel)
-        ax.plot(vels, offset + vprofiles["ha"], lw=hlw, color="k")
+        ax.plot(vels, offset + vprofiles["ha"], ds=ds, lw=hlw, color="k")
         ax.plot(vels, offset + sprofile, color=ocolor, lw=olw)
-        text = (rf"$\alpha = {alpha:.2f}$" 
+        text = (rf"$T_\mathrm{{cool}} = {1e4*alpha:.0f}$ K" 
                 + "\n" + rf"$\omega = {omega:.2f}$")
         ax.text(-120, offset + 0.1, text, fontsize="small")
         ax.text(20, offset + 0.1, label, fontsize="small")
@@ -2394,6 +2512,11 @@ with sns.color_palette("dark"):
 # The irreducible residuals are again due to the expansion profile slightly more split for [O III] than for H alpha.
 
 # ### Tangent-point 70 micron: convolved 2-phase profiles
+#
+# Repeat all the fits, but for the narrow 70 micron profile
+#
+
+# #### Same parameters as for whole nebula
 
 sns.set_color_codes()
 with sns.color_palette("dark"):
@@ -2439,6 +2562,376 @@ with sns.color_palette("dark"):
     ax.legend()
     
     figfile = "pn-ou5-2phase-tp70-convolution-fits.pdf"
+    fig.savefig(figfile, bbox_inches="tight")
+    fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
+
+
+# So this maybe shows a better fit for the low alpha case, but we need to plot the sum-square residuals
+
+# #### Optimize $\omega$ for $\alpha = 0.03$
+#
+# We modify this in a few ways, compared with the whole-nebula fits. 
+#
+# * The core width is smaller $\pm 15$ because the lines are narrower
+# * We exclude everything outside a window of $\pm 35$ because it is just noise
+# * We calculate the rms noise using the profile outside the window, so we can evaluate the $\chi^2$ properly.
+# * We estimate the number of degrees of freedom: $\nu = n - m$, where $n$ is the number of independent observations and $m = 2$ is the number of model parameters. So we can check that $\chi^2 / \nu$ is of order unity
+
+
+
+vsys_tp70 = vmean_o_tp70
+core_width = 10
+full_width = 35
+is_full_window = np.abs(vels - vsys_tp70) < full_width
+is_core = (np.abs(vels - vsys_tp70) < core_width) & is_full_window
+is_wings = (np.abs(vels - vsys_tp70) >= core_width) & is_full_window
+noise_rms_ha = np.std(vprofiles_tp70["ha"][~is_full_window])
+noise_rms_oiii = np.std(vprofiles_tp70["oiii"][~is_full_window])
+noise_rms_diff = np.sqrt(noise_rms_ha**2 + noise_rms_oiii**2)
+noise_rms_ha, noise_rms_oiii, noise_rms_diff
+
+npix_full = np.sum(is_full_window)
+npix_core = np.sum(is_core)
+npix_wings = np.sum(is_wings)
+npix_full, npix_core, npix_wings
+
+# To evaluate the number of independent observations, we need to use the original pixel size. And maybe also account for the instrumental broadening. 
+#
+# The original pixels of 70 micron slit are 2.50 km/s for Ha and 2.58 for [O III]. We will use 2.5
+#
+# The rms instrumental width is also 2.5 for the 70 micron slit, so if we add these in quadrature it would give an effective resolution of 3.5
+#
+# **But, I don't think we should include the instrumental width, since the noise will not be broadened ny it probably**
+
+3e5 * 0.0430814698338509 / 5006.8
+
+# dv_orig = np.sqrt(2.5**2 + 2.5**2)
+dv_orig = 2.5
+dv_orig
+
+dv_vels = np.diff(vels)[0]
+dv_vels
+
+nu_full = int(npix_full * dv_vels / dv_orig) - 2
+nu_core = int(npix_core * dv_vels / dv_orig) - 2
+nu_wings = int(npix_wings * dv_vels / dv_orig) - 2
+nu_full, nu_core, nu_wings
+
+# We now want to save all the chi-square results
+
+chisq = {}
+
+om_list = np.linspace(0.0, 1.0, 41)[::-1]
+skip = 5
+alpha = 0.03
+with sns.color_palette("rocket", 1 + len(om_list) // skip):
+    fig, ax = plt.subplots(figsize=(8, 5))
+    sum_square_residuals = []
+    sum_square_residuals_core = []
+    sum_square_residuals_wings = []
+    ax.plot(
+        vels,  
+        (vprofiles_tp70["oiii"]- vprofiles_tp70["ha"]) / noise_rms_diff, 
+        label="Original", lw=2.5, color="b"
+    )
+    for index, omega in enumerate(om_list):
+        p = TwoPhaseProfile(alpha=alpha, omega=omega)
+        kernel = CustomKernel(
+            discretize_model(pixel_profile, x_range, mode="oversample")
+        )
+        sprofile = convolve(vprofiles_tp70["oiii"], kernel)
+        residuals = (sprofile - vprofiles_tp70["ha"]) / noise_rms_diff
+        if index % skip == 0:
+            if index % (skip*2) == 0:
+                label = f"$\omega = {omega:.2f}$"
+                lw = 2.5
+            else:
+                label = None
+                lw = 1.0
+            ax.plot(vels, residuals, label=label, lw=lw)
+        sum_square_residuals.append(np.sum(residuals[is_full_window]**2))
+        sum_square_residuals_core.append(np.sum(residuals[is_core]**2))
+        sum_square_residuals_wings.append(np.sum(residuals[is_wings]**2))
+    ax.axvline(vsys_tp70, ls="dashed", color="k", lw=1)
+    ax.axhline(0, ls="dashed", color="k", lw=1)
+    ax.axvspan(vsys_tp70 - full_width, vsys_tp70 + full_width, color="b", alpha=0.1, zorder=-100)
+    chisq[alpha] = sum_square_residuals
+    
+    ax.legend(fontsize="small", title=rf"$\alpha = {alpha:.2f}$")
+    ax.set_ylim(None, 10)
+    ax.set_xlabel("Heliocentric velocity, km/s")
+    ax.set_ylabel(r"$ (\mathrm{[O III]}^\bigstar - \mathrm{H\alpha})\ / \ \sigma_\mathrm{noise}$")
+    figfile = "pn-ou5-2phase-tp70-a003-convolution-residuals.pdf"
+    fig.savefig(figfile, bbox_inches="tight")
+    fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
+
+
+# #### Repeat for alpha = 0.1
+
+om_list = np.linspace(0.0, 1.0, 41)[::-1]
+skip = 5
+alpha = 0.1
+with sns.color_palette("rocket", 1 + len(om_list) // skip):
+    fig, ax = plt.subplots(figsize=(8, 5))
+    sum_square_residuals = []
+    sum_square_residuals_core = []
+    sum_square_residuals_wings = []
+    ax.plot(
+        vels,  
+        (vprofiles_tp70["oiii"]- vprofiles_tp70["ha"]) / noise_rms_diff, 
+        label="Original", lw=2.5, color="b", ds="steps-mid",
+    )
+    for index, omega in enumerate(om_list):
+        p = TwoPhaseProfile(alpha=alpha, omega=omega)
+        kernel = CustomKernel(
+            discretize_model(pixel_profile, x_range, mode="oversample")
+        )
+        sprofile = convolve(vprofiles_tp70["oiii"], kernel)
+        residuals = (sprofile - vprofiles_tp70["ha"]) / noise_rms_diff
+        if index % skip == 0:
+            if index % (skip*2) == 0:
+                label = f"$\omega = {omega:.2f}$"
+                lw = 2.5
+            else:
+                label = None
+                lw = 1.0
+            ax.plot(vels, residuals, label=label, lw=lw)
+        sum_square_residuals.append(np.sum(residuals[is_full_window]**2))
+        sum_square_residuals_core.append(np.sum(residuals[is_core]**2))
+        sum_square_residuals_wings.append(np.sum(residuals[is_wings]**2))
+    ax.axvline(vsys_tp70, ls="dashed", color="k", lw=1)
+    ax.axhline(0, ls="dashed", color="k", lw=1)
+    ax.axvspan(vsys_tp70 - full_width, vsys_tp70 + full_width, color="b", alpha=0.1, zorder=-100)
+    chisq[alpha] = sum_square_residuals
+    
+    ax.legend(fontsize="small", title=rf"$T_\mathrm{{cool}} = {10000*alpha:.0f}$ K")
+    ax.set_ylim(None, 10)
+    ax.set_xlabel("Heliocentric velocity, km/s")
+    ax.set_ylabel(r"$ (\mathrm{[O III]}^\bigstar - \mathrm{H\alpha})\ / \ s_\mathrm{noise}$")
+    figfile = "pn-ou5-2phase-tp70-a010-convolution-residuals.pdf"
+    fig.savefig(figfile, bbox_inches="tight")
+    fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
+
+
+# #### Repeat for alpha = 0.3
+
+om_list = np.linspace(0.0, 1.0, 41)[::-1]
+skip = 5
+alpha = 0.3
+with sns.color_palette("rocket", 1 + len(om_list) // skip):
+    fig, ax = plt.subplots(figsize=(8, 5))
+    sum_square_residuals = []
+    sum_square_residuals_core = []
+    sum_square_residuals_wings = []
+    ax.plot(
+        vels,  
+        (vprofiles_tp70["oiii"]- vprofiles_tp70["ha"]) / noise_rms_diff, 
+        label="Original", lw=2.5, color="b"
+    )
+    for index, omega in enumerate(om_list):
+        p = TwoPhaseProfile(alpha=alpha, omega=omega)
+        kernel = CustomKernel(
+            discretize_model(pixel_profile, x_range, mode="oversample")
+        )
+        sprofile = convolve(vprofiles_tp70["oiii"], kernel)
+        residuals = (sprofile - vprofiles_tp70["ha"]) / noise_rms_diff
+        if index % skip == 0:
+            if index % (skip*2) == 0:
+                label = f"$\omega = {omega:.2f}$"
+                lw = 2.5
+            else:
+                label = None
+                lw = 1.0
+            ax.plot(vels, residuals, label=label, lw=lw)
+        sum_square_residuals.append(np.sum(residuals[is_full_window]**2))
+        sum_square_residuals_core.append(np.sum(residuals[is_core]**2))
+        sum_square_residuals_wings.append(np.sum(residuals[is_wings]**2))
+    ax.axvline(vsys_tp70, ls="dashed", color="k", lw=1)
+    ax.axhline(0, ls="dashed", color="k", lw=1)
+    ax.axvspan(vsys_tp70 - full_width, vsys_tp70 + full_width, color="b", alpha=0.1, zorder=-100)
+    chisq[alpha] = sum_square_residuals
+    
+    ax.legend(fontsize="small", title=rf"$\alpha = {alpha:.2f}$")
+    ax.set_ylim(None, 10)
+    ax.set_xlabel("Heliocentric velocity, km/s")
+    ax.set_ylabel(r"$ (\mathrm{[O III]}^\bigstar - \mathrm{H\alpha})\ / \ s_\mathrm{noise}$")
+    figfile = "pn-ou5-2phase-tp70-a030-convolution-residuals.pdf"
+    fig.savefig(figfile, bbox_inches="tight")
+    fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
+
+
+# #### Repeat for alpha = 0.5
+
+om_list = np.linspace(0.0, 1.0, 41)[::-1]
+skip = 5
+alpha = 0.5
+with sns.color_palette("rocket", 1 + len(om_list) // skip):
+    fig, ax = plt.subplots(figsize=(8, 5))
+    sum_square_residuals = []
+    sum_square_residuals_core = []
+    sum_square_residuals_wings = []
+    ax.plot(
+        vels,  
+        (vprofiles_tp70["oiii"]- vprofiles_tp70["ha"]) / noise_rms_diff, 
+        label="Original", lw=2.5, color="b"
+    )
+    for index, omega in enumerate(om_list):
+        p = TwoPhaseProfile(alpha=alpha, omega=omega)
+        kernel = CustomKernel(
+            discretize_model(pixel_profile, x_range, mode="oversample")
+        )
+        sprofile = convolve(vprofiles_tp70["oiii"], kernel)
+        residuals = (sprofile - vprofiles_tp70["ha"]) / noise_rms_diff
+        if index % skip == 0:
+            if index % (skip*2) == 0:
+                label = f"$\omega = {omega:.2f}$"
+                lw = 2.5
+            else:
+                label = None
+                lw = 1.0
+            ax.plot(vels, residuals, label=label, lw=lw)
+        sum_square_residuals.append(np.sum(residuals[is_full_window]**2))
+        sum_square_residuals_core.append(np.sum(residuals[is_core]**2))
+        sum_square_residuals_wings.append(np.sum(residuals[is_wings]**2))
+    ax.axvline(vsys_tp70, ls="dashed", color="k", lw=1)
+    ax.axhline(0, ls="dashed", color="k", lw=1)
+    ax.axvspan(vsys_tp70 - full_width, vsys_tp70 + full_width, color="b", alpha=0.1, zorder=-100)
+    chisq[alpha] = sum_square_residuals
+    
+    ax.legend(fontsize="small", title=rf"$\alpha = {alpha:.2f}$")
+    ax.set_ylim(None, 10)
+    ax.set_xlabel("Heliocentric velocity, km/s")
+    ax.set_ylabel(r"$ (\mathrm{[O III]}^\bigstar - \mathrm{H\alpha})\ / \ \sigma_\mathrm{noise}$")
+    figfile = "pn-ou5-2phase-tp70-a050-convolution-residuals.pdf"
+    fig.savefig(figfile, bbox_inches="tight")
+    fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
+
+
+
+
+# #### Repeat for alpha = 0.01
+
+om_list = np.linspace(0.0, 1.0, 41)[::-1]
+skip = 5
+alpha = 0.01
+with sns.color_palette("rocket", 1 + len(om_list) // skip):
+    fig, ax = plt.subplots(figsize=(8, 5))
+    sum_square_residuals = []
+    sum_square_residuals_core = []
+    sum_square_residuals_wings = []
+    ax.plot(
+        vels,  
+        (vprofiles_tp70["oiii"]- vprofiles_tp70["ha"]) / noise_rms_diff, 
+        label="Original", lw=2.5, color="b"
+    )
+    for index, omega in enumerate(om_list):
+        p = TwoPhaseProfile(alpha=alpha, omega=omega)
+        kernel = CustomKernel(
+            discretize_model(pixel_profile, x_range, mode="oversample")
+        )
+        sprofile = convolve(vprofiles_tp70["oiii"], kernel)
+        residuals = (sprofile - vprofiles_tp70["ha"]) / noise_rms_diff
+        if index % skip == 0:
+            if index % (skip*2) == 0:
+                label = f"$\omega = {omega:.2f}$"
+                lw = 2.5
+            else:
+                label = None
+                lw = 1.0
+            ax.plot(vels, residuals, label=label, lw=lw)
+        sum_square_residuals.append(np.sum(residuals[is_full_window]**2))
+        sum_square_residuals_core.append(np.sum(residuals[is_core]**2))
+        sum_square_residuals_wings.append(np.sum(residuals[is_wings]**2))
+    ax.axvline(vsys_tp70, ls="dashed", color="k", lw=1)
+    ax.axhline(0, ls="dashed", color="k", lw=1)
+    ax.axvspan(vsys_tp70 - full_width, vsys_tp70 + full_width, color="b", alpha=0.1, zorder=-100)
+    chisq[alpha] = sum_square_residuals
+    
+    ax.legend(fontsize="small", title=rf"$\alpha = {alpha:.2f}$")
+    ax.set_ylim(None, 10)
+    ax.set_xlabel("Heliocentric velocity, km/s")
+    ax.set_ylabel(r"$ (\mathrm{[O III]}^\bigstar - \mathrm{H\alpha})\ / \ \sigma_\mathrm{noise}$")
+    figfile = "pn-ou5-2phase-tp70-a001-convolution-residuals.pdf"
+    fig.savefig(figfile, bbox_inches="tight")
+    fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
+
+
+
+
+# #### Chi-square curves for all the alphas
+
+alphas = sorted(chisq)
+with sns.color_palette("mako_r", n_colors=len(alphas)):
+        
+    fig, ax = plt.subplots(figsize=(8, 5))
+    for alpha in alphas:
+        # _chisq = chisq[alpha] / (npix_full - 2)
+        _chisq = np.array(chisq[alpha]) / nu_full
+        
+        om_opt = np.interp(0.0, np.gradient(_chisq), om_list)
+        label = rf"$T_\mathrm{{cool}} = {1e4*alpha:.0f}$ K, $\omega_\mathrm{{best}} = {om_opt:.2f}$"
+        line, = ax.plot(om_list, _chisq, label=label)
+        c = line.get_color()
+        # ax.axvline(om_opt, linestyle="dotted", color=c, ymax=0.25)
+   
+    ax.axhline(1, linestyle="dashed", color="r")
+    ax.set_ylim(0.0, 5)
+    ax.set_xlabel(r"Cool fraction, $\omega$")
+    ax.set_ylabel(r"Goodness of fit: $\chi^2 / \nu$")
+    ax.legend(fontsize="small", title="2-phase model")
+    figfile = "pn-ou5-2phase-tp70-multi-convolution-optimum.pdf"
+    fig.savefig(figfile, bbox_inches="tight")
+    fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
+
+
+#
+
+# #### Profile plots for the best-fit models
+
+sns.set_color_codes()
+with sns.color_palette("dark"):
+
+    fig, ax = plt.subplots(figsize=(8, 8))
+    ds = "steps-mid"
+    olw, hlw = 2, 4
+    ocolor = (0.2, 0.5, 1.0)
+    offset_step = 0.5
+    offset = 0
+    ax.plot(vels, offset + vprofiles_tp70["ha"], lw=hlw, color="k", ds=ds, label=r"H$\alpha$")
+    ax.plot(vels, offset + vprofiles_tp70["oiii"], color=ocolor, lw=olw, ds=ds, label="[O III]")
+    text = "No convolution"
+    ax.text(-120, offset + 0.1, text, fontsize="small")
+    ax.axhline(offset, ls="dashed", color="k", lw=1)
+
+    ds = "default"
+    dsha = "steps-mid"
+    for alpha, omega, label in [
+        [0.3, 1.0, r"$T_\mathrm{cool} = 3000$ K"],
+        [0.1, 0.80, r"$T_\mathrm{cool} = 1000$ K"],
+        [0.03, 0.71, r"$T_\mathrm{cool} = 300$ K"],
+        [0.01, 0.69, r"$T_\mathrm{cool} = 100$ K"],
+    ]:
+            
+        offset += offset_step
+        p = TwoPhaseProfile(alpha=alpha, omega=omega)
+        kernel = CustomKernel(
+            discretize_model(pixel_profile, x_range, mode="oversample")
+        )
+        sprofile = convolve(vprofiles_tp70["oiii"], kernel)
+        ax.plot(vels, offset + vprofiles_tp70["ha"], ds=dsha, lw=hlw, color="k")
+        ax.plot(vels, offset + sprofile, color=ocolor, lw=olw)
+        text = (label + "\n" + rf"$\omega = {omega:.2f}$")
+        ax.text(-120, offset + 0.1, text, fontsize="small")
+        # ax.text(0, offset + 0.15, label, fontsize="small")
+        ax.axhline(offset, ls="dashed", color="k", lw=1)
+    
+    ax.axvspan(vmean_o_tp70 - full_width, vmean_o_tp70 + full_width, color="b", alpha=0.1, zorder=-100)
+    ax.axvline(vmean_o_tp70, ls="dashed", color="k", lw=1)
+    ax.set_xlabel("Heliocentric velocity, km/s")
+
+    ax.legend()
+    
+    figfile = "pn-ou5-2phase-tp70-convolution-best-fits.pdf"
     fig.savefig(figfile, bbox_inches="tight")
     fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
 

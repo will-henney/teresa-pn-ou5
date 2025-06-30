@@ -756,7 +756,7 @@ ax.scatter(
     vardf["stddev_0_o"]**2,
     vardf["stddev_0_h"]**2,
     s=100 * scale,
-    c=vardf.index,
+    c=vardf.index,j
     cmap="plasma",    
     vmin=-10, vmax=10,
     zorder=100,

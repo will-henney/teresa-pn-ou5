@@ -12,6 +12,61 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import statsmodels.api as sm
 
+import numpy as np
+from numpy.lib.stride_tricks import sliding_window_view
+
+def sliding_std(a, window_length=3, pad_mode='nan'):
+    """Sliding sample standard deviation of 1D array.
+    
+    Parameters
+    ----------
+    a : np.ndarray
+        1D input array.
+    window_length : int, optional
+        Odd integer window size (default is 3).
+    pad_mode : str, optional
+        How to fill the edges. Options:
+        - 'nan': fill edges with np.nan
+        - 'zero': fill edges with 0
+        - 'reflect': mirror edge values (uses np.pad)
+    
+    Returns
+    -------
+    stds : np.ndarray
+        1D array of same length as `a` with sliding stddev values.
+    """
+    a = np.asarray(a)
+    if a.ndim != 1:
+        raise ValueError("Input array must be 1-dimensional")
+    if window_length % 2 != 1:
+        raise ValueError("Window length must be odd")
+    if window_length > len(a):
+        raise ValueError("Window length must be <= array length")
+    
+    margin = window_length // 2
+    out = np.empty_like(a, dtype=float)
+
+    # Compute central values
+    windows = sliding_window_view(a, window_length)
+    out[margin: -margin] = np.std(windows, axis=1, ddof=1)
+
+    # Handle edges
+    if pad_mode == 'nan':
+        out[:margin] = np.nan
+        out[-margin:] = np.nan
+    elif pad_mode == 'zero':
+        out[:margin] = 0.0
+        out[-margin:] = 0.0
+    elif pad_mode == 'reflect':
+        padded = np.pad(a, margin, mode='reflect')
+        padded_windows = sliding_window_view(padded, window_length)
+        out[:] = np.std(padded_windows, axis=1, ddof=1)[margin:-margin]
+    else:
+        raise ValueError(f"Unsupported pad_mode: {pad_mode}")
+    
+    return out
+
+
 def regression_with_ci(
     x, y,
     order=1,

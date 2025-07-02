@@ -9,7 +9,7 @@ dependencies = [
     "scipy",
     "pandas",
     "matplotlib>=3.3",
-    "seaborn>=14",
+    "seaborn",
     "astropy",
     "cmasher",
     "pyyaml",
@@ -19,6 +19,7 @@ dependencies = [
     "jupytext",
     "mes-longslit",
     "statsmodels>=0.14.1",
+    "ipython<9", 		#2025-07-01: bug in 9.0.0
 ]
 
 [project.optional-dependencies]

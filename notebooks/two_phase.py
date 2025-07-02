@@ -230,4 +230,48 @@ class TwoPhaseProfile:
         """
         return np.interp(v + self.vmean, self.vgrid, self.igrid)
 
+    def as_kernel(self, pixel_size, npix=41, mode="oversample"):
+        """
+        Generate a discrete convolution kernel from the velocity
+        profile.
 
+        Converts the velocity-domain line profile to a pixel-domain
+        kernel suitable for use with
+        `astropy.convolution.convolve()`. The profile is sampled on a
+        1D grid in pixel units, where each pixel corresponds to a
+        specified velocity width.
+
+        Parameters
+        ----------
+        pixel_size : float
+            Size of a pixel in velocity units (km/s per pixel). Used to
+            convert the internal velocity profile to pixel coordinates.
+        npix : int, optional
+            Total number of pixels in the kernel. Must be an odd number
+            so that the profile is centered. Default is 41.
+        mode : {'center', 'linear_interp', 'oversample'}, optional
+            Discretization mode passed to
+            `astropy.convolution.discretize_model`. Default is
+            'oversample', which gives highest accuracy.
+
+        Returns
+        -------
+        kernel : astropy.convolution.CustomKernel
+            Discrete kernel array representing the emission line
+            profile in pixel units. Can be used directly with
+            `convolve()` or `convolve_fft()`.
+        """
+        from astropy.convolution import CustomKernel
+        from astropy.convolution.utils import discretize_model
+
+        def pixel_profile(x):
+            return self(pixel_size * x)
+
+        return CustomKernel(
+            discretize_model(
+                pixel_profile,
+                (-(npix -1) // 2, (npix - 1) // 2 + 1),
+                # (-npix // 2, npix // 2 + 1),
+                mode=mode,
+            )
+        )

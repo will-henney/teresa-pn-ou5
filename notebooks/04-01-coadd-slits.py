@@ -399,8 +399,8 @@ ax.axvline(sgg2.mean.value)
 ax.axvspan(hshell * rshell, rshell, alpha=0.1, color="k", zorder=100)
 ax.axvspan(-hshell * rshell, -rshell, alpha=0.1, color="k", zorder=100)
 ax.set_xlim(25, -25)
+# -
 
-# + jupyter={"source_hidden": true}
 sgg2.mean - sgg1.mean
 
 # + jupyter={"source_hidden": true}
@@ -1307,6 +1307,88 @@ T4_opt_wings, T4_opt, T4_opt_core
 # -
 
 # So this gives $T = 6000_{-3000}^{+600}$ K
+
+# # Velocities in the horizontal slit
+
+# +
+
+file_dict = {
+    "ha": "spm0440o-ha-PA085-sep+000-regrid.fits",
+    "heii": "spm0440o-heii-PA085-sep+000-regrid.fits",
+}
+
+N = len(file_dict)
+
+vsys = -33
+v1, v2 = vsys - 100, vsys + 100
+s1, s2 = -15, 15
+
+for i, (lineid, filename) in enumerate(file_dict.items()):
+    filepath = pvpath2 / filename
+    hdu, = fits.open(filepath)
+    w = WCS(hdu.header)
+    xlims, ylims = w.world_to_pixel_values([v1, v2], [s1, s2])
+    y1, y2 = [int(_) for _ in ylims]
+    x1, x2 = [int(_) for _ in xlims]
+    x0, y0 = w.world_to_pixel_values(0.0, 0.0)
+    x0 = int(x0)
+    if filepath.stem.startswith("nii"):
+        bg1 = np.mean(hdu.data[y1:y1+30], axis=0)
+        bg2 = np.mean(hdu.data[y2-30:y2], axis=0)
+    else:
+        bg1 = np.median(hdu.data[y1-10:y1], axis=0)
+        bg2 = np.median(hdu.data[y2:y2+10], axis=0)
+    im = hdu.data - 0.5 * (bg1 + bg2)
+    if not lineid in ["nii"]:
+        # Re-use ha scale for nii 
+        scale = np.percentile(im[y1:y2, x1:x0], 99.99)
+    im /= scale
+    print(lineid, scale)
+    # Save a FITS file of BG-subtracted and normalized image
+    fits.PrimaryHDU(
+        header=hdu.header,
+        data=im,
+    ).writeto(
+        pvpath2 / f"{lineid}-pv-horizontal-bgsub.fits",
+        overwrite=True,
+    )
+
+# +
+file_list = sorted(pvpath2.glob("*-pv-horizontal-bgsub.fits"))
+
+N = len(file_list)
+ncols = 2
+nrows = (N // ncols)
+fig = plt.figure(figsize=(8 * ncols, 10 * nrows))
+
+vsys = -33
+v1, v2 = vsys - 100, vsys + 100
+s1, s2 = -35, 35
+
+kernel = Gaussian2DKernel(x_stddev=0.1)
+for i, filepath in enumerate(file_list):
+    hdu, = fits.open(filepath)
+    im = hdu.data
+    w = WCS(hdu.header)
+    ax = plt.subplot(nrows, ncols, i + 1, projection=w)
+    xlims, ylims = w.world_to_pixel_values([v1, v2], [s1, s2])
+    y1, y2 = [int(_) for _ in ylims]
+    x1, x2 = [int(_) for _ in xlims]
+    ax.imshow(im, vmin=-0.1, vmax=1.0, aspect="auto")
+    x0, y0 = w.world_to_pixel_values(vsys, 0.0)
+    ax.axhline(y0, color="orange", ls="dashed", lw=4, alpha=0.3)
+    ax.axvline(x0, color="orange", ls="dashed", lw=4, alpha=0.3)
+    ax.set(xlim=xlims, ylim=ylims)
+    ax.set_title(filepath.stem, pad=16)
+figfile = "ou5-horizontal-2dspec.pdf"
+fig.savefig(figfile)
+fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
+...;
+# -
+
+# Mean velocity as function of position. *No need to do this* It looks like the bright border has a peak very close to vsys
+
+
 
 # # Look at the 70 micron slit
 #

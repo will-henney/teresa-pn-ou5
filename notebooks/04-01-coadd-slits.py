@@ -1131,6 +1131,14 @@ noise_rms_oiii = np.std(vprofiles["oiii"][outside])
 noise_rms_diff = np.sqrt(noise_rms_ha**2 + noise_rms_oiii**2)
 noise_rms_ha, noise_rms_oiii, noise_rms_diff
 
+# S/N ratio
+
+snr_ha = vprofiles["ha"].max() / noise_rms_ha
+snr_oiii = vprofiles["oiii"].max() / noise_rms_oiii
+snr_ha, snr_oiii
+
+# So this is very high, which is why our reduced chi squared are always in the hundreds
+
 # +
 fig, ax = plt.subplots()
 
@@ -1903,15 +1911,15 @@ class TwoPhaseProfile():
 alist = 0.03, 0.1, 0.3
 with sns.color_palette("mako", n_colors=len(alist)):
     fig, ax = plt.subplots()
-    for alpha in alist:
+    for alpha in reversed(alist):
         omega = 0.4 + alpha
         p = TwoPhaseProfile(alpha, omega, dv=0.1)
-        line, = ax.plot(p.vgrid - p.vmean, p.igrid,
-                        label=fr"$\alpha = {alpha:.2f}$, $\omega = {omega:.2f}$")
+        label = fr"$T_\mathrm{{cool}} = {1e4 * alpha:.0f}$, $\omega = {omega:.2f}$"
+        line, = ax.plot(p.vgrid - p.vmean, p.igrid, label=label)
     ax.legend(fontsize="x-small", loc="upper left", title="2-phase kernel")
     ax.set_xlim(-35, 35)
-    ax.set_ylim(None, 0.11)
-    ax.set_xlabel("Velocity, km/s")
+    ax.set_ylim(None, 0.12)
+    ax.set_xlabel("Velocity shift, km/s")
     figfile = "pn-ou5-two-phase-alpha.pdf"
     fig.savefig(figfile, bbox_inches="tight")
     fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")

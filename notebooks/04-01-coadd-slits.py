@@ -1266,12 +1266,12 @@ with sns.color_palette("dark"):
     fig, ax = plt.subplots(figsize=(8, 5))
     #ds = "default"
     ds = "steps-mid"
-    olw, hlw = 2, 4
+    olw, hlw = 4, 2
     ocolor = (1, 0.2, 0.2)
     offset_step = 0.5
     offset = 0
-    ax.plot(vels, offset + vprofiles["ha"], lw=hlw, color="k", ds=ds, label=r"H$\alpha$")
-    ax.plot(vels, offset + vprofiles["oiii"], color=ocolor, lw=olw, ds=ds, label="[O III]")
+    ax.plot(vels, offset + vprofiles["oiii"], color="k", lw=olw, ds=ds, label="[O III]")
+    ax.plot(vels, offset + vprofiles["ha"], lw=hlw, color=ocolor, ds=ds, label=r"H$\alpha$")
     text = "No broadening\n" + r"$\sigma = 0$ km/s"
     ax.text(-120, offset + 0.1, text, fontsize="small")
     ax.axhline(offset, ls="dashed", color="k", lw=1)
@@ -1280,8 +1280,8 @@ with sns.color_palette("dark"):
     dsha = "steps-mid"
     offset += offset_step
     sprofile = convolve(vprofiles["oiii"], Gaussian1DKernel(stddev=ss_opt_wings, mode="oversample"))
-    ax.plot(vels, offset + vprofiles["ha"], lw=hlw, ds=dsha, color="k")
-    ax.plot(vels, offset + sprofile, color=ocolor, lw=olw)
+    ax.plot(vels, offset + sprofile, color="k", lw=olw)
+    ax.plot(vels, offset + vprofiles["ha"], lw=hlw, ds=dsha, color=ocolor)
     text = "Optimize wings\n" + rf"$\sigma = {ss_opt_wings * dv:.1f}$ km/s"
     ax.text(-120, offset + 0.1, text, fontsize="small")
     ax.text(20, offset + 0.1, "A", fontsize="small")
@@ -1289,8 +1289,8 @@ with sns.color_palette("dark"):
     
     offset += offset_step
     sprofile = convolve(vprofiles["oiii"], Gaussian1DKernel(stddev=ss_opt_core, mode="oversample"))
-    ax.plot(vels, offset + vprofiles["ha"], lw=hlw, ds=dsha, color="k")
-    ax.plot(vels, offset + sprofile, color=ocolor, lw=olw)
+    ax.plot(vels, offset + sprofile, color="k", lw=olw)
+    ax.plot(vels, offset + vprofiles["ha"], lw=hlw, ds=dsha, color=ocolor)
     text = "Optimize core\n" + rf"$\sigma = {ss_opt_core * dv:.1f}$ km/s"
     ax.text(-120, offset + 0.1, text, fontsize="small")
     ax.text(20, offset + 0.1, "B", fontsize="small")
@@ -2554,12 +2554,12 @@ with sns.color_palette("dark"):
 
     fig, ax = plt.subplots(figsize=(8, 7))
     ds = "steps-mid"
-    olw, hlw = 2, 4
+    olw, hlw = 4, 2
     ocolor = (0.2, 0.5, 1.0)
     offset_step = 0.5
     offset = 0
-    ax.plot(vels, offset + vprofiles["ha"], lw=hlw, color="k", ds=ds, label=r"H$\alpha$")
-    ax.plot(vels, offset + vprofiles["oiii"], color=ocolor, lw=olw, ds=ds, label="[O III]")
+    ax.plot(vels, offset + vprofiles["oiii"], color="k", lw=olw, ds=ds, label="[O III]")
+    ax.plot(vels, offset + vprofiles["ha"], lw=hlw, color=ocolor, ds=ds, label=r"H$\alpha$")
     text = "No convolution"
     ax.text(-120, offset + 0.1, text, fontsize="small")
     ax.axhline(offset, ls="dashed", color="k", lw=1)
@@ -2577,8 +2577,8 @@ with sns.color_palette("dark"):
             discretize_model(pixel_profile, x_range, mode="oversample")
         )
         sprofile = convolve(vprofiles["oiii"], kernel)
-        ax.plot(vels, offset + vprofiles["ha"], ds=ds, lw=hlw, color="k")
-        ax.plot(vels, offset + sprofile, color=ocolor, lw=olw)
+        ax.plot(vels, offset + sprofile, color="k", lw=olw)
+        ax.plot(vels, offset + vprofiles["ha"], ds=ds, lw=hlw, color=ocolor)
         text = (rf"$T_\mathrm{{cool}} = {1e4*alpha:.0f}$ K" 
                 + "\n" + rf"$\omega = {omega:.2f}$")
         ax.text(-120, offset + 0.1, text, fontsize="small")

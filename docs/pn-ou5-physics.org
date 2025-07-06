@@ -1,4 +1,3 @@
-;
 * Comments on the paper
 * Instrumental widths
 | Line: Slit  |    lam | d lam |   d v | sigma |
@@ -51,6 +50,8 @@ Using the linewidth method with Ha and [N II]
 |     5 | -.172 | -7.85 | .248 | .235 | .214 |  .182 |  .147 |
 |     6 | -.014 | -0.65 | .050 | .047 | .043 |  .036 |  .029 |
 |     7 | -.030 | -1.36 | .447 | .423 | .386 |  .328 |  .265 |
+* Cloudy photoionization models
+- We can 
 * Empirical measurements
 - Diameters:
   - Inner shell
@@ -85,8 +86,24 @@ Using the linewidth method with Ha and [N II]
     - Outer: 0.43
     - Third: 0.37
     - So almost the same for all of them within 10%
-
-
+    - 
+** Effects of low temperature on densities and masses
+- We had been assuming an Ha emissivity of 3.1e-25 erg cm^3 / s
+- Clegg has the following for the emissivities
+  | N_e \ T_e |        300 |       1000 |       3000 |     10000 |     30000 |
+  |---------+------------+------------+------------+------------+------------|
+  |     10^2 | 6.796(-24) | 2.617(-24) | 1.048(-24) | 3.537(-25) | 1.199(-25) |
+  |     10^4 | 7.440(-24) | 2.655(-24) | 1.047(-24) | 3.530(-25) | 1.199(-25) |
+  |     10^6 | 1.026(-23) | 2.859(-24) | 1.057(-24) | 3.522(-25) | 1.198(-25) |
+  |     10^7 | 1.472(-23) | 3.174(-24) | 1.081(-24) | 3.526(-25) | 1.197(-25) |
+  |     10^8 | 2.660(-23) | 3.894(-24) | 1.144(-24) | 3.557(-25) | 1.198(-25) |
+  |     10^9 | 6.754(-23) | 5.703(-24) | 1.309(-24) | 3.685(-25) | 1.211(-25) |
+- We should check these with pyNeb
+- But we will get j \propto T^-1 approximately for the constant density case
+- Cal be much steeper at low temperatures, especially if we are at constant temperature
+*** Fraction of emission measure
+- We have \omega = EM_cool j_cool / (EM_cool j_cool + EM_warm j_warm)
+- Put \xi = EM_cool  / (EM_cool + EM_warm ) = (EM_cool / EM_warm) / (1 + EM_warrm / EM_cool)
 ** Summary of sizes, velocities, and ages
 - Bringing together material from below
 - mean \theta is the latitude above the equator
@@ -373,6 +390,7 @@ Uses the table from the previous section, plus the one from [[id:C4243082-6644-4
   - Simplest assumption is that h is same as thickness, so about 3 arcsec
   - so d z = 10 +/- 3 arcsec = 0.194 +/- 0.0582 pc
   - Volume pi (r_out^2 - r_in^2) H = ((15 + 3)**2 - 15**2) pi 3 = 933 arcsec^3 = 6.8126e-03 pc^3
+*** 
 *** Table of EM, density, M_i
 - First row gives mean surface brightness and equivalent EM in pc cm^-6, which comes from the dereddened Ha flux.
 - This is used with the measurements of surface brightness from median image to find EM for other components (inner shell and outer ears)

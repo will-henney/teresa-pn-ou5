@@ -756,7 +756,7 @@ ax.scatter(
     vardf["stddev_0_o"]**2,
     vardf["stddev_0_h"]**2,
     s=100 * scale,
-    c=vardf.index,j
+    c=vardf.index,
     cmap="plasma",    
     vmin=-10, vmax=10,
     zorder=100,
@@ -824,8 +824,69 @@ mean_T4, std_T4
 # *In the other notebook, we will do the convolution using this model*
 #
 
-# + editable=true slideshow={"slide_type": ""}
+# + [markdown] editable=true slideshow={"slide_type": ""}
+# ## Look at the difference in line splitting between Oiii and Ha
+# -
 
+
+
+splitdf = fdf_h[["mean_0", "mean_1"]].join(
+    fdf[["mean_0", "mean_1", "amplitude_1"]],
+    lsuffix="_h", rsuffix="_o",
+)
+
+# +
+fig, ax = plt.subplots(figsize=(8, 12))
+scale = np.where(
+    splitdf["amplitude_1"] > 0.05,
+    splitdf["amplitude_1"],
+    np.nan,
+)
+scat = ax.scatter(
+    splitdf["mean_1_o"] - splitdf["mean_0_o"],
+    splitdf["mean_1_h"] - splitdf["mean_0_h"],
+    s=200 * scale,
+    c=splitdf.index,
+    cmap="Spectral",    
+    vmin=-15, vmax=15,
+    zorder=100,
+    alpha=1.0,
+    edgecolors="k",
+    linewidths=0.5,
+)
+xx = np.array([0, 50])
+ax.plot(xx, xx, c="k", ls="dotted")
+# ax.plot(xx, xx - 2.4, c="0.8")
+ax.plot(xx, xx * 0.9, c="0.8")
+
+# ax.text(5, 5 - 5 + 10.233, r"$T = 0$ K", rotation=45, c="0.8")
+# ax.plot(xx, xx + 10.233 + 77.34 / 2, c="0.6")
+# ax.text(5, 5 - 5 + 10.233 + 77.34 / 2, r"$T = 5000$ K", rotation=45, c="0.6")
+# ax.plot(xx, xx + 10.233 + 77.34, c="0.4")
+# ax.text(5, 5 - 5 + 10.233 + 77.34, r"$T = 10\,000$ K", rotation=45, c="0.4")
+ax.set_xlim(20, 40)
+ax.set_ylim(15, 35)
+ax.set_xticks([20, 25, 30, 35, 40])
+ax.set_yticks([15, 20, 25, 30, 35])
+ax.set_aspect("equal")
+ax.set_xlabel(r"$(V_\mathrm{red} - V_\mathrm{blue})$ ( [O III] ), km / s")
+ax.set_ylabel(r"$(V_\mathrm{red} - V_\mathrm{blue})$ ( H$\alpha$ ), km / s")
+ax.text(30, 30 + 0.7, "Slope = 1.0", rotation=45, fontsize="small")
+ax.text(33, 29.7 + 0.6, "Slope = 0.9", rotation=np.rad2deg(np.arctan(0.9)), fontsize="small")
+fig.colorbar(
+    scat, ax=ax, 
+    orientation="horizontal",
+    location="bottom",
+    shrink=0.95,
+    # fraction=0.05,
+).set_label("Displacement along axis", fontsize="small")
+figfile = "pn-ou5-gauss-vsplit.pdf"
+fig.savefig(figfile, bbox_inches="tight")
+fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
+
+
+# +
+# ax.text?
 # -
 
 # ## Look at the individual profile fits in more detail                                                                                                                        

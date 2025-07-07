@@ -1322,6 +1322,7 @@ T4_opt_wings, T4_opt, T4_opt_core
 
 file_dict = {
     "ha": "spm0440o-ha-PA085-sep+000-regrid.fits",
+    "nii": "spm0440o-nii-PA085-sep+000-regrid.fits",
     "heii": "spm0440o-heii-PA085-sep+000-regrid.fits",
 }
 
@@ -1347,7 +1348,7 @@ for i, (lineid, filename) in enumerate(file_dict.items()):
         bg1 = np.median(hdu.data[y1-10:y1], axis=0)
         bg2 = np.median(hdu.data[y2:y2+10], axis=0)
     im = hdu.data - 0.5 * (bg1 + bg2)
-    if not lineid in ["nii"]:
+    if not lineid in []:
         # Re-use ha scale for nii 
         scale = np.percentile(im[y1:y2, x1:x0], 99.99)
     im /= scale
@@ -1366,7 +1367,7 @@ file_list = sorted(pvpath2.glob("*-pv-horizontal-bgsub.fits"))
 
 N = len(file_list)
 ncols = 2
-nrows = (N // ncols)
+nrows = ((N + 1) // ncols)
 fig = plt.figure(figsize=(8 * ncols, 10 * nrows))
 
 vsys = -33
@@ -1395,6 +1396,60 @@ fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
 # -
 
 # Mean velocity as function of position. *No need to do this* It looks like the bright border has a peak very close to vsys
+
+# ## Spatial profiles along the horizontal slit
+
+# +
+file_list = sorted(pvpath2.glob("*-pv-horizontal-bgsub.fits"))
+
+fig, ax = plt.subplots(
+    figsize=(10, 6),
+)
+labels = {
+    "oiii": "[O III]",
+    "ha": r"H$\alpha$",
+    "nii": "[N II]",
+    "heii": "He II",
+}
+vsys = -33
+v1, v2 = -75, 10
+s1, s2 = -35, 35
+offset = 0.0
+for i, filepath in enumerate(file_list):
+    hdu, = fits.open(filepath)
+    line_label = filepath.stem.split("-")[0]
+    im = hdu.data
+    w = WCS(hdu.header)
+    ns, nv = hdu.data.shape
+    xlims, ylims = w.world_to_pixel_values([v1, v2], [s1, s2])
+    x1, x2 = [int(_) for _ in xlims]
+    y1, y2 = [int(_) for _ in ylims]
+    profile = hdu.data[y1:y2, x1:x2].mean(axis=1)
+    _, pos = w.pixel_to_world_values([0]*ns, np.arange(ns))
+    pos = pos[y1:y2]
+    profile *= 1/ np.max(profile)
+    line, = ax.plot(pos, profile + offset, label=line_label, ds="steps-mid")
+    ax.text(-30, offset + 0.15, labels[line_label], color=line.get_color())
+    ax.axhline(offset, linestyle="dashed", c="k", lw=1,)
+    offset += 1
+ax.axvline(0.0, linestyle="dashed", c="k", lw=1,)
+#ax.legend(ncol=2)
+ax.set(
+    xlabel="Displacement along slit, arcsec",
+)
+figfile = "ou5-horizontal-spatial-profiles-1d.pdf"
+fig.savefig(figfile, bbox_inches="tight")
+fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
+...;
+# -
+
+# Unfortunately, the s/n is too low for this to be very useful. Hopefully the NOT images will be better.
+#
+# However, it is consistent with He II being less extended along the equatorial axis
+
+
+
+
 
 
 

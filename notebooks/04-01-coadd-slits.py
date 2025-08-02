@@ -167,6 +167,20 @@ for i, filepath in enumerate(file_list):
 ...;
 # -
 
+# Look at the offsets
+
+file_list = sorted(pvpath.glob("*-oiii-*.fits"), key=fkey)
+data = []
+kwds = ["OFFSET", "WEIGHT"]
+for _file in file_list:
+    hdu = fits.open(_file)[0]
+    thisdata = {"File": _file.stem}
+    for k in kwds:
+        thisdata[k] = hdu.header.get(k)
+    data.append(thisdata)
+tab = Table(rows=data)
+tab
+
 # Regrid all the oiii slits and save to files
 
 pvpath2 = pvpath.parent / "pv-common"
@@ -283,6 +297,18 @@ for i, filepath in enumerate(file_list):
     ax.set_title(filepath.stem)
 ...;
 # -
+
+file_list = sorted(pvpath.glob("*-ha-*.fits"), key=fkey)
+data = []
+kwds = ["OFFSET", "WEIGHT"]
+for _file in file_list:
+    hdu = fits.open(_file)[0]
+    thisdata = {"File": _file.stem}
+    for k in kwds:
+        thisdata[k] = hdu.header.get(k)
+    data.append(thisdata)
+tab = Table(rows=data)
+tab
 
 # ### Minor axis spatial profile
 #

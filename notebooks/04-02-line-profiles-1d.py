@@ -746,19 +746,22 @@ vardf = fdf_h[["stddev_0", "stddev_1", "stddev"]].join(
     lsuffix="_h", rsuffix="_o",
 )
 
-fig, ax = plt.subplots(figsize=(8, 8))
+fig, ax = plt.subplots(figsize=(8, 12))
 scale = np.where(
-    vardf["amplitude_1"] > 0.3,
+    # vardf["amplitude_1"] > 0.3,
+    vardf["amplitude_1"] > 0.05,
     vardf["amplitude_1"],
     np.nan,
 )
-ax.scatter(
+scat = ax.scatter(
     vardf["stddev_0_o"]**2,
     vardf["stddev_0_h"]**2,
-    s=100 * scale,
+    s=200 * scale,
     c=vardf.index,
-    cmap="plasma",    
-    vmin=-10, vmax=10,
+    cmap="Spectral",    
+    vmin=-15, vmax=15,
+    # cmap="plasma",    
+    # vmin=-10, vmax=10,
     zorder=100,
     alpha=1.0,
     edgecolors="k",
@@ -766,15 +769,26 @@ ax.scatter(
 )
 xx = np.array([0, 200])
 ax.plot(xx, xx + 10.233, c="0.8")
-ax.text(5, 5 - 5 + 10.233, r"$T = 0$ K", rotation=45, c="0.8")
+x0 = 63
+ax.text(x0, x0 - 2 + 10.233, r"$T = 0$ K", rotation=45, c="0.8")
 ax.plot(xx, xx + 10.233 + 77.34 / 2, c="0.6")
-ax.text(5, 5 - 5 + 10.233 + 77.34 / 2, r"$T = 5000$ K", rotation=45, c="0.6")
+x0 = 28
+ax.text(x0, x0 - 2 + 10.233 + 77.34 / 2, r"$T = 5000$ K", rotation=45, c="0.6")
 ax.plot(xx, xx + 10.233 + 77.34, c="0.4")
-ax.text(5, 5 - 5 + 10.233 + 77.34, r"$T = 10\,000$ K", rotation=45, c="0.4")
-ax.set_xlim(0, 120)
-ax.set_ylim(0, 120)
-# ax.set_yticks([0, 50, 100, 150])
-ax.set_xticks(ax.get_yticks())
+x0 = 28
+ax.text(x0, x0 - 2 + 10.233 + 77.34, r"$T = 10\,000$ K", rotation=45, c="0.4")
+fig.colorbar(
+    scat, ax=ax, 
+    orientation="horizontal",
+    location="bottom",
+    shrink=0.95,
+    # fraction=0.05,
+).set_label("Displacement along axis", fontsize="small")
+# ax.set_xlim(0, 120)
+# ax.set_ylim(0, 120)
+ax.set_xlim(25, 85)
+ax.set_ylim(70, 130)
+# ax.set_xticks(ax.get_yticks())
 ax.set_aspect("equal")
 ax.set_xlabel(r"$\sigma^2$ ( [O III] ), km$^2$ / s$^2$")
 ax.set_ylabel(r"$\sigma^2$ ( H$\alpha$ ), km$^2$ / s$^2$")

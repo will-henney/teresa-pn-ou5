@@ -974,6 +974,8 @@ vsys = -33
 v1, v2 = -75, 10
 s1, s2 = -35, 35
 offset = 0.0
+profiles = {}
+positions = {}
 for i, filepath in enumerate(file_list):
     hdu, = fits.open(filepath)
     line_label = filepath.stem.split("-")[0]
@@ -986,6 +988,8 @@ for i, filepath in enumerate(file_list):
     profile = hdu.data[y1:y2, x1:x2].mean(axis=1)
     _, pos = w.pixel_to_world_values([0]*ns, np.arange(ns))
     pos = pos[y1:y2]
+    profiles[line_label] = profile.copy()
+    positions[line_label] = pos.copy()
     profile *= 1/ np.max(profile)
     line, = ax.plot(pos, profile + offset, label=line_label, ds="steps-mid")
     ax.text(-30, offset + 0.15, labels[line_label], color=line.get_color())
@@ -997,6 +1001,42 @@ ax.set(
     xlabel="Displacement along slit, arcsec",
 )
 figfile = "ou5-coadd-spatial-profiles-1d.pdf"
+fig.savefig(figfile, bbox_inches="tight")
+fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
+...;
+# -
+
+# Repeat but for line ratios. However, these are not so useful since we have already normalised all the spectra
+
+# +
+fig, ax = plt.subplots(
+    figsize=(10, 6),
+)
+
+pos = positions["ha"]
+offset = 0.0
+for line_label in "heii", "oiii", "nii":
+    ratio = profiles[line_label] / profiles["ha"]
+    smax = 30 if line_label == "oiii" else 11
+    ratio[np.abs(pos) > smax] = np.nan
+    label = fr"{labels[line_label]} / H$\alpha$"
+    line, = ax.plot(
+        pos, ratio + offset, label=label, 
+        # ds="steps-mid",
+    )
+    # ax.text(-30, offset + 0.15, label, color=line.get_color())
+    ax.axhline(offset, linestyle="dashed", c="k", lw=1,)
+    #offset += 1
+ax.plot(pos, np.log10(profiles["ha"]), label=r"log$_{10}$ H$\alpha$", color="k")
+ax.plot(pos, np.log10(profiles["oiii"]), label=None, color="0.5")
+ax.plot(pos, np.log10(profiles["heii"]), label=None, color="c")
+ax.axvline(0.0, linestyle="dashed", c="k", lw=1,)
+ax.legend(ncol=2)
+ax.set(
+    xlabel="Displacement along slit, arcsec",
+    ylim=[-3, 3],
+)
+figfile = "ou5-coadd-spatial-ratio-profiles-1d.pdf"
 fig.savefig(figfile, bbox_inches="tight")
 fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
 ...;

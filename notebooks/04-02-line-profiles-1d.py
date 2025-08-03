@@ -146,17 +146,30 @@ for ax, [pos_label, [s1, s2]] in zip(axes, positions):
         vm1 = vels[spec[mask1].argmax()]
         sm2 = spec[mask2].max()
         vm2 = vels[spec[mask2].argmax() + mask1.sum()]
-        g1 = models.Gaussian1D(amplitude=sm1, mean=vm1, stddev=10.0)
-        g2 = models.Gaussian1D(amplitude=sm2, mean=vm2, stddev=10.0)
+        g1 = models.Gaussian1D(amplitude=sm1, mean=-50, stddev=8.0)
+        g1.amplitude.bounds = (0, None)
+        g2 = models.Gaussian1D(amplitude=sm2, mean=-20, stddev=8.0)
+        g2.amplitude.bounds = (0, None)
+        g2.stddev.bounds = (5.0, 15.0)
+        if line_label == "ha":
+            g1.stddev.bounds = (7.0, 15.0)
+            g2.stddev.bounds = (7.0, 15.0)
+        else:
+            g1.stddev.bounds = (5.0, 12.0)
+            g2.stddev.bounds = (5.0, 12.0)
+            
         if "knot" in pos_label:
-            init_model = g1
+            init_model = g1 if "N" in pos_label else g2
             fac = -0.5
         elif "outer" in pos_label:
             init_model = g1 + g2
-            fac = 0.02           
+            fac = 0.02
+            # Tie together the component widths
+            init_model.stddev_1.tied = lambda model: model.stddev_0
         else:
             init_model = g1 + g2
             fac = 0.3
+            init_model.stddev_1.tied = lambda model: model.stddev_0
         fitmask = spec > fac * spec.max()
         fitted_model = fitter(init_model, vels[fitmask], spec[fitmask])
         gfits[(line_label, pos_label)] = fitted_model

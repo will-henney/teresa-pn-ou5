@@ -958,6 +958,15 @@ fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
 
 # ### And do the spatial profiles along the slit
 
+sns.husl_palette(l=0.5, h=0.04, n_colors=3)
+
+# We want to use the same colors that we used for the image-derived profiles in 04-05 notebook. With the addition of orange for N II
+
+coldict = {}
+coldict["heii"], coldict["ha"], coldict["oiii"] = sns.husl_palette(l=0.5, h=0.06, n_colors=3)
+coldict["nii"] = "tab:orange"
+coldict
+
 # +
 file_list = sorted(pvpath2.glob("*-pv-coadd-bgsub.fits"))
 
@@ -965,10 +974,10 @@ fig, ax = plt.subplots(
     figsize=(10, 6),
 )
 labels = {
-    "oiii": "[O III]",
-    "ha": r"H$\alpha$",
-    "nii": "[N II]",
-    "heii": "He II",
+    "oiii": r"[O III] $\lambda 5007$",
+    "ha": r"H$\alpha$  $\lambda 6563$",
+    "nii": "[N II]  $\lambda 6583$",
+    "heii": "He II  $\lambda 6560$",
 }
 vsys = -33
 v1, v2 = -75, 10
@@ -991,7 +1000,9 @@ for i, filepath in enumerate(file_list):
     profiles[line_label] = profile.copy()
     positions[line_label] = pos.copy()
     profile *= 1/ np.max(profile)
-    line, = ax.plot(pos, profile + offset, label=line_label, ds="steps-mid")
+    line, = ax.plot(pos, profile + offset, 
+                    label=line_label, 
+                    color=coldict[line_label], ds="steps-mid")
     ax.text(-30, offset + 0.15, labels[line_label], color=line.get_color())
     ax.axhline(offset, linestyle="dashed", c="k", lw=1,)
     offset += 1
@@ -1472,12 +1483,6 @@ file_list = sorted(pvpath2.glob("*-pv-horizontal-bgsub.fits"))
 fig, ax = plt.subplots(
     figsize=(10, 6),
 )
-labels = {
-    "oiii": "[O III]",
-    "ha": r"H$\alpha$",
-    "nii": "[N II]",
-    "heii": "He II",
-}
 vsys = -33
 v1, v2 = -75, 10
 s1, s2 = -35, 35
@@ -1495,8 +1500,9 @@ for i, filepath in enumerate(file_list):
     _, pos = w.pixel_to_world_values([0]*ns, np.arange(ns))
     pos = pos[y1:y2]
     profile *= 1/ np.max(profile)
-    line, = ax.plot(-pos, profile + offset, label=line_label, ds="steps-mid")
-    ax.text(-30, offset + 0.35, labels[line_label], color=line.get_color())
+    line, = ax.plot(-pos, profile + offset, 
+                    label=line_label, color=coldict[line_label], ds="steps-mid")
+    ax.text(20, offset + 0.25, labels[line_label], color=line.get_color())
     ax.axhline(offset, linestyle="dashed", c="k", lw=1,)
     offset += 1
 ax.axvline(0.0, linestyle="dashed", c="k", lw=1,)

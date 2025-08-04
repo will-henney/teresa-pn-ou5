@@ -999,6 +999,7 @@ ax.axvline(0.0, linestyle="dashed", c="k", lw=1,)
 #ax.legend(ncol=2)
 ax.set(
     xlabel="Displacement along slit, arcsec",
+    xlim=[-35, 35],
 )
 figfile = "ou5-coadd-spatial-profiles-1d.pdf"
 fig.savefig(figfile, bbox_inches="tight")
@@ -1494,14 +1495,15 @@ for i, filepath in enumerate(file_list):
     _, pos = w.pixel_to_world_values([0]*ns, np.arange(ns))
     pos = pos[y1:y2]
     profile *= 1/ np.max(profile)
-    line, = ax.plot(pos, profile + offset, label=line_label, ds="steps-mid")
-    ax.text(-30, offset + 0.15, labels[line_label], color=line.get_color())
+    line, = ax.plot(-pos, profile + offset, label=line_label, ds="steps-mid")
+    ax.text(-30, offset + 0.35, labels[line_label], color=line.get_color())
     ax.axhline(offset, linestyle="dashed", c="k", lw=1,)
     offset += 1
 ax.axvline(0.0, linestyle="dashed", c="k", lw=1,)
 #ax.legend(ncol=2)
 ax.set(
     xlabel="Displacement along slit, arcsec",
+    xlim=[-35, 35],
 )
 figfile = "ou5-horizontal-spatial-profiles-1d.pdf"
 fig.savefig(figfile, bbox_inches="tight")

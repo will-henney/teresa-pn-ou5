@@ -52,6 +52,17 @@ Using the linewidth method with Ha and [N II]
 |     7 | -.030 | -1.36 | .447 | .423 | .386 |  .328 |  .265 |
 * Cloudy photoionization models
 - We can 
+* Ionization calculations
+:PROPERTIES:
+:ID:       27DC3864-77DC-4E3E-8623-49CBCB18C19F
+:END:
+- For He++, Corradi 2015 find that the ion fractions for their entire slit are
+  - He+ : 0.70
+  - He++: 0.30
+- We could estimate what the maximumm value of He++ is
+  - The width of the He II profile is 7/9 times width of Ha (assumed the same as He I), so the interior value of He++/He is 0.3 (9/7) = 0.38
+  - We can use the recombination rates to estimate what the ionizing luminosity must be in the He II continuum (h\nu > 4 Ryd)
+  - And also check that it is opically thick in midplane
 * Empirical measurements
 - Diameters:
   - Inner shell
@@ -412,6 +423,13 @@ Uses the table from the previous section, plus the one from [[id:C4243082-6644-4
   |------------+--------+----------------+-------------------+-------------------+----------------+------------+-------------------|
   |            |        |                |                   |                   | sqrt(0/0)      |     0.0552 | 0.1924 +/- 0.0174 |
   #+TBLFM: $6=sqrt($4 / $5);f1::$8=0.0247 $6 $7;f4::@3$4..@5$4=@I $2 / @I$2;s3::@6$4..@7$4=@II $3 / @II$3;s3::@8$7..@8$8=vsum(@II..@III);f4
+**** Effects of T variation on emission measure
+- We were assuming Ha emission coefficient of 3.1213e-25 erg cm^3 /s for 13,000 K
+- This was never very accurate because the T variation is steeper than we had supposed
+- Pyneb says it should be 2.75e-25
+- At 6000 K, it should be 5.65e-25
+
+
 *** Summary table of the components
 :PROPERTIES:
 :ID:       C4243082-6644-4620-9FF4-044C41BF7660

@@ -128,6 +128,8 @@ for ax, [pos_label, [s1, s2]] in zip(axes, positions):
     for line_label, hdu in linehdus.items():
         if not line_label in keep:
             continue
+        # Shift Ha to reduce offset with oiii
+        vfix = 1.1 if line_label == "ha" else 0.0
         w = WCS(hdu.header)
         ns, nv = hdu.data.shape
         xlims, ylims = w.world_to_pixel_values([v1, v2], [s1, s2])
@@ -135,7 +137,7 @@ for ax, [pos_label, [s1, s2]] in zip(axes, positions):
         y1, y2 = [int(_) for _ in ylims]
         spec = hdu.data[y1:y2, x1:x2].mean(axis=0)
         vels, _ = w.pixel_to_world_values(np.arange(nv), [0]*nv)
-        vels = vels[x1:x2]
+        vels = vels[x1:x2] + vfix
         dataline, = ax.plot(vels, spec, label=line_label, ds="steps-mid")
         c = dataline.get_color()
         
@@ -910,10 +912,108 @@ fig.colorbar(
 figfile = "pn-ou5-gauss-vsplit.pdf"
 fig.savefig(figfile, bbox_inches="tight")
 fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
+# -
 
+
+# ## Contours to show the residual wing emission
+
+vlist = []
+slist = []
+resid_list = []
+for pos in fine_positions:
+    data = fineprofiles[pos]
+    vlist.append(data["v"])
+    slist.append(pos * np.ones_like(data["v"]))
+    resid_list.append(data["spec"] - data["model"])
+
+resid_arr = np.stack(resid_list)
+v_arr = np.stack(vlist)
+s_arr = np.stack(slist)
+
+resid_arr.max()
+
+# Repeat for Ha
+
+hvlist = []
+hslist = []
+hresid_list = []
+for pos in fine_positions:
+    data = hfineprofiles[pos]
+    hvlist.append(data["v"])
+    hslist.append(pos * np.ones_like(data["v"]))
+    hresid_list.append(data["spec"] - data["model"])
+
+hresid_arr = np.stack(hresid_list)
+hv_arr = np.stack(hvlist)
+hs_arr = np.stack(hslist)
+
+hresid_arr.max()
+
+# Combined plot
 
 # +
-# ax.text?
+vsys = -33
+v1, v2 = vsys - 100, vsys + 100
+s1, s2 = -15, 15
+
+hdu = linehdus["oiii"]
+w = WCS(hdu.header)
+fig, axes = plt.subplots(
+    2, 1, 
+    sharex=True,
+    sharey=True,
+    figsize=(8, 8), 
+    subplot_kw=dict(projection=w),
+)
+
+xlims, ylims = w.world_to_pixel_values([v1, v2], [s1, s2])
+y1, y2 = [int(_) for _ in ylims]
+x1, x2 = [int(_) for _ in xlims]
+im = hdu.data
+
+ax = axes[0]
+ax.imshow(im, vmin=-0.1, vmax=1.0, aspect="auto")
+trw = ax.get_transform("world")
+ax.contour(
+    v_arr, s_arr, resid_arr,
+    levels=[0.015, 0.03, 0.06], 
+    colors="w",
+    linewidths=[0.5, 1.0, 1.5, 2.0],
+    transform=trw,
+)
+x0, y0 = w.world_to_pixel_values(vsys, 0.0)
+ax.axhline(y0, color="orange", ls="dashed", lw=4, alpha=0.3)
+ax.axvline(x0, color="orange", ls="dashed", lw=4, alpha=0.3)
+ax.set(xlim=xlims, ylim=ylims)
+ax.set_xlabel("")
+ax.set_ylabel("Slit offset, arcsec")
+ax.text(-125, 10, "[O III] residuals", transform=trw, color="w")
+
+ax = axes[1]
+hdu = linehdus["ha"]
+w = WCS(hdu.header)
+im = hdu.data
+ax.imshow(im, vmin=-0.1, vmax=1.0, aspect="auto")
+trw = ax.get_transform("world")
+ax.contour(
+    hv_arr, hs_arr, hresid_arr,
+    levels=[0.015, 0.03, 0.06], 
+    colors="w",
+    linewidths=[0.5, 1.0, 1.5, 2.0],
+    transform=trw,
+)
+x0, y0 = w.world_to_pixel_values(vsys, 0.0)
+ax.axhline(y0, color="orange", ls="dashed", lw=4, alpha=0.3)
+ax.axvline(x0, color="orange", ls="dashed", lw=4, alpha=0.3)
+
+ax.set_xlabel("Heliocentric velocity, km/s")
+ax.set_ylabel("Slit offset, arcsec")
+ax.text(-125, 10, r"H$\alpha$ residuals", transform=trw, color="w")
+
+figfile = "ou5-coadd-residuals-oiii-ha.pdf"
+fig.savefig(figfile)
+fig.savefig(figfile.replace(".pdf", ".jpg"))
+...;
 # -
 
 # ## Look at the individual profile fits in more detail                                                                                                                        
@@ -992,6 +1092,28 @@ for pos in fine_positions:
         ax.plot(v, pos + scale * gs / norm, color="g", lw=1.3)
     ax.plot(v, pos + scale * data["spec"] / norm, color="k", alpha=0.4, drawstyle="steps-mid")
 
+# Residuals
+
+fig, ax = plt.subplots(figsize=(8, 8))
+for pos in fine_positions:
+    if abs(pos) > 12.0:
+        continue
+    data = fineprofiles[pos]
+    v = data["v"]
+    # norm = np.max(data["spec"])
+    norm = 1
+    scale = 10.0
+    resids = data["spec"] - data["model"]
+    g1 = np.where(data["g1"] > 0.02 * norm, data["g1"], np.nan)
+    g2 = np.where(data["g2"] > 0.02 * norm, data["g2"], np.nan)
+    # ax.fill_between(v, pos + scale * g1 / norm, pos, color="b", lw=0.5, alpha=0.3)
+    # ax.fill_between(v, pos + scale * g2 / norm, pos, color="r", lw=0.5, alpha=0.3)
+    # if abs(pos) > 20.0:
+    #     gs = np.where(data["gs"] > 0.01 * norm, data["gs"], np.nan)
+    #     ax.plot(v, pos + scale * gs / norm, color="g", lw=1.3)
+    ax.axhline(pos, lw=0.5, color="k")
+    ax.plot(v, pos + scale * resids / norm, color="k", alpha=0.4, drawstyle="steps-mid")
+
 # ### Central region for Ha
 
 fig, ax = plt.subplots(figsize=(8, 8))
@@ -1010,6 +1132,26 @@ for pos in fine_positions:
         gs = np.where(data["gs"] > 0.01 * norm, data["gs"], np.nan)
         ax.plot(v, pos + scale * gs / norm, color="g", lw=1.3)
     ax.plot(v, pos + scale * data["spec"] / norm, color="k", alpha=0.4, drawstyle="steps-mid")
+
+fig, ax = plt.subplots(figsize=(8, 8))
+for pos in fine_positions:
+    if abs(pos) > 12.0:
+        continue
+    data = hfineprofiles[pos]
+    v = data["v"]
+    # norm = np.max(data["spec"])
+    norm = 1
+    scale = 10.0
+    resids = data["spec"] - data["model"]
+    g1 = np.where(data["g1"] > 0.02 * norm, data["g1"], np.nan)
+    g2 = np.where(data["g2"] > 0.02 * norm, data["g2"], np.nan)
+    # ax.fill_between(v, pos + scale * g1 / norm, pos, color="b", lw=0.5, alpha=0.3)
+    # ax.fill_between(v, pos + scale * g2 / norm, pos, color="r", lw=0.5, alpha=0.3)
+    # if abs(pos) > 20.0:
+    #     gs = np.where(data["gs"] > 0.01 * norm, data["gs"], np.nan)
+    #     ax.plot(v, pos + scale * gs / norm, color="g", lw=1.3)
+    ax.axhline(pos, lw=0.5, color="k")
+    ax.plot(v, pos + scale * resids / norm, color="k", alpha=0.4, drawstyle="steps-mid")
 
 # ### Inner lobes for both
 

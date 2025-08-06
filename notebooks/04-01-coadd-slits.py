@@ -1009,7 +1009,7 @@ for i, filepath in enumerate(file_list):
 ax.axvline(0.0, linestyle="dashed", c="k", lw=1,)
 #ax.legend(ncol=2)
 ax.set(
-    xlabel="Displacement along slit, arcsec",
+    xlabel="Displacement along South–North slit, arcsec",
     xlim=[-35, 35],
 )
 figfile = "ou5-coadd-spatial-profiles-1d.pdf"
@@ -1508,7 +1508,7 @@ for i, filepath in enumerate(file_list):
 ax.axvline(0.0, linestyle="dashed", c="k", lw=1,)
 #ax.legend(ncol=2)
 ax.set(
-    xlabel="Displacement along slit, arcsec",
+    xlabel="Displacement along East–West slit, arcsec",
     xlim=[-35, 35],
 )
 figfile = "ou5-horizontal-spatial-profiles-1d.pdf"

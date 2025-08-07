@@ -137,13 +137,13 @@ for hdulist in o3_dict.values():
 
 ha_median = np.median(
     np.stack(
-        [_[0].data for _ in ha_dict.values()],
+        [ha_dict[key][0].data for key in ha_dict if key.startswith("spm")],
     ),
     axis=0,
 )
 o3_median = np.median(
     np.stack(
-        [_[0].data for _ in o3_dict.values()],
+        [o3_dict[key][0].data for key in o3_dict if key.startswith("spm")],
     ),
     axis=0,
 )

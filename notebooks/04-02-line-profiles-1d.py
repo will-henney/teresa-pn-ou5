@@ -1011,7 +1011,7 @@ ax.set_ylabel("Slit offset, arcsec")
 ax.text(-125, 10, r"H$\alpha$ residuals", transform=trw, color="w")
 
 figfile = "ou5-coadd-residuals-oiii-ha.pdf"
-fig.savefig(figfile)
+fig.savefig(figfile, bbox_inches="tight")
 fig.savefig(figfile.replace(".pdf", ".jpg"))
 ...;
 # -
@@ -1095,24 +1095,30 @@ for pos in fine_positions:
 # Residuals
 
 fig, ax = plt.subplots(figsize=(8, 8))
+bmaxes, rmaxes, smaxes = [], [], []
 for pos in fine_positions:
     if abs(pos) > 12.0:
         continue
     data = fineprofiles[pos]
     v = data["v"]
+    bpix = v < -50
+    rpix = v > -15
     # norm = np.max(data["spec"])
     norm = 1
     scale = 10.0
     resids = data["spec"] - data["model"]
-    g1 = np.where(data["g1"] > 0.02 * norm, data["g1"], np.nan)
-    g2 = np.where(data["g2"] > 0.02 * norm, data["g2"], np.nan)
-    # ax.fill_between(v, pos + scale * g1 / norm, pos, color="b", lw=0.5, alpha=0.3)
-    # ax.fill_between(v, pos + scale * g2 / norm, pos, color="r", lw=0.5, alpha=0.3)
-    # if abs(pos) > 20.0:
-    #     gs = np.where(data["gs"] > 0.01 * norm, data["gs"], np.nan)
-    #     ax.plot(v, pos + scale * gs / norm, color="g", lw=1.3)
+    bmaxes.append(np.max(resids[bpix]))
+    rmaxes.append(np.max(resids[rpix]))
+    smaxes.append(pos)
     ax.axhline(pos, lw=0.5, color="k")
     ax.plot(v, pos + scale * resids / norm, color="k", alpha=0.4, drawstyle="steps-mid")
+
+fig, ax = plt.subplots()
+ax.plot(smaxes, bmaxes, color="b", ds="steps-mid")
+ax.plot(smaxes, rmaxes, color="r", ds="steps-mid")
+ax.set_xlabel("Offset, arcsec")
+ax.set_ylabel("Maximum residual")
+
 
 # ### Central region for Ha
 

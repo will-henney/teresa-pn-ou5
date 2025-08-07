@@ -150,6 +150,20 @@ Uses the table from the previous section, plus the one from [[id:C4243082-6644-4
 | n_e        | cm^-3    | 240 +/- 20    | 86 +/- 10     | 50 +/- 20       | 40 +/- 10       |
 | M_i        | M_sun    | 0.13 +/- 0.01 | 0.05 +/- 0.01 | 0.008 +/- 0.001 | 0.004 +/- 0.001 |
 
+** Check the physical model against the figure of the components
+- In the figure we have that 60 arcsec = 2.775 in
+  - 1 arcsec = 0.04625 in
+- So in the one I copied, I will scale the components by 1/0.4625, so that 1 arcsec = 0.1 in
+  - Center is at 4.3 in
+
+| Component   |  r_1 |   r_2 | Z_1 | Z_2 |    r |  dr |    z | dz |
+|-------------+-----+------+----+----+------+-----+------+----|
+| Inner lobes | 4.3 |  8.8 |  0 |  8 | 6.55 | 4.5 |   4. |  8 |
+| Outer lobes | 8.5 | 11.3 |  8 | 15 |  9.9 | 2.8 | 11.5 |  7 |
+| Outermost   |  15 |  18. |  0 |  3 | 16.5 |  3. |  1.5 |  3 |
+| Polar Knots |   0 |   4. | 21 | 29 |   2. |  4. |  25. |  8 |
+#+TBLFM: $6=0.5 ($2 + $3)::$7=($3 - $2)::$8=0.5 ($4 + $5)::$9=($5 - $4)
+
 ** Width of inner lobes and inclination angle
 :PROPERTIES:
 :ID:       22069844-53A0-4130-8CF6-B86D0526053F

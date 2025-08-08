@@ -59,10 +59,10 @@ Using the linewidth method with Ha and [N II]
 - For He++, Corradi 2015 find that the ion fractions for their entire slit are
   - He+ : 0.70
   - He++: 0.30
-- We could estimate what the maximumm value of He++ is
+- We could estimate what the maximum value of He++ is
   - The width of the He II profile is 7/9 times width of Ha (assumed the same as He I), so the interior value of He++/He is 0.3 (9/7) = 0.38
   - We can use the recombination rates to estimate what the ionizing luminosity must be in the He II continuum (h\nu > 4 Ryd)
-  - And also check that it is opically thick in midplane
+  - And also check that it is optically thick in midplane
 * Empirical measurements
 - Diameters:
   - Inner shell
@@ -115,7 +115,12 @@ Using the linewidth method with Ha and [N II]
 *** Fraction of emission measure
 - We have \omega = EM_cool j_cool / (EM_cool j_cool + EM_warm j_warm)
 - Put \xi = EM_cool  / (EM_cool + EM_warm ) = (EM_cool / EM_warm) / (1 + EM_warrm / EM_cool)
-** Summary of sizes, velocities, and ages
+** DONE Summary of sizes, velocities, and ages
+CLOSED: [2025-08-07 Thu 19:31]
+:LOGBOOK:
+- Note taken on [2025-08-07 Thu 19:22] \\
+  Updated to use new table from [[id:CE978E44-FC9A-468F-A401-CF648899096F][New cylindrical shell sizes [2025-08-06 Wed]​]]
+:END:
 - Bringing together material from below
 - mean \theta is the latitude above the equator
 - V_exp
@@ -124,9 +129,16 @@ Using the linewidth method with Ha and [N II]
   - This is really splitting between top front and bottom back sides of the shell
 - Dynamic time
   - t / yr = R / V = (R/pc) pc / (V/km/s) km yr = 9.778e5 (R/pc) / (V/km/s)
+  -
   - 
-
-
+| Component   | (r_1, r_2)    | (Z_1, Z_2) | mean R, pc    | theta       | cos alpha       | Splitting | V_exp , km/s | t_din / 10^4 yr |
+|-------------+-------------+----------+---------------+-------------+-----------------+-----------+-------------+---------------|
+| Inner lobes | [3.3, 7.3]  | [0, 8]   | 0.13 +/- 0.06 | 50. +/- 28. | 0.707 +/- 0.346 | 26 +/- 2  | 18. +/- 9.  | 0.7 +/- 0.5   |
+| Outer lobes | [7.3, 11.3] | [7, 15]  | 0.28 +/- 0.06 | 56. +/- 10. | 0.629 +/- 0.136 | 37 +/- 2  | 29. +/- 7.  | 0.9 +/- 0.3   |
+| Outermost   | [8.8, 18]   | [0, 3]   | 0.26 +/- 0.09 | 10. +/- 9.  | 0.996 +/- 0.014 | 70 +/- 5  | 35. +/- 3.  | 0.7 +/- 0.3   |
+| Polar Knots | [0, 4]      | [19, 26] | 0.44 +/- 0.07 | 90          | 0.087 +/- 0.017 | 7 +/- 1   | 40. +/- 10. | 1.1 +/- 0.3   |
+#+TBLFM: $4=0.0194 sqrt(vmeane($2)**2 + vmeane($3)**2);f2::$5=vmin($2) == 0 ? 90 : arctan(vmeane($3) / vmin($2));f0::$6=sin($5 + 85 +/- 1);f3::$8=$-1/2 $-2;f0::$9=9.778e1 $4 / $8;f1
+*** Old version                                   :obsolete:
 | Component   | (r_1, r_2)    | (Z_1, Z_2) | mean R, pc    | theta       | cos alpha       | Splitting | V_exp , km/s | t_din / 10^4 yr |
 |-------------+-------------+----------+---------------+-------------+-----------------+-----------+-------------+---------------|
 | Inner lobes | [4.3, 8.8]  | [0, 8]   | 0.15 +/- 0.05 | 43. +/- 29. | 0.788 +/- 0.312 | 26 +/- 2  | 16. +/- 7.  | 0.9 +/- 0.5   |
@@ -135,20 +147,34 @@ Using the linewidth method with Ha and [N II]
 | Polar Knots | [0, 4]      | [21, 29] | 0.49 +/- 0.08 | 90          | 0.087 +/- 0.017 | 7 +/- 1   | 40. +/- 10. | 1.2 +/- 0.4   |
 #+TBLFM: $4=0.0194 sqrt(vmeane($2)**2 + vmeane($3)**2);f2::$5=vmin($2) == 0 ? 90 : arctan(vmeane($3) / vmin($2));f0::$6=sin($5 + 85 +/- 1);f3::$8=$-1/2 $-2;f0::$9=9.778e1 $4 / $8;f1
 
-
-** Transposed summary table of components
+** TODO Transposed summary table of components
 Uses the table from the previous section, plus the one from [[id:C4243082-6644-4620-9FF4-044C41BF7660][Summary table of the components]]
 
+| Component   | Units   | Inner lobes   | Outer lobes   | Outermost     | Polar Knots   |
+|-------------+---------+---------------+---------------+---------------+---------------|
+| (r_1, r_2)    | arcsec  | [3.3, 7.3]    | [7.3, 11.3]   | [8.8, 18]     | [0, 4]        |
+| (Z_1, Z_2)    | arcsec  | [0, 8]        | [7, 15]       | [0, 3]        | [19, 26]      |
+| mean R, pc  | pc      | 0.13 +/- 0.06 | 0.28 +/- 0.06 | 0.26 +/- 0.09 | 0.44 +/- 0.07 |
+| theta       | deg     | 50. +/- 28.   | 56. +/- 10.   | 10. +/- 9.    | 90            |
+| V_exp , km/s | km/s    | 18. +/- 9.    | 29. +/- 7.    | 35. +/- 3.    | 40. +/- 10.   |
+| t_din        | 1000 yr | 7 +/- 5       | 9 +/- 3       | 7 +/- 3       | 11 +/- 3      |
+| n_e          | cm^-3    |               |               |               |               |
+| M_i          | M_sun    |               |               |               |               |
+
+
+
+*** Old version of transposed table               :obsolete:
 | Component | Units   | Inner shell   | Outer shell   | Outermost shell | Polar knots     |
 |-----------+---------+---------------+---------------+-----------------+-----------------|
 | [r_1, r_2]  | arcsec  | [4.3, 8.8]    | [8.5, 11.3]   | [15, 18]        | [0, 4]          |
 | [z_1, z_2]  | arcsec  | [0, 8]        | [8, 15]       | [0, 3]          | [21, 29]        |
-| qR        | pc      | 0.15 +/- 0.05 | 0.29 +/- 0.05 | 0.32 +/- 0.03   | 0.49 +/- 0.08   |
+| R        | pc      | 0.15 +/- 0.05 | 0.29 +/- 0.05 | 0.32 +/- 0.03   | 0.49 +/- 0.08   |
 | theta     | deg     | 40 +/- 30     | 50 +/- 10     | 6 +/- 6         | 90              |
 | V_exp      | km/s    | 16. +/- 7.    | 28. +/- 5.    | 35. +/- 3.      | 40. +/- 10.     |
 | t_din      | 1000 yr | 9 +/- 5       | 10 +/- 3      | 9 +/- 1         | 12 +/- 4        |
 | n_e        | cm^-3    | 240 +/- 20    | 86 +/- 10     | 50 +/- 20       | 40 +/- 10       |
 | M_i        | M_sun    | 0.13 +/- 0.01 | 0.05 +/- 0.01 | 0.008 +/- 0.001 | 0.004 +/- 0.001 |
+
 
 ** Check the physical model against the figure of the components
 :LOGBOOK:
@@ -169,6 +195,11 @@ Uses the table from the previous section, plus the one from [[id:C4243082-6644-4
 #+TBLFM: $6=0.5 ($2 + $3)::$7=($3 - $2)::$8=0.5 ($4 + $5)::$9=($5 - $4)
 
 ** New cylindrical shell sizes [2025-08-06 Wed]
+:PROPERTIES:
+:ID:       CE978E44-FC9A-468F-A401-CF648899096F
+:END:
+- The inner lobes got a bit smaller
+- The outermost lobes have their inner radius much reduced since they now include the outer equatorial ring
 | Component   |  r_1 |   r_2 | Z_1 | Z_2 |    r |  dr |    z | dz |
 |-------------+-----+------+----+----+------+-----+------+----|
 | Inner lobes | 3.3 |  7.3 |  0 |  8 |  5.3 |  4. |   4. |  8 |

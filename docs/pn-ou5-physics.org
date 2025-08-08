@@ -118,6 +118,10 @@ Using the linewidth method with Ha and [N II]
 ** DONE Summary of sizes, velocities, and ages
 CLOSED: [2025-08-07 Thu 19:31]
 :LOGBOOK:
+- Note taken on [2025-08-08 Fri 13:05] \\
+  Decided to measure R and theta at the position of maximum splitting, whereas previously it was an ill-defined average over the entire shell
+- Note taken on [2025-08-08 Fri 12:21] \\
+  Re-evaluating the splitting measurements
 - Note taken on [2025-08-07 Thu 19:22] \\
   Updated to use new table from [[id:CE978E44-FC9A-468F-A401-CF648899096F][New cylindrical shell sizes [2025-08-06 Wed]​]]
 :END:
@@ -129,38 +133,68 @@ CLOSED: [2025-08-07 Thu 19:31]
   - This is really splitting between top front and bottom back sides of the shell
 - Dynamic time
   - t / yr = R / V = (R/pc) pc / (V/km/s) km yr = 9.778e5 (R/pc) / (V/km/s)
-  -
   - 
-| Component   | (r_1, r_2)    | (Z_1, Z_2) | mean R, pc    | theta       | cos alpha       | Splitting | V_exp , km/s | t_din / 10^4 yr |
-|-------------+-------------+----------+---------------+-------------+-----------------+-----------+-------------+---------------|
-| Inner lobes | [3.3, 7.3]  | [0, 8]   | 0.13 +/- 0.06 | 50. +/- 28. | 0.707 +/- 0.346 | 26 +/- 2  | 18. +/- 9.  | 0.7 +/- 0.5   |
-| Outer lobes | [7.3, 11.3] | [7, 15]  | 0.28 +/- 0.06 | 56. +/- 10. | 0.629 +/- 0.136 | 37 +/- 2  | 29. +/- 7.  | 0.9 +/- 0.3   |
-| Outermost   | [8.8, 18]   | [0, 3]   | 0.26 +/- 0.09 | 10. +/- 9.  | 0.996 +/- 0.014 | 70 +/- 5  | 35. +/- 3.  | 0.7 +/- 0.3   |
-| Polar Knots | [0, 4]      | [19, 26] | 0.44 +/- 0.07 | 90          | 0.087 +/- 0.017 | 7 +/- 1   | 40. +/- 10. | 1.1 +/- 0.3   |
-#+TBLFM: $4=0.0194 sqrt(vmeane($2)**2 + vmeane($3)**2);f2::$5=vmin($2) == 0 ? 90 : arctan(vmeane($3) / vmin($2));f0::$6=sin($5 + 85 +/- 1);f3::$8=$-1/2 $-2;f0::$9=9.778e1 $4 / $8;f1
+- *Splitting measurements*
+  - These are in column 7 of the following table, which is entered by hand
+  - We can use Fig 9 from the paper to estimate them
+    - We want the maximum splitting for each component, where we will determine the latitude \theta
+  - Inner shell has variation from 18 to 25,
+    - where [red, blue] turning points occur at z heights [3.5, 4.5] to N and [2.5, 3.7] to S
+    - |z| => vmeane([3.5, 4.5, 2.5, 3.7]) = 3.6 +/- 0.4
+    - Combined with r = vmean([3.3, 7.3]) = 5.3 gives \theta = arctan((3.6 +/- 0.4) / 5.3) = 34 +/- 3
+      - So R = sqrt(5.3**2 + (3.6 +/- 0.4)**2) = (6.4 +/- 0.2) arcsec = (0.124 +/- 0.004) pc
+    - And 24 +/- 2 is a good representation of the maximum velocity
+  - Outer shell
+    - Maximum splitting at z = 15 +/- 2
+    - oiii goes up to 40, but Ha only about 35, which is what we should use
+  - Outermost
+    - Ha splitting is 72 +/- 5 from the notebook
+    - z = 0
+  - Knots
+    - Splitting is 7 +/- 3 from Fig 7
+    - z = 23
+| Component   | (r_1, r_2)    | (Z_1, Z_2) | Vsplit   | zsplit      | R, pc           | theta      | cos alpha       | V_exp , km/s | t_din / 10^4 yr |
+|-------------+-------------+----------+----------+-------------+-----------------+------------+-----------------+-------------+---------------|
+| Inner lobes | [3.3, 7.3]  | [0, 8]   | 24 +/- 2 | 3.6 +/- 0.4 | 0.12 +/- 4.4e-3 | 34. +/- 3. | 0.875 +/- 0.027 | 14. +/- 1.  | 0.84 +/- 0.07 |
+| Outer lobes | [7.3, 11.3] | [7, 15]  | 35 +/- 3 | 15 +/- 2    | 0.34 +/- 0.03   | 58. +/- 3. | 0.602 +/- 0.044 | 29. +/- 3.  | 1.15 +/- 0.16 |
+| Outermost   | [8.8, 18]   | [0, 3]   | 70 +/- 5 | 0  +/- 1    | 0.26            | 0e0 +/- 4. | 0.996 +/- 0.006 | 35. +/- 3.  | 0.73 +/- 0.06 |
+| Polar Knots | [0, 4]      | [19, 26] | 7 +/- 2  | 23 +/- 2    | 0.45 +/- 0.04   | 90         | 0.087 +/- 0.017 | 40. +/- 14. | 1.10 +/- 0.40 |
+#+TBLFM: $6=0.0194 sqrt(vmean($2)**2 + $5**2);f2::$7=vmin($2) == 0 ? 90 : arctan($5 / vmean($2));f0::$8=sin($7 + 85 +/- 1);f3::$9=$4/2 $8;f0::$10=9.778e1 $6 / $9;f2
+
+- So we now have evidence that the components near the poles may be slightly older than the structures near the equator
+  - Alternatively, they may have suffered deceleration due to interaction with the ISM
+  - There is some evidence for this in the deviations from point symmetry in the outer lobes
 *** Old version                                   :obsolete:
-| Component   | (r_1, r_2)    | (Z_1, Z_2) | mean R, pc    | theta       | cos alpha       | Splitting | V_exp , km/s | t_din / 10^4 yr |
-|-------------+-------------+----------+---------------+-------------+-----------------+-----------+-------------+---------------|
-| Inner lobes | [4.3, 8.8]  | [0, 8]   | 0.15 +/- 0.05 | 43. +/- 29. | 0.788 +/- 0.312 | 26 +/- 2  | 16. +/- 7.  | 0.9 +/- 0.5   |
-| Outer lobes | [8.5, 11.3] | [8, 15]  | 0.29 +/- 0.05 | 54. +/- 8.  | 0.656 +/- 0.106 | 37 +/- 2  | 28. +/- 5.  | 1.0 +/- 0.3   |
-| Outermost   | [15, 18]    | [0, 3]   | 0.32 +/- 0.03 | 6. +/- 6.   | 1.000 +/- 0.002 | 70 +/- 5  | 35. +/- 3.  | 0.9 +/- 0.1   |
-| Polar Knots | [0, 4]      | [21, 29] | 0.49 +/- 0.08 | 90          | 0.087 +/- 0.017 | 7 +/- 1   | 40. +/- 10. | 1.2 +/- 0.4   |
+| Component   | (r_1, r_2)    | (Z_1, Z_2) | mean R, pc    | theta       | cos alpha       | Vsplit   | V_exp , km/s | t_din / 10^4 yr |
+|-------------+-------------+----------+---------------+-------------+-----------------+----------+-------------+---------------|
+| Inner lobes | [4.3, 8.8]  | [0, 8]   | 0.15 +/- 0.05 | 43. +/- 29. | 0.788 +/- 0.312 | 26 +/- 2 | 16. +/- 7.  | 0.9 +/- 0.5   |
+| Outer lobes | [8.5, 11.3] | [8, 15]  | 0.29 +/- 0.05 | 54. +/- 8.  | 0.656 +/- 0.106 | 37 +/- 2 | 28. +/- 5.  | 1.0 +/- 0.3   |
+| Outermost   | [15, 18]    | [0, 3]   | 0.32 +/- 0.03 | 6. +/- 6.   | 1.000 +/- 0.002 | 70 +/- 5 | 35. +/- 3.  | 0.9 +/- 0.1   |
+| Polar Knots | [0, 4]      | [21, 29] | 0.49 +/- 0.08 | 90          | 0.087 +/- 0.017 | 7 +/- 1  | 40. +/- 10. | 1.2 +/- 0.4   |
 #+TBLFM: $4=0.0194 sqrt(vmeane($2)**2 + vmeane($3)**2);f2::$5=vmin($2) == 0 ? 90 : arctan(vmeane($3) / vmin($2));f0::$6=sin($5 + 85 +/- 1);f3::$8=$-1/2 $-2;f0::$9=9.778e1 $4 / $8;f1
 
-** TODO Transposed summary table of components
-Uses the table from the previous section, plus the one from [[id:C4243082-6644-4620-9FF4-044C41BF7660][Summary table of the components]]
+** DONE Transposed summary table of components
+CLOSED: [2025-08-08 Fri 13:47]
+- Uses the table from the previous section, plus the one from [[id:C4243082-6644-4620-9FF4-044C41BF7660][Summary table of the components]]
+- *This is the one that goes in the paper*
 
-| Component   | Units   | Inner lobes   | Outer lobes   | Outermost     | Polar Knots   |
-|-------------+---------+---------------+---------------+---------------+---------------|
-| (r_1, r_2)    | arcsec  | [3.3, 7.3]    | [7.3, 11.3]   | [8.8, 18]     | [0, 4]        |
-| (Z_1, Z_2)    | arcsec  | [0, 8]        | [7, 15]       | [0, 3]        | [19, 26]      |
-| mean R, pc  | pc      | 0.13 +/- 0.06 | 0.28 +/- 0.06 | 0.26 +/- 0.09 | 0.44 +/- 0.07 |
-| theta       | deg     | 50. +/- 28.   | 56. +/- 10.   | 10. +/- 9.    | 90            |
-| V_exp , km/s | km/s    | 18. +/- 9.    | 29. +/- 7.    | 35. +/- 3.    | 40. +/- 10.   |
-| t_din        | 1000 yr | 7 +/- 5       | 9 +/- 3       | 7 +/- 3       | 11 +/- 3      |
-| n_e          | cm^-3    |               |               |               |               |
-| M_i          | M_sun    |               |               |               |               |
-
+| Component   | Units      | Inner lobes   | Outer lobes   | Outermost     | Polar Knots   |
+|-------------+------------+---------------+---------------+---------------+---------------|
+| (r_1, r_2)    | arcsec     | [3.3, 7.3]    | [7.3, 11.3]   | [8.8, 18]     | [0, 4]        |
+| (Z_1, Z_2)    | arcsec     | [0, 8]        | [7, 15]       | [0, 3]        | [19, 26]      |
+|-------------+------------+---------------+---------------+---------------+---------------|
+| dV split    | km/s       | 24 +/- 2      | 35 +/- 3      | 70 +/- 5      | 7 +/- 2       |
+| z split     | arcsec     | 3.6 +/- 0.4   | 15 +/- 2      | 0  +/- 1      | 23 +/- 2      |
+| R split, pc | pc         | 0.13 +/- 0.06 | 0.28 +/- 0.06 | 0.26 +/- 0.09 | 0.44 +/- 0.07 |
+| theta split | deg        | 50. +/- 28.   | 56. +/- 10.   | 10. +/- 9.    | 90            |
+|-------------+------------+---------------+---------------+---------------+---------------|
+| V_exp , km/s | km/s       | 14. +/- 1.    | 29. +/- 3.    | 35. +/- 3.    | 40. +/- 14.   |
+| t_din        | 1000 yr    | 0.84 +/- 0.07 | 1.15 +/- 0.16 | 0.73 +/- 0.06 | 1.10 +/- 0.40 |
+|-------------+------------+---------------+---------------+---------------+---------------|
+| n_e          | cm^-3       | 147 +/- 13    | 39 +/- 10     | 28 +/- 8      | 32 +/- 8      |
+| M_i          | 0.001 M_sun | 28 +/- 3      | 26 +/- 7      | 12 +/- 4      | 3 +/- 1       |
+- Manual adjustments to the uncertainties
+  - There were no surface brightness errors given for the image-derived values, so I have increased the density uncertainty for the densities and masses derived from these (outermost)
 
 
 *** Old version of transposed table               :obsolete:
@@ -368,9 +402,13 @@ Uses the table from the previous section, plus the one from [[id:C4243082-6644-4
   | MEAN   |    0.5765 |               |
   #+TBLFM: @6$2..@6$3=@I - vsum(@II..@III)::@8$2=@III/@IIII;f4
   - Here I subtract the 3 stars from the total to get the net flux, then divide by the number of pixels in the big bo to get the mean surface brightness
-  - So the answer is that 0.5765 value in the FITS image corresponds to the mean surface brightness of
+  - *So the answer is* that 0.5765 value in the FITS image corresponds to the mean surface brightness of
     - S(Ha) = 3.96e-04 erg /cm^2 /s /sr
-    - EM = 5200 pc cm^-6
+    - Conversion to EM from [[id:BA2B583B-1C70-4223-B5B1-FAFE86721344][Balmer line surface brightness versus emission measure]]
+    - T = 13,000 K
+      - EM = 5200 pc cm^-6
+    - T = 6000 K
+      - EM = 2850 pc cm^-6
     - T_5 = 0.43 K
 - Inner shell versus outer shell fluxes
   - We can do the same but for a smaller box that only includes the inner shell
@@ -415,34 +453,41 @@ Uses the table from the previous section, plus the one from [[id:C4243082-6644-4
   - Knots 0.37 +/- 0.15
     - N knot  0.04 12.90 = 0.52
     - S knot 0.02  10.94 = 0.22
-** Emission measures, densities and masses of components
+** TODO Emission measures, densities and masses of components
+:LOGBOOK:
+- Note taken on [2025-08-08 Fri 11:03] \\
+  Re-calculating all these based on the new dimensions of the shells
+:END:
 - We can estimate densities from observed emission measures if we assume a geometry
 - We will use a distance of 4.0 kpc (uncertainty 0.7 pc or 0.18 relative or 0.08 dex)
   - 1 arcsec = 4000 au / pc = 0.0194 pc
-- Inner shell geometry from [[id:DAE29C3F-03B0-47F3-88F1-B5814A08E940][More sophisticated shell measurements]]
-  - r_in, r_out = 4.3, 8.8 arcsec
+- Inner shell geometry from [[id:DAE29C3F-03B0-47F3-88F1-B5814A08E940][More sophisticated shell measurements]] but with corrections from [[id:CE978E44-FC9A-468F-A401-CF648899096F][New cylindrical shell sizes [2025-08-06 Wed]​]]
+  - r_in, r_out = 3.3, 7.3 arcsec
   - height 16 arcsec (-8 to +8)
     - easiest to determine from the kinematics
   - Path lengths through shell
-    - On axis 2 (r_out - r_in) = 9.0 arcsec = 0.1746 +/- 0.0314 pc
-    - Max value 2 sqrt(r_out^2 - r_in^2) = 15.4 arcsec = 0.2988 +/- 0.0538
-  - Volume pi (r_out^2 - r_in^2) H = 2963.15019086 arcsec^3 = 0.0216 pc^3
+    - On axis 2 (r_out - r_in) = 8.0 arcsec = 0.1552 +/- 0.027936 pc
+    - Max value 2 sqrt(r_out^2 - r_in^2) = 13.0 arcsec = 0.2522 +/- 0.045396
+  - Volume pi (r_out^2 - r_in^2) H = 1065.6282281 arcsec^3 = 0.00778 pc^3
     - Compare with the equivalent spherical volume using the nominal radius of 11.4 arcsec
     - (4 pi / 3) 11.4**3 = 6206 arcsec^3 = 0.0453 pc^3
+    - So volume filling factor = 0.00778/0.0453 = 0.17
 - Outer lobes geometry
   - Easiest thing to measure is its height
     - Extends to +18 in N and -16 in S
     - But the central (-8 to +8) section seems missing
     - So height of 34 but with 16 removed
+    - *New version* dz = 16
   - Inner radius from peak-peak distance of the ears gives D = 17 +/- 0.2, R = 8.5 +/- 0.1
   - Outer radius will have to come from width
     - In notebook I found that thickness is about 0.6 times fwhm
     - Measurements of outer half-width hm for the ears after masking out stars: 2.2, 2.3, 3.1, 1.8
     - H = 2 0.6 vmeane([2.2, 2.3, 3.1, 1.8]) = 2.82 +/- 0.33
   - Therefore, r_in, r_out = 8.5, 11.3
-  - On-axis path length = 5.6 +/- 0.6 = 0.1086 +/- 0.0116 pc
-  - Ears path length = 14.9 +/- 0.9 = 0.2891 +/- 0.0175
-  - Volume pi (r_out^2 - r_in^2) (H_out - H_in) = (11.3**2 - 8.5**2) pi (34 - 16) = 3135 arcsec^3 = 0.0229 pc^3
+    - *New version* 7.3, 11.3
+  - On-axis path length = 8 = 0.1552 +/- 0.027936 pc
+  - Ears path length = 17.25 = 0.33465 +/- 0.060237 pc
+  - Volume pi (r_out^2 - r_in^2) (H_out - H_in) = (11.3**2 - 7.3**2) 16 pi  = 3740 arcsec^3 = 0.0273 pc^3
 - Polar knots geometry
   - Extent along slit is 8 arcsec, so assume sphere of radius 4 arcsec
     - This is consistent with fact that they are still seen in the slit with displacement of +3 arcsec
@@ -452,18 +497,34 @@ Uses the table from the previous section, plus the one from [[id:C4243082-6644-4
   - Assume "cones" are the outer part of an ellipse
     - i =  84 +/- 2 so sin i = 0.1045 +/- 0.0347
     - So a/b of ellipse will be about 10
-  - Inner radius is about 15 arcsec
-  - Thickness looks similar to outer lobes - so about 3 arcsec
+  - Inner radius is about 9 arcsec
+  - Outer radius 18 arcsec
+  - On-axis path length (infinite height) = 0.3492 +/- 0.062856
   - Question is, what is height?
-  - With infinite height, then peak depth d z = sqrt( (15 + 3)**2 - 15**2) = 9.9499
+  - With infinite height, then peak depth d z = sqrt( (18)**2 - 9**2) = 15.5885
     - But at a small angle with a finite height, we are limited to h / sin i = 10 h
-    - So this only becomes important when h < 1 arcsec, which seems unlikely
+    - So this only becomes important when h < 1.5 arcsec, which seems unlikely
   - Simplest assumption is that h is same as thickness, so about 3 arcsec
-  - so d z = 10 +/- 3 arcsec = 0.194 +/- 0.0582 pc
-  - Volume pi (r_out^2 - r_in^2) H = ((15 + 3)**2 - 15**2) pi 3 = 933 arcsec^3 = 6.8126e-03 pc^3
-*** 
-*** Table of EM, density, M_i
-- First row gives mean surface brightness and equivalent EM in pc cm^-6, which comes from the dereddened Ha flux.
+  - so d z = 16 arcsec = 0.3104 +/- 0.0559 pc
+  - Volume pi (r_out^2 - r_in^2) H = ((18)**2 - 9**2) pi 3 = 2290 arcsec^3 = 0.0167 pc^3
+*** DONE Table of EM, density, M_i (corrected to mean T = 6000 K)
+CLOSED: [2025-08-08 Fri 11:51]
+:PROPERTIES:
+:ID:       DB8CDBA6-1324-46DE-8343-D0E4E816330E
+:END:
+:LOGBOOK:
+- State "DONE"       from "TODO"       [2025-08-08 Fri 11:51] \\
+  Finish all the corrections for new geometry and temperature
+- Note taken on [2025-08-08 Fri 11:33] \\
+  Recalculation of path lengths brings density down to 150 pcc. Ionized mass total comes down to 0.07, which is 4 times smaller than before
+- Note taken on [2025-08-08 Fri 11:31] \\
+  Removed +/- from the dz path lengths since this is systematic error due to the distance uncertainty, which we can apply later
+- Note taken on [2025-08-08 Fri 10:59] \\
+  Reference EM = 2850 (changed from 5200), means that inner shell density comes down to 180 pcc
+- Note taken on [2025-08-08 Fri 10:17] \\
+  Revisiting this in the light of the lower T, which means lower EM for same brightness
+:END:
+- First row gives mean surface brightness and equivalent EM in pc cm^-6, which comes from the de-reddened Ha flux.
 - This is used with the measurements of surface brightness from median image to find EM for other components (inner shell and outer ears)
 - And the inner shell one is used to calibrate in turn the spectral slit intensities to find the EM of components that are seen in the spectra
 - The line-of-sight depths dz in pc are calculated for each component according to its geometry (see above)
@@ -471,18 +532,18 @@ Uses the table from the previous section, plus the one from [[id:C4243082-6644-4
 - The volume V is also calculated for each component in pc^3
 - The ionized mass is calculated as
   - M_i / M_sun = (m_p / M_sun) n V (pc/cm)**3 = 0.0247 n V 
-  |            |  image | spectra        |                EM | d z               | n              |          V | M_i                |
-  |------------+--------+----------------+-------------------+-------------------+----------------+------------+-------------------|
-  | Mean       | 0.5765 |                |              5200 |                   | sqrt(5200/0)   |            | 0.0000            |
-  |------------+--------+----------------+-------------------+-------------------+----------------+------------+-------------------|
-  | inner      |    1.1 | 12.63 +/- 2.07 |            9.92e3 | 0.1746 +/- 0.0314 | 238.4 +/- 21.4 |     0.0216 | 0.1272 +/- 0.0114 |
-  | outer ears |    0.2 |                |            1.80e3 | 0.2891 +/- 0.0175 | 78.9 +/- 2.4   |            | 0.0000            |
-  | outermost  |   0.05 |                |            4.51e2 | 0.194 +/- 0.0582  | 48.2 +/- 7.2   | 6.8126e-03 | 0.0081 +/- 0.0012 |
-  | outer axis |        | 1.21 +/- 0.55  | 9.50e2 +/- 4.59e2 | 0.1086 +/- 0.0116 | 93.5 +/- 23.1  |     0.0229 | 0.0529 +/- 0.0131 |
-  | knots      |        | 0.37 +/- 0.15  | 2.91e2 +/- 1.27e2 | 0.1552 +/- 0.0388 | 43.3 +/- 10.9  | 3.9147e-03 | 0.0042 +/- 0.0011 |
-  |------------+--------+----------------+-------------------+-------------------+----------------+------------+-------------------|
-  |            |        |                |                   |                   | sqrt(0/0)      |     0.0552 | 0.1924 +/- 0.0174 |
-  #+TBLFM: $6=sqrt($4 / $5);f1::$8=0.0247 $6 $7;f4::@3$4..@5$4=@I $2 / @I$2;s3::@6$4..@7$4=@II $3 / @II$3;s3::@8$7..@8$8=vsum(@II..@III);f4
+  |            |  image | spectra        |                EM |     d z | n                      |          V | M_i                |
+  |------------+--------+----------------+-------------------+---------+------------------------+------------+-------------------|
+  | Mean       | 0.5765 |                |              2850 |         | xx                     |            | 0.0000            |
+  |------------+--------+----------------+-------------------+---------+------------------------+------------+-------------------|
+  | inner      |    1.1 | 12.63 +/- 2.07 |            5.44e3 |  0.2522 | 146.9 +/- 13.2         |    0.00778 | 0.0282 +/- 0.0025 |
+  | outer ears |    0.2 |                |            9.89e2 | 0.33465 | 54.4 +/- 4.9           |            | 0.0000            |
+  | outermost  |   0.05 |                |            2.47e2 |  0.3104 | 28.2 +/- 2.5           |     0.0167 | 0.0116 +/- 0.0010 |
+  | outer axis |        | 1.21 +/- 0.55  | 5.21e2 +/- 2.52e2 |  0.3492 | 38.6 +/- 10.0          |     0.0273 | 0.0260 +/- 0.0067 |
+  | knots      |        | 0.37 +/- 0.15  | 1.59e2 +/- 6.97e1 |  0.1552 | 32.0 +/- 7.6           | 3.9147e-03 | 0.0031 +/- 0.0007 |
+  |------------+--------+----------------+-------------------+---------+------------------------+------------+-------------------|
+  |            |        |                |                   |         | (1 +/- 9e-2) sqrt(0/0) |     0.0557 | 0.0689 +/- 0.0073 |
+  #+TBLFM: $6=sqrt($4 / $5) (1 +/- 0.09);f1::$8=0.0247 $6 $7;f4::@2$6=xx::@3$4..@5$4=@I $2 / @I$2;s3::@6$4..@7$4=@II $3 / @II$3;s3::@8$7..@8$8=vsum(@II..@III);f4
 **** Effects of T variation on emission measure
 - We were assuming Ha emission coefficient of 3.1213e-25 erg cm^3 /s for 13,000 K
 - This was never very accurate because the T variation is steeper than we had supposed
@@ -490,10 +551,32 @@ Uses the table from the previous section, plus the one from [[id:C4243082-6644-4
 - At 6000 K, it should be 5.65e-25
 
 
-*** Summary table of the components
+*** DONE Summary table of the components
+CLOSED: [2025-08-08 Fri 12:01]
 :PROPERTIES:
 :ID:       C4243082-6644-4620-9FF4-044C41BF7660
 :END:
+
+- This table uses values from [[id:DB8CDBA6-1324-46DE-8343-D0E4E816330E][Table of EM, density, M_i]]
+|           |     dz |          V |      A |     EM |    VEM | F frac |     M_i | M frac |
+|-----------+--------+------------+--------+--------+--------+--------+--------+--------|
+| inner     | 0.2522 |    0.00778 | 0.0308 | 5.44e3 | 1.68e2 | 0.7434 | 0.0282 | 0.4093 |
+| outer     | 0.3492 |     0.0273 | 0.0782 | 5.21e2 | 4.07e1 | 0.1801 | 0.0260 | 0.3774 |
+| outermost | 0.3104 |     0.0167 | 0.0538 | 2.47e2 | 1.33e1 | 0.0588 | 0.0116 | 0.1684 |
+| knots     | 0.1552 | 3.9147e-03 | 0.0252 | 1.59e2 | 4.01e0 | 0.0177 | 0.0031 | 0.0450 |
+|-----------+--------+------------+--------+--------+--------+--------+--------+--------|
+|           |        |            |    0/0 |        | 2.26e2 | 1.0000 |        | 0.0000 |
+#+TBLFM: $4=$3/$2;f4::$6=$4 $5;s3::$7=$6 / @II$6;f4::$9=$8/vsum(@I$8..@II$8);f4::@6$6=vsum(@I..@II);s3
+  
+- So this calculation says that the inner shell is 74% of the total flux from the nebula
+- This is consistent with when I did this using apertures, for which I got 85%
+  - Originally I got 71% but I had made two mistakes
+    - Partly because the box I was using for the inner shell was 14x14, whereas elsewhere I am assuming r_out = 8.8 and h = 16, so I should use an 18 x 16 box
+    - And partly because I was not calculating the reference surface brightness correctly. Now that is fixed by using the number of pixels in the nominal ellipse
+  -
+
+    
+**** Old version of components with the higher T
 |           |     dz |          V |      A |     EM |    VEM | F frac |     M_i | M frac |
 |-----------+--------+------------+--------+--------+--------+--------+--------+--------|
 | inner     | 0.1746 |     0.0216 | 0.1237 | 9.92e3 | 1.23e3 | 0.8425 | 0.1272 | 0.6734 |
@@ -503,12 +586,7 @@ Uses the table from the previous section, plus the one from [[id:C4243082-6644-4
 |-----------+--------+------------+--------+--------+--------+--------+--------+--------|
 |           |        |            |    0/0 |        | 1.46e3 | 1.0000 |        | 0.0000 |
 #+TBLFM: $4=$3/$2;f4::$6=$4 $5;s3::$7=$6 / @II$6;f4::$9=$8/vsum(@I$8..@II$8);f4::@6$6=vsum(@I..@II);s3
-- So this calculation says that the inner shell is 84% of the total flux from the nebula
-- This is consistent with when I did this using apertures, for which I got 85%
-  - Originally I got 71% but I had made two mistakes
-    - Partly because the box I was using for the inner shell was 14x14, whereas elsewhere I am assuming r_out = 8.8 and h = 16, so I should use an 18 x 16 box
-    - And partly because I was not calculating the reference surface brightness correctly. Now that is fixed by using the number of pixels in the nominal ellipse
-  - 
+
 *** Discussion of density and ionized mass
 - The density in the inner lobes now comes out to be more than twice as large as the density from the [S II] ratio
   - The reason for this is that the volume is now less than the equivalent spherical volume that I was using earlier
@@ -591,20 +669,34 @@ Uses the table from the previous section, plus the one from [[id:C4243082-6644-4
 - Brightness temperature, T_b = T_e (1 - exp(-\tau)) \approx \tau T_e
 - T_b = 1.1970e-04 EM
 ** Balmer line surface brightness versus emission measure
+:PROPERTIES:
+:ID:       BA2B583B-1C70-4223-B5B1-FAFE86721344
+:END:
+:LOGBOOK:
+- Note taken on [2025-08-08 Fri 10:58] \\
+  New constant is 2850 instead of 5200
+- Note taken on [2025-08-08 Fri 10:26] \\
+  Corrections based on pyneb calculations in notebook 05-01
+:END:
 - First do H alpha version in units per steradian
 - Osterbrock has emission coefficient (4 \pi j / n_e n_p) = 2.87 1.24e-25 erg cm^3 /s at 1e4 K = 3.5588e-25 erg cm^3 /s
   - Alternative derivation: emission coefficient = \alpha_Ha E_Ha
   - E_Ha = h c / 6563 ang = 6.62606876e-27 2.99792458e10 / 6563 1e-8 = 3.0267e-12 erg
   - \alpha_Ha = 2.87 (6563/4861) 3.03e-14 = 1.1741e-13
   - => emission coefficient = 3.5536e-25 at 1e4, which is the same
+    - Pyneb has 3.534e-4
 - T dependence is roughly T^-0.5, so at 13,000 K this is 3.1213e-25 erg cm^3 /s
+  - Pyneb has 2.75e-25 at 13,000 K
+  - Pyneb has 5.65e-25 at 6000 K
 - S(Ha) = \int j d z =  (4 \pi j / n_e n_p) \int n_e n_p dz / 4 \pi
-- S(Ha) = 3.1213e-25 EM pc / 4 \pi = 7.6644e-8 EM erg /cm^2 /s /sr
+- /Old version/ S(Ha) = 3.1213e-25 EM pc / 4 \pi = 7.6644e-8 EM erg /cm^2 /s /sr
+- *Corrected to T=6000 K* S(Ha) = 5.65e-25 EM pc / 4 \pi = 1.3874e-07 EM erg /cm^2 /s /sr
 - Now convert to H beta and to square arcsec
-- S(Hb) = S(Ha) / 2.87 (206265)**2 = 6.2769e-19 EM erg /cm^2 /s /arcsec^2
+- S(Hb) = S(Ha) / 2.87 (206265)**2 = 1.1362e-18 EM erg /cm^2 /s /arcsec^2
 - Check for Ou 5
-  - S(Ha) = 3.9598e-04 erg /cm^2 /s /sr => EM = 5166.5 pc cm^-6
-  - S(Hb) = 3.1024e-15 erg /cm^2 /s /arcsec^2 => EM = 4942.6 pc cm^-6
+  - S(Ha) = 3.9598e-04 erg /cm^2 /s /sr => 2854.1 pc cm^-6
+    - Previously I had EM = 5166.5 pc cm^-6
+  - S(Hb) = 3.1024e-15 erg /cm^2 /s /arcsec^2 => EM = 2730.5  pc cm^-6
   - These are not quite the same because S(Hb) was calculated assuming a Balmer decrement of 3 instead of 2.87 
 ** Radio-to-optical conversion factors
 - Combining the previous two sections, we can put the Balmer line surface brightness in terms of the radio brightness temperature at 5GHz

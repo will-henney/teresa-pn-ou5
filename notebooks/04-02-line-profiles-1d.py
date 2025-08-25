@@ -1016,6 +1016,117 @@ fig.savefig(figfile.replace(".pdf", ".jpg"))
 ...;
 # -
 
+# #### Displacement along slit between residual on red and blue wings
+
+# Take a spatial profile of the residuals on the blue and red side. Use $\pm 15$ km/s around points that $\pm 35$ km/s with respect to the systemic velocity.
+
+resid_blue = np.nansum(
+    np.where(
+        np.abs(v_arr - (vsys - 35)) < 15,
+        resid_arr,
+        np.nan,
+    ),
+    axis=1,
+)
+resid_red = np.nansum(
+    np.where(
+        np.abs(v_arr - (vsys + 35)) < 15,
+        resid_arr,
+        np.nan,
+    ),
+    axis=1,
+)
+
+
+# Fit gaussians to the red and blue spatial profiles.
+
+maxpos = 12
+is_near_center = np.abs(fine_positions) <= maxpos
+g_b = fitter(
+    models.Gaussian1D(amplitude=np.max(resid_blue), mean=0, stddev=3.0),
+    fine_positions[is_near_center], 
+    resid_blue[is_near_center],
+)
+g_r = fitter(
+    models.Gaussian1D(amplitude=np.max(resid_red), mean=0, stddev=3.0),
+    fine_positions[is_near_center], 
+    resid_red[is_near_center],
+)
+g_b, g_r
+
+fig, ax = plt.subplots()
+ax.plot(fine_positions, resid_blue, color="b", ds="steps-mid")
+ax.plot(fine_positions, g_b(fine_positions), lw=0.5, color="b")
+ax.plot(fine_positions, resid_red, color="r", ds="steps-mid")
+ax.plot(fine_positions, g_r(fine_positions), lw=0.5, color="r")
+ax.set_xlim([-maxpos, maxpos])
+ax.set_xlabel("Position")
+ax.set_ylabel("[O III] Residual")
+
+
+# Look at the difference in the centroids. 
+
+g_r.mean - g_b.mean
+
+# Repeat for H alpha
+
+hresid_blue = np.nansum(
+    np.where(
+        np.abs(v_arr - (vsys - 35)) < 15,
+        hresid_arr,
+        np.nan,
+    ),
+    axis=1,
+)
+hresid_red = np.nansum(
+    np.where(
+        np.abs(v_arr - (vsys + 35)) < 15,
+        hresid_arr,
+        np.nan,
+    ),
+    axis=1,
+)
+
+
+hg_b = fitter(
+    models.Gaussian1D(amplitude=np.max(hresid_blue), mean=0, stddev=3.0),
+    fine_positions[is_near_center], 
+    hresid_blue[is_near_center],
+)
+hg_r = fitter(
+    models.Gaussian1D(amplitude=np.max(hresid_red), mean=0, stddev=3.0),
+    fine_positions[is_near_center], 
+    hresid_red[is_near_center],
+)
+hg_b, hg_r
+
+fig, ax = plt.subplots()
+ax.plot(fine_positions, hresid_blue, color="b", ds="steps-mid")
+ax.plot(fine_positions, hg_b(fine_positions), lw=0.5, color="b")
+ax.plot(fine_positions, hresid_red, color="r", ds="steps-mid")
+ax.plot(fine_positions, hg_r(fine_positions), lw=0.5, color="r")
+ax.set_xlim([-maxpos, maxpos])
+ax.set_xlabel("Position")
+ax.set_ylabel("H alpha Residual")
+
+
+hg_r.mean - hg_b.mean
+
+# So taking the average of H alpha and [O III] we have 3 +/- 1 arcsec
+
+# Although, we should maybe give more weight to the brighter residuals. So we take the four displacements from zero and calculate mean weighted by the amplitudes. We do the same thing for the variance. Then we take twice that mean value as the mean displacement and sqrt of twice the variance for the error. This assumes that the error on the two sides is independent. 
+
+gausses = g_r, g_b, hg_r, hg_b
+weights = np.array([_.amplitude.value for _ in gausses])
+shifts = np.array([np.abs(_.mean.value) for _ in gausses])
+mean_shift = np.average(shifts, weights=weights)
+var_shift = np.average((shifts - mean_shift)**2, weights=weights)
+displacement = 2 * mean_shift
+e_displacement = np.sqrt(2 * var_shift)
+f"Displacement: {displacement:.1f} +/- {e_displacement:.1f} arcsec"
+
+# Yes, that looks more realistic
+
 # ## Look at the individual profile fits in more detail                                                                                                                        
 # We want to see whether it makes sense to fit two gaussians in the outer lobes
 

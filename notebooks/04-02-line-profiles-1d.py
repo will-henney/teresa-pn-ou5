@@ -45,7 +45,7 @@ positions = (
     ("N knot", [20.0, 30.0]),
     ("N outer", [9.0, 18.0]),
     ("N inner", [2.0, 6.0]),
-    ("Core", [-1.5, 1.5]),
+    ("Rings", [-1.5, 1.5]),
     ("S inner", [-6.0, -2.0]),    
     ("S outer", [-18.0, -9.0]),
     ("S knot", [-30.0, -20.0]),
@@ -322,7 +322,7 @@ fig.savefig(figfile.replace(".pdf", ".jpg"))
 
 import pandas as pd
 
-m = gfits[("oiii", "Core")]
+m = gfits[("oiii", "Rings")]
 dict(zip(m.param_names, m.parameters))
 
 pd.set_option('display.precision', 2)
@@ -395,7 +395,9 @@ for plabel, ypp in positions:
             zorder=100,
         )
 ax.set(xlim=xlims, ylim=ylims)
-ax.set_title("[O III] 5007", pad=16)
+ax.set_title("Co-added Slits c + d + e: [O III] 5007", pad=16)
+ax.set_xlabel("Heliocentric velocity, km/s")
+ax.set_ylabel("Offset N–S from star, arcsec")
 figfile = "ou5-coadd-2dspec-oiii.pdf"
 fig.savefig(figfile)
 fig.savefig(figfile.replace(".pdf", ".jpg"))

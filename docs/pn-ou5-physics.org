@@ -51,7 +51,19 @@ Using the linewidth method with Ha and [N II]
 |     6 | -.014 | -0.65 | .050 | .047 | .043 |  .036 |  .029 |
 |     7 | -.030 | -1.36 | .447 | .423 | .386 |  .328 |  .265 |
 * Cloudy photoionization models
-- We can 
+- We can run some models with the Rauch atmosphere for the stellar parameters of the Jones binary solution
+- This will tell us various things
+  - The Q_3 value can be compared with what we estimate from pyneb
+  - And also it can directly give us the emissivity of the He II and H I lines
+** Stellar parameters from Jones et al 2022 for hot component
+- T_eff = 67.2 (+4.9-4.6) kK = (12.05 +/- 0.85) T_sun
+  - T_sun = 5578 K
+- Radius = 0.078 \pm 0.006 R_sun
+- We can use Stefan Boltzmann to find luminosity
+  - L / L_sun = (R / R_sun)**2 (T / T_sun)**4
+  - L / L_sun = = (0.078 +/- 0.006)**2 (12.05 +/- 0.85)**4
+  - L = 128.3 +/- 41.2
+- This is a very low luminosity for the central star
 * Ionization calculations
 :PROPERTIES:
 :ID:       27DC3864-77DC-4E3E-8623-49CBCB18C19F
@@ -63,6 +75,22 @@ Using the linewidth method with Ha and [N II]
   - The width of the He II profile is 7/9 times width of Ha (assumed the same as He I), so the interior value of He++/He is 0.3 (9/7) = 0.38
   - We can use the recombination rates to estimate what the ionizing luminosity must be in the He II continuum (h\nu > 4 Ryd)
   - And also check that it is optically thick in midplane
+- We can also find the Q_3 value from photon-counting arguments
+  - We can assume that the (He II 6560 / Ha ratio) in the horizontal slit is representative of the nebula as a whole
+  - Then we can find total He++ recombination rate in the nebula
+    - \alpha_6560 E_6560 VEM(He++) = L_6560
+    - \alpha_{He++} VEM(He++) = Q_3
+    - So Q_3 = \alpha_{He++} L_6560 / \alpha_6560 E_6560
+  - Compare with hydrogen case
+    - \alpha_6563 E_6563 VEM(H+) = L_6563
+    - \alpha_B VEM(H+) < Q_1 because optically thin to H Lyman continuum
+  - Which immediately gives us Q_3
+** He++ line equivalents in H
+- All Wavelengths should be divided by Z^2 = 4
+- \lambda4686 -> 18744 = 1.87 micron = Pa \alpha (4-3)
+- \lambda6560 -> 26240 = 2.62 micron = Br \beta (6-4)
+  - This is actually called the Pickering--Fowler series in He+
+  - Where they thought it was from half-integer quantum numbers in H, but Bohr showed it was really He+
 * Empirical measurements
 - Diameters:
   - Inner shell
@@ -415,7 +443,7 @@ CLOSED: [2025-08-08 Fri 13:47]
   |--------+-----------+---------------|
   | MEAN   |    0.5765 |               |
   #+TBLFM: @6$2..@6$3=@I - vsum(@II..@III)::@8$2=@III/@IIII;f4
-  - Here I subtract the 3 stars from the total to get the net flux, then divide by the number of pixels in the big bo to get the mean surface brightness
+  - Here I subtract the 3 stars from the total to get the net flux, then divide by the number of pixels in the big box to get the mean surface brightness
   - *So the answer is* that 0.5765 value in the FITS image corresponds to the mean surface brightness of
     - S(Ha) = 3.96e-04 erg /cm^2 /s /sr
     - Conversion to EM from [[id:BA2B583B-1C70-4223-B5B1-FAFE86721344][Balmer line surface brightness versus emission measure]]

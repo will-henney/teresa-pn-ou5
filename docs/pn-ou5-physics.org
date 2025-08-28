@@ -64,6 +64,31 @@ Using the linewidth method with Ha and [N II]
   - L / L_sun = = (0.078 +/- 0.006)**2 (12.05 +/- 0.85)**4
   - L = 128.3 +/- 41.2
 - This is a very low luminosity for the central star
+** Constraints from visual magnitudes
+- The primary eclipse in the g band (which has peak at 4686, so it is bluer than V)
+  - \delta g = 3.6, g = 23.3 to 19.7
+  - 23.3 must be the secondary magnitude m_2
+    - F_2 = 10**(-0.4 23.3) = 4.7863e-10
+  - 19.7 must be sum of primary and secondary
+    - F_1 + F_2 = 10**(-0.4 19.7) = 1.3183e-08
+    - => F_1 = 1.3183e-08 - 4.7863e-10 = 1.270437e-8
+    - => m_1 = -2.5 log10(F_1) = 19.74
+- Repeat for the r band (peak at 6165)
+  - Average of r and g is at 5425.5, which is close to V
+  - \delta r = 2.2, r = 21.4 to 19.2
+  - F_2 = 10**(-0.4 21.4) = 2.75422870334e-9
+  - F_1 + F_2 = 10**(-0.4 19.2) = 2.08929613085e-8
+  - F_1 = 2.08929613085e-8 - 2.75422870334e-9 = 1.81387326052e-8
+  - m_1 = -2.5 log10(F_1) = 19.35
+- So taking the average of the g-band and r-band values, we find an apparent magnitude of
+  - m_V = 19.55 for the primary
+- *But* we are forgetting extinction. Supposedly, A_V = 2, which we also needs to be subtracted
+- So at 4 kpc, we have a distance modulus of 5 log10(4000) - 5 = 13.01
+  - M_V = 19.55 - 13.01 - 2 = 4.54
+- If we used 3 kpc, then DM = 5 log10(3000) - 5 = 12.3856
+  - M_V = 19.55 - 12.39 - 2 = 5.16
+- *These can be compared with the Cloudy models*
+  - The standard model with T=70,000 K and L=130 L_sun has M_V = 5.2934, so that fits quite well (although it completely fails to fit the He++ continuum)
 * Ionization calculations
 :PROPERTIES:
 :ID:       27DC3864-77DC-4E3E-8623-49CBCB18C19F
@@ -91,6 +116,14 @@ Using the linewidth method with Ha and [N II]
 - \lambda6560 -> 26240 = 2.62 micron = Br \beta (6-4)
   - This is actually called the Pickering--Fowler series in He+
   - Where they thought it was from half-integer quantum numbers in H, but Bohr showed it was really He+
+** Results on Q_3 from He II lines
+- This is studied in the 05-01 notebook
+- I use our observations of the 6560 line and also the Corradi (2015) observations of 4686
+- Both give very consistent results that Q_3 = 1 to 2e45 for distance of 4 kpc
+- If we assume 3 kpc then it will be 0.56 times that
+- 
+** Results on predicted Q_3 from the model atmosphere
+
 * Empirical measurements
 - Diameters:
   - Inner shell

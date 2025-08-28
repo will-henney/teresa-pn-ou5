@@ -24,6 +24,7 @@ from astropy.wcs import WCS
 from astropy.coordinates import SkyCoord
 import astropy.units as u
 from astropy.convolution import Gaussian2DKernel, Gaussian1DKernel, convolve_fft
+from astropy.table import Table
 from matplotlib import pyplot as plt
 import seaborn as sns
 
@@ -902,6 +903,7 @@ for i, filepath in enumerate(file_list):
     im = hdu.data - 0.5 * (bg1 + bg2)
     scale = np.percentile(im[y1:y2, x1:x0], 99.99)
     im /= scale
+    print(filepath.stem, scale)
     # Save a FITS file of BG-subtracted and normalized image
     fits.PrimaryHDU(
         header=hdu.header,
@@ -999,7 +1001,10 @@ for i, filepath in enumerate(file_list):
     pos = pos[y1:y2]
     profiles[line_label] = profile.copy()
     positions[line_label] = pos.copy()
-    profile *= 1/ np.max(profile)
+    maxscale = np.max(profile)
+    sumscale = np.sum(profile[np.abs(pos) <= 10])
+    profile *= 1 / maxscale
+    print(f"{filepath.stem=}, {maxscale=}, {sumscale=}")
     line, = ax.plot(pos, profile + offset, 
                     label=line_label, 
                     color=coldict[line_label], ds="steps-mid")
@@ -1769,8 +1774,6 @@ fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
 # We will now repeat this with the two-phase model from the other notebook, with $\alpha \equiv T_c / T_w = 0.1$ and $\omega \equiv I_c / (I_c + I_w) = 0.5$.
 
 # ## Data on the fine structure components
-
-from astropy.table import Table
 
 # Read the Clegg 1999 data for $n = 100$ pcc
 
@@ -3161,7 +3164,7 @@ with sns.color_palette("dark"):
 
 
 
-# + [markdown] editable=true slideshow={"slide_type": ""} jp-MarkdownHeadingCollapsed=true
+# + [markdown] editable=true slideshow={"slide_type": ""}
 # # Some comments on the results
 #
 # Components

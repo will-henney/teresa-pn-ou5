@@ -1,0 +1,39 @@
+# Central star 
+table star Rauch H-Ni solar 107000 6.3
+luminosity total 500 linear solar
+# Diffuse X-rays (Leahy 1984)
+bremsstrahlung, temp = 6.94
+luminosity total 0.00050 linear solar
+CMB
+cosmic rays background
+#
+iterate 2
+hden 150 linear
+constant density
+radius 0.07 linear parsecs
+sphere expanding
+abundances planetary
+element carbon scale -0.4
+grains PAH
+init "ism.ini"
+stop temperature off 
+stop radius 0.3 linear parsec
+#
+# output
+set save hash "return"
+save overview last ".ovr"
+save continuum last ".cont"
+save dr last ".dr"
+save heating last ".het" 
+save cooling last ".col"
+save line emissivity last ".ems"
+H  1 6562.80A
+H  1 4861.32A
+He 2 4685.68A
+He 2 6560.01A
+He 1 5015.68A
+O  3 5006.84A
+N  2 6583.45A
+C  2 4267.00A
+end of lines
+

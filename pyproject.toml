@@ -21,6 +21,7 @@ dependencies = [
     "statsmodels>=0.14.1",
     "ipython<9", #2025-07-01: bug in 9.0.0
     "pyneb>=1.1.28",
+    "cloudytab",
 ]
 
 [project.optional-dependencies]
@@ -32,6 +33,7 @@ dev = [
 
 [tool.uv.sources]
 mes-longslit = { workspace = true }
+cloudytab = { path = "../cloudytab", editable = true }
 
 [tool.uv.workspace]
 members = ["mes-longslit"]

@@ -64,6 +64,15 @@ Using the linewidth method with Ha and [N II]
   - L / L_sun = = (0.078 +/- 0.006)**2 (12.05 +/- 0.85)**4
   - L = 128.3 +/- 41.2
 - This is a very low luminosity for the central star
+  - *This is now ruled out by the Zanstra analysis*
+** Stellar parameters from the Zanstra analysis
+- See [[id:8E92B83D-BADB-4AC7-B81E-D60E024AE574][Zanstra temperatures]] section below
+- Stellar effective temperature from [[id:C23A436C-3609-490C-ABCC-BB16E7E31906][Derived Zanstra temperature]]
+  - T = 107 +/- 10 kK
+- Luminosity from [[id:18442B66-D8CB-4EF4-BB6F-FA979F152B23][Derived luminosity]]
+  - L = 500 +/- 180 L_sun
+- Optical depth of Lyman continuum from [[id:B9698DFD-3E25-41CF-B77E-893B44846D71][H beta gives fraction of H-ionizing photons absorbed]]
+  - \eta = 0.18 \pm 0.08
 ** Constraints from visual magnitudes
 - The primary eclipse in the g band (which has peak at 4686, so it is bluer than V)
   - \delta g = 3.6, g = 23.3 to 19.7
@@ -91,10 +100,80 @@ Using the linewidth method with Ha and [N II]
   - The standard model with T=70,000 K and L=130 L_sun has M_V = 5.2934, so that fits quite well (although it completely fails to fit the He++ continuum)
   - With T=100 kK we get M_V = 6.3,
   - so this is too faint by a factor of 10**(0.4 (6.3 - 4.54) = 5.06
+** Absolute flux calibration of the stellar magnitudes
+In Jones+(2022) they say
+
+: Time-series multi-band photometry was taken with g-, r- and i- band
+: filters with the 2.5m Isaac Newton Telescope (INT) Wide Field Camera
+: (WFC) on the nights 21-23 August 2015 and 1-5 August 2016 with
+: integration times 90s, 120s and 90s, respectively. Further multi- band
+: photometry of the primary eclipse was obtained on the night of 17
+: October 2017 during first light of HiPERCAM on the WHT3 (Dhillon et
+: al. 2016, 2021), where the instrument was commissioned before its move
+: to the 10.4m Gran Telescopio Canarias (GTC; Dhillon et al. 2018).
+: Simultaneous exposures of 2.145s were taken in all bands* for a
+: duration of approximately 1.5 hours beginning prior to ingress and
+: continuing through egress (with approximately 8ms dead time between
+: exposures).
+
+and
+
+: HiPERCAM is a five-band imager with "Super SDSS" filters of which we
+: only use the 𝑔_𝑠, 𝑟_𝑠 and 𝑖_𝑠, that are comparable to the standard Sloan filters in
+: which we have data from other instruments that provide full phase
+: coverage.
+
+We will assume we can use the AB magnitude system to convert to fluxes
+
+Supposedly
+
+AB_\nu =-2.5 log f_\nu (ergs s^-1 cm^-2 Hz^-1)  — 48.60,
+
+which is in Fukugita:1996a (this comes from AB = 0 corresponding to 3631 Jy)
+
+=> log f_\nu (ergs s^-1 cm^-2 Hz^-1) = -0.4 AB_\nu - 19.44
+
+For us we have \lambda = 4686 \AA => \nu = c / \lambda = 6.39761967563e14 Hz
+
+So log \nu = 14.8060184187
+
+=> log \nu f_\nu = log \nu + log f_\nu = -0.4 AB_\nu - 19.44 + 14.8060184187 = -0.4 AB_g - 4.6340
+
+If we use the observed m_g = 19.74 and correct it for extinction using c(H\beta) = 0.94 ± 0.10 => A(H\beta) = 2.35 +/- 0.25
+
+c = -log10(F/F_0) = -log10(10^-0.4A) = 0.4 A => A = 2.5 c
+
+So, extinction-corrected m_g = 19.74 - 2.35 = 17.39 +/- 0.25
+
+Which gives log \nu f_\nu = -0.4 (17.39 +/- 0.25) - 4.6340 = -11.59 +/- 0.1
+
+*Hurray, this is very similar to the method below, which gave -11.54*
+
+This way is to be preferred since it is cleaner and can be justified with reference to published equations. And it is all done in a single pass band
+
+Note that the error of +/- 0.1 is dominated by uncertainty in the extinction. But that affects the lines and continuum equally, so it should cancel out when it comes to determining T_eff.
+
+The error in the observed photometry was about 0.05 mag = 0.02 dex
+
+We can use this to calculate the H\beta equivalent width
+
+Continuum \lambda F_\lambda = (2.57 +/- 0.12 +/- 0.59)e-12
+
+F(H\beta) = 3.8e-12 / 3 = 1.2667e-12
+
+Hence W_\lambda = F(H\beta)/F_\lambda = \lambda F(H\beta)/\lambda F_\lambda = 4861 1.2667 / (2.57 +/- 0.12) = 2400 +/- 100
+
+Note that this does not include the atomic nebular continuum, but I am not sure how bright that is. 
+
+
+
 * Zanstra temperatures
+:PROPERTIES:
+:ID:       8E92B83D-BADB-4AC7-B81E-D60E024AE574
+:END:
 - What we are doing with the He++ ionization is akin to a Zanstra temperature, so we need to understand how this has been done historically.
 - Stanghellini+ 2002 cite Stanghellini 1993 who cite Kaler 1983
-  - Who in turn cites Kaler 1981a and Harman & Seaton (1966)
+  - Who in turn cites Kaler 1981a /and Harman & Seaton (1966), which is the good one/
 - Historical overview in Osterbrock:2002a
   - Initial paper Zanstra:1931a
     - Some confusion over dates since there is also a Zanstra:1929a which is the same
@@ -131,6 +210,7 @@ They also use a covering factor \xi = \Omega / 4 \pi
     - So we have  \[\log ( \nu F_\nu) = -0.4 m_V - 4.52\]
   - For Ou 5 we have extinction-corrected apparent m_V = 19.55 - 2 = 17.55
     - So log ( \nu F_\nu) = -0.4 17.55 - 4.52 = -11.54
+    - In theory it would be better to just use the g band, since this is centered on H\beta region, and to calculate the equivalent flux properly based on the calibration of the magnitude scale
 - Black body result for luminosity parameter 
   \[
   \Lambda =2.590 \times 10^9 (\nu F_\nu) t^4 (e^{2.96/t} - 1)
@@ -199,15 +279,24 @@ They also use a covering factor \xi = \Omega / 4 \pi
 |             |          |          | 0.00 / 0.00 |     0.00 |   0.00 | 0.00/0 |
 #+TBLFM: $4=3.64e11 8.9933e-13 $1 / 0.83 $3;f2::$5=7.4696e-03 $1**4 (exp(2.96/$1) - 1) ;f2::$6=$5/$4;f2::$7=2.279 $3/$2;f2::@10$2=vmean([@-1, @+1]);f3::@10$3=vmean([@-1, @+1]);s4
 *** Derived Zanstra temperature
+:PROPERTIES:
+:ID:       C23A436C-3609-490C-ABCC-BB16E7E31906
+:END:
 - So it looks like the cross-over occurs around \Lambda = 31.5, which is t = 10.7
 - And if we assume a factor 2 uncertainty in the ratio, then this is +/- 1
   - So T = 107 +/- 10 kK
   - And take t = 7 would under-predict He II by factor of 30
 
 *** Derived luminosity
+:PROPERTIES:
+:ID:       18442B66-D8CB-4EF4-BB6F-FA979F152B23
+:END:
 - Assuming D = 4 kpc, then L = D**2 \Lambda = 16 31.5 = 504. L_sun
 
 *** H beta gives fraction of H-ionizing photons absorbed
+:PROPERTIES:
+:ID:       B9698DFD-3E25-41CF-B77E-893B44846D71
+:END:
 - This need not be optically thick, so we have a fraction \eta of the H-ionizing photons being absorbed
 - Other than that, it is the same as for He II
 - So combining (53) and (54) of Harman:1966a we have

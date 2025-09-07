@@ -367,6 +367,23 @@ wheels = [
 ]
 
 [[package]]
+name = "cloudytab"
+version = "0.1.0"
+source = { editable = "../cloudytab" }
+dependencies = [
+    { name = "astropy" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "astropy", specifier = ">=6.0.0" }]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "pyright", specifier = ">=1.1.353" },
+    { name = "pytest", specifier = ">=8.1.1" },
+]
+
+[[package]]
 name = "cmasher"
 version = "1.9.2"
 source = { registry = "https://pypi.org/simple" }
@@ -2289,6 +2306,7 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "astropy" },
+    { name = "cloudytab" },
     { name = "cmasher" },
     { name = "ipython" },
     { name = "jupyter" },
@@ -2317,6 +2335,7 @@ dev = [
 requires-dist = [
     { name = "astropy" },
     { name = "black", marker = "extra == 'dev'" },
+    { name = "cloudytab", editable = "../cloudytab" },
     { name = "cmasher" },
     { name = "flit", marker = "extra == 'dev'" },
     { name = "ipython", specifier = "<9" },

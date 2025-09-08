@@ -63,16 +63,20 @@ Using the linewidth method with Ha and [N II]
   - L / L_sun = (R / R_sun)**2 (T / T_sun)**4
   - L / L_sun = = (0.078 +/- 0.006)**2 (12.05 +/- 0.85)**4
   - L = 128.3 +/- 41.2
-- This is a very low luminosity for the central star
-  - *This is now ruled out by the Zanstra analysis*
+- This is quite a low luminosity for the central star
+  - The Zanstra analysis would give 225 +/- 52 L_sun if the distance were 3 kpc, which is marginally consistent with the Jones value
 ** Stellar parameters from the Zanstra analysis
 - See [[id:8E92B83D-BADB-4AC7-B81E-D60E024AE574][Zanstra temperatures]] section below
 - Stellar effective temperature from [[id:C23A436C-3609-490C-ABCC-BB16E7E31906][Derived Zanstra temperature]]
-  - T = 107 +/- 10 kK
+  - T = (103 + 4 - 3) kK
 - Luminosity from [[id:18442B66-D8CB-4EF4-BB6F-FA979F152B23][Derived luminosity]]
-  - L = 500 +/- 180 L_sun
+  - L = (400 +/- 92) L_sun (D / 4 kpc)^2
+- Stellar radius from Stefan Boltzmann
+  - R / R_sun = sqrt(L / L_sun) / (T / T_sun)**2 = sqrt(400 +/- 92) / (103 +/- 4 / 5.578)**2
+  - R / R_sun = 0.059 +/- 0.008
+  - So that is interesting that we get a smaller radius than Jones
 - Optical depth of Lyman continuum from [[id:B9698DFD-3E25-41CF-B77E-893B44846D71][H beta gives fraction of H-ionizing photons absorbed]]
-  - \eta = 0.18 \pm 0.08
+  - \eta = 0.198 \pm 0.002
 ** Constraints from visual magnitudes
 - The primary eclipse in the g band (which has peak at 4686, so it is bluer than V)
   - \delta g = 3.6, g = 23.3 to 19.7
@@ -101,6 +105,9 @@ Using the linewidth method with Ha and [N II]
   - With T=100 kK we get M_V = 6.3,
   - so this is too faint by a factor of 10**(0.4 (6.3 - 4.54) = 5.06
 ** Absolute flux calibration of the stellar magnitudes
+:PROPERTIES:
+:ID:       089874E1-67F5-455B-BC7C-CC0891434EEA
+:END:
 In Jones+(2022) they say
 
 : Time-series multi-band photometry was taken with g-, r- and i- band
@@ -163,7 +170,7 @@ F(H\beta) = 3.8e-12 / 3 = 1.2667e-12
 
 Hence W_\lambda = F(H\beta)/F_\lambda = \lambda F(H\beta)/\lambda F_\lambda = 4861 1.2667 / (2.57 +/- 0.12) = 2400 +/- 100
 
-Note that this does not include the atomic nebular continuum, but I am not sure how bright that is. 
+Note that this does not include the atomic nebular continuum, but I am not sure how bright that is.
 
 
 
@@ -211,6 +218,9 @@ They also use a covering factor \xi = \Omega / 4 \pi
   - For Ou 5 we have extinction-corrected apparent m_V = 19.55 - 2 = 17.55
     - So log ( \nu F_\nu) = -0.4 17.55 - 4.52 = -11.54
     - In theory it would be better to just use the g band, since this is centered on H\beta region, and to calculate the equivalent flux properly based on the calibration of the magnitude scale
+      - This is now done in [[id:089874E1-67F5-455B-BC7C-CC0891434EEA][Absolute flux calibration of the stellar magnitudes]]
+      - I get log ( \nu F_\nu) = -11.59 +/- 0.02 +/- 0.1
+      - First error is photometry, second includes extinction
 - Black body result for luminosity parameter 
   \[
   \Lambda =2.590 \times 10^9 (\nu F_\nu) t^4 (e^{2.96/t} - 1)
@@ -219,24 +229,24 @@ They also use a covering factor \xi = \Omega / 4 \pi
 - Graph of \Lambda(star) versus T for m_V = 17.55
   
 
-| t = T/1e4 K | \Lambda(star) |
-|-------------+----------|
-|           1 |   0.1367 |
-|           2 |   0.4055 |
-|           3 |   1.0178 |
-|           4 |   2.0957 |
-|           5 |   3.7703 |
-|           6 |   6.1740 |
-|           7 |   9.4392 |
-|           8 |  13.6987 |
-|           9 |  19.0849 |
-|          10 |  25.7305 |
-|          11 |  33.7683 |
-|          12 |  43.3308 |
-|          13 |  54.5506 |
-|          14 |  67.5605 |
-|          15 |  82.4931 |
-#+TBLFM: $2=7.4696e-03 $1**4 (exp(2.96/$1) - 1) ;f4
+| t = T/1e4 K | \Lambda(star)           |
+|-------------+--------------------|
+|           1 | 0.1218 +/- 0.0056  |
+|           2 | 0.3614 +/- 0.0166  |
+|           3 | 0.9072 +/- 0.0418  |
+|           4 | 1.8678 +/- 0.0860  |
+|           5 | 3.3603 +/- 0.1547  |
+|           6 | 5.5026 +/- 0.2534  |
+|           7 | 8.4128 +/- 0.3874  |
+|           8 | 12.2090 +/- 0.5622 |
+|           9 | 17.0095 +/- 0.7833 |
+|          10 | 22.9325 +/- 1.0561 |
+|          11 | 30.0962 +/- 1.3860 |
+|          12 | 38.6188 +/- 1.7785 |
+|          13 | 48.6186 +/- 2.2390 |
+|          14 | 60.2137 +/- 2.7729 |
+|          15 | 73.5225 +/- 3.3858 |
+#+TBLFM: $2=2.590e9 10**(-11.59 +/- 0.02) $1**4 (exp(2.96/$1) - 1) ;f4
 *** He II
 - Based on the 4686 line
   \[
@@ -245,10 +255,13 @@ They also use a covering factor \xi = \Omega / 4 \pi
 - where
   - \mathcal{F}(\lambda4686) is the line flux
     - For Ou 5 we have
-      - Extinction-corrected Ha flux F(Ha) = 3.8e-12 erg/s/cm2
-      - 4686/Hb = 0.71
+      - Extinction-corrected Ha flux F(Ha) = 3.8e-12 erg/s/cm2 (1 +/- 0.14 +/- 0.23)
+      - 4686/Hb = 0.71 (1 +/- 0.01)
       - Assume Ha/Hb = 3
-      - So F(4686) =  0.71 3.8e-12 / 3 = 8.9933e-13 erg/s/cm2
+      - So F(4686) =  0.71 3.8e-12 / 3 = 8.9933e-13 erg/s/cm2 (1 +/- 0.14 +/- 0.23)
+      - Where fractional uncertainty is (1 +/- photom +- extinct)
+      - Extinction error is from roughly 10% uncertainty in c(Hb)
+      - so F(4686) =  (9.0 +/- 1.3 +/- 2.1)e-12
   - F_4(t) is the dimensionless integral of stellar photon spectrum beyond 4 Rydbergs
     - Given by table VI of Harman:1966a
   - Covering fraction \xi
@@ -257,41 +270,50 @@ They also use a covering factor \xi = \Omega / 4 \pi
       - Take r, z = 5.3, 8 for inner shell top edge
       - So polar opening angle is \theta = arctan(5.3/8) = 33.5245
       - So \xi = cos(33.5245) = 0.8336, which is not so different from unity
+      - Assume +/- 10% uncertainty in \xi
+- Then we multiply by 0.68 to account for the difference in the Case B fraction of 4686 photons per He++ recombination, which in the notebook 05-01 I calculate to be 0.26 at 6000 K, whereas HS66 assumed 0.18 at 15,000 K
 
 **** Table of derived luminosity parameters for Ou 5 observations as function of assumed stellar temperature
-| t = T/1e4 K |       F_1 |       F_4 |    \Lambda(4686) | \Lambda(star) |  Ratio |      \eta |
-|-------------+----------+----------+-------------+----------+--------+--------|
-|           2 | 2.987e-2 |          | 0.65 / 0.00 |     0.41 |   0.00 |   0.00 |
-|         2.5 | 9.864e-2 |          | 0.82 / 0.00 |     0.66 |   0.00 |   0.00 |
-|           3 | 2.088e-1 | 3.508e-7 |  3372904.48 |     1.02 | 3.0e-7 | 3.8e-6 |
-|           4 | 4.956e-1 | 3.931e-5 |    40132.79 |     2.10 | 5.2e-5 | 1.8e-4 |
-|           5 | 7.902e-1 | 6.106e-4 |     3229.65 |     3.77 | 1.2e-3 | 1.8e-3 |
-|           6 |    1.048 | 3.591e-3 |      658.99 |     6.17 | 9.4e-3 | 7.8e-3 |
-|           8 |    1.434 | 2.987e-2 |      105.63 |    13.70 |   0.13 |   0.05 |
-|          10 |    1.688 | 9.864e-2 |       39.98 |    25.73 |   0.64 |   0.13 |
-|          11 |    1.773 | 1.537e-1 |       28.23 |    33.77 |   1.20 |   0.20 |
-|          12 |    1.857 | 2.088e-1 |       22.67 |    43.33 |   1.91 |   0.26 |
-|          15 |    2.019 | 4.202e-1 |       14.08 |    82.49 |   5.86 |   0.47 |
-|          20 |    2.166 | 7.902e-1 |        9.98 |   190.64 |  19.10 |   0.83 |
-|          25 |    2.243 |    1.106 |        8.92 |   366.75 |  41.12 |   1.12 |
-|          30 |    2.288 |    1.353 |        8.75 |   627.41 |  71.70 |   1.35 |
-|          40 |    2.336 |    1.688 |        9.35 |  1468.71 | 157.08 |   1.65 |
-|             |          |          | 0.00 / 0.00 |     0.00 |   0.00 | 0.00/0 |
-#+TBLFM: $4=3.64e11 8.9933e-13 $1 / 0.83 $3;f2::$5=7.4696e-03 $1**4 (exp(2.96/$1) - 1) ;f2::$6=$5/$4;f2::$7=2.279 $3/$2;f2::@10$2=vmean([@-1, @+1]);f3::@10$3=vmean([@-1, @+1]);s4
+| t = T/1e4 K |       F_1 |       F_4 | \Lambda(4686)               | \Lambda(star)        | Ratio             | \eta                   |
+|-------------+----------+----------+------------------------+-----------------+-------------------+---------------------|
+|           3 | 2.088e-1 | 3.508e-7 | 2295283.8 +/- 403240.3 | 0.9 +/- 4e-2    | 3.9e-7 +/- 7.1e-8 | 3.83e-6 +/- 3.83e-8 |
+|           4 | 4.956e-1 | 3.931e-5 | 27310.6 +/- 4798.0     | 1.9 +/- 9e-2    | 7.0e-5 +/- 1.3e-5 | 1.81e-4 +/- 1.81e-6 |
+|           5 | 7.902e-1 | 6.106e-4 | 2197.8 +/- 386.1       | 3.4 +/- 0.2     | 1.5e-3 +/- 2.9e-4 | 0.002 +/- 1.76e-5   |
+|           6 |    1.048 | 3.591e-3 | 448.4 +/- 78.8         | 5.5 +/- 0.3     | 0.01 +/- 2.3e-3   | 0.008 +/- 7.81e-5   |
+|           8 |    1.434 | 2.987e-2 | 71.9 +/- 12.6          | 12.2 +/- 0.6    | 0.17 +/- 0.03     | 0.047 +/- 4.75e-4   |
+|          10 |    1.688 | 9.864e-2 | 27.2 +/- 4.8           | 22.9 +/- 1.1    | 0.84 +/- 0.15     | 0.133 +/- 0.001     |
+|          11 |    1.773 | 1.537e-1 | 19.2 +/- 3.4           | 30.1 +/- 1.4    | 1.57 +/- 0.29     | 0.198 +/- 0.002     |
+|          12 |    1.857 | 2.088e-1 | 15.4 +/- 2.7           | 38.6 +/- 1.8    | 2.51 +/- 0.45     | 0.256 +/- 0.003     |
+|          15 |    2.019 | 4.202e-1 | 9.6 +/- 1.7            | 73.5 +/- 3.4    | 7.66 +/- 1.40     | 0.474 +/- 0.005     |
+|          20 |    2.166 | 7.902e-1 | 6.8 +/- 1.2            | 169.9 +/- 7.8   | 24.99 +/- 4.56    | 0.831 +/- 0.008     |
+|          25 |    2.243 |    1.106 | 6.1 +/- 1.1            | 326.9 +/- 15.1  | 53.59 +/- 9.98    | 1.124 +/- 0.011     |
+|          30 |    2.288 |    1.353 | 6.0 +/- 1.0            | 559.2 +/- 25.8  | 93.20 +/- 16.12   | 1.348 +/- 0.013     |
+|          40 |    2.336 |    1.688 | 6.4 +/- 1.1            | 1309.0 +/- 60.3 | 204.53 +/- 36.39  | 1.647 +/- 0.016     |
+#+TBLFM: $4=0.68 3.64e11 (9.0 +/- 1.3) 1e-13 $1 / 0.83 (1 +/- 0.1) $3;f1::$5=2.590e9 10**(-11.59 +/- 0.02) $1**4 (exp(2.96/$1) - 1) ;f1::$6=$5/$4;f2::$7=(5.89/3.64 0.71) (1 +/- 0.01) $3/$2;f3::@8$2=vmean([@-1, @+1]);f3::@8$3=vmean([@-1, @+1]);s4
 *** Derived Zanstra temperature
 :PROPERTIES:
 :ID:       C23A436C-3609-490C-ABCC-BB16E7E31906
 :END:
-- So it looks like the cross-over occurs around \Lambda = 31.5, which is t = 10.7
-- And if we assume a factor 2 uncertainty in the ratio, then this is +/- 1
-  - So T = 107 +/- 10 kK
-  - And take t = 7 would under-predict He II by factor of 30
+- So it looks like the cross-over occurs around \Lambda = 25, which we will find by linear interpolation on log of ratio:
+  - 10 has log r = -0.0757
+  - 11 has log r = 0.1959
+  - So log r = 0 at t = 10 + 0.0757 / (0.1959 + 0.0757) = 10.2787, say 10.3 
+- t = 10 has ratio 0.84 +/- 0.15, so that 1.0667 sigma away from unity
+- t = 11 has ratio 1.57 +/- 0.29, so that is 1.9655 sigma away from unity
+- This implies an asymmetric error, which if we interpolate linearly gives
+  - negative 1 sigma error: (10.2787 - 10)/1.0667 = 0.2613
+  - positive 1 sigma error: (11 - 10.2787)/1.9655 = 0.3670
+- So final result is T = (103 + 4 - 3) kK
 
 *** Derived luminosity
 :PROPERTIES:
 :ID:       18442B66-D8CB-4EF4-BB6F-FA979F152B23
 :END:
-- Assuming D = 4 kpc, then L = D**2 \Lambda = 16 31.5 = 504. L_sun
+- Doing linear interpolation for \Lambda_* yields 22.9 + 0.2787 (30.1 - 22.9) = 24.9
+- Assuming D = 4 kpc, then L = D**2 \Lambda = 16 24.9066 = 399 L_sun
+- Uncertainty should now include the systematic extinction uncertainty, so 0.1 dex = 23%
+- L = (400 +/- 92) L_sun
+- The errors do not include the uncertainty in distance, so they would be 0.5625 times smaller at 3 kpc: 225 +/- 52 L_sun
 
 *** H beta gives fraction of H-ionizing photons absorbed
 :PROPERTIES:
@@ -300,8 +322,10 @@ They also use a covering factor \xi = \Omega / 4 \pi
 - This need not be optically thick, so we have a fraction \eta of the H-ionizing photons being absorbed
 - Other than that, it is the same as for He II
 - So combining (53) and (54) of Harman:1966a we have
-  \eta = (5.89/3.64) [F(Hb)/F(4686)] F_4(t) / F_1(t) = 2.279 F_4(t) / F_1(t)
-- From the above table, this yields \eta = 0.18 \pm 0.08
+  \eta = (5.89/3.64) [F(Hb)/F(4686)] F_4(t) / F_1(t) 
+- From the above table, this yields \eta = 0.198 \pm 0.002
+- The errors are very small since the claimed accuracy of [F(Hb)/F(4686)] is 1%
+- But there is also uncertainty in the recombination coefficients at different temperatures
 
 * Ionization calculations
 :PROPERTIES:
@@ -886,6 +910,7 @@ CLOSED: [2025-08-08 Fri 12:01]
 :END:
 - From Corradi:2014j we have the observed total H alpha flux of the nebula
   - F(Hα)= 8.5e-13 erg cm-2 s-1
+  - They give no uncertainty on this, but we can assume that it is similar to the uncertainty in the radio flux, which is +/- 14%
 - And radio flux
   - 3.6 ± 0.5 mJy at 1.4 GHz.
     - Conversion to 5 GHz should be as F \propto \nu^-0.1

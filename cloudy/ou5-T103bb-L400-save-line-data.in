@@ -1,0 +1,37 @@
+# Central star 
+black body, temperature = 103000 K
+luminosity total 400 linear solar
+# Diffuse X-rays (Leahy 1984)
+bremsstrahlung, temp = 6.94
+luminosity total 0.00050 linear solar
+CMB
+cosmic rays background
+#
+species "O+" levels=50
+#
+hden 150 linear
+constant density
+radius 0.06 linear parsecs
+sphere expanding
+abundances planetary
+element carbon scale -0.4
+grains PAH
+stop temperature off
+stop zone 1
+stop radius 0.14 linear parsec
+#
+element Lithium    on
+element Beryllium  on
+element Boron      on
+element Scandium   on
+element Titanium   on
+element Vanadium   on
+element Chromium   on
+element Manganese  on
+element Cobalt     on
+element Copper     on
+element Zinc       on
+#
+# output
+save line data ".txt"
+

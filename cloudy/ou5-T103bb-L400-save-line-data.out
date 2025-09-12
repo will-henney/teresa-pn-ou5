@@ -1,0 +1,106 @@
+                                                    Cloudy (master, 33524a9f)
+                                                         www.nublado.org
+
+                                                  PRNG seed: 0xa1d63541900ba550
+
+                       **************************************23Jul25**************************************
+                       *                                                                                 *
+                       * # Central star                                                                  *
+                       * black body, temperature = 103000 K                                              *
+                       * luminosity total 400 linear solar                                               *
+                       * # Diffuse X-rays (Leahy 1984)                                                   *
+                       * bremsstrahlung, temp = 6.94                                                     *
+                       * luminosity total 0.00050 linear solar                                           *
+                       * CMB                                                                             *
+                       * cosmic rays background                                                          *
+                       * #                                                                               *
+                       * species "O+" levels=50                                                          *
+                       * #                                                                               *
+                       * hden 150 linear                                                                 *
+                       * constant density                                                                *
+                       * radius 0.06 linear parsecs                                                      *
+                       * sphere expanding                                                                *
+                       * abundances planetary                                                            *
+                       * #<<< mie_read_opc reading file -- graphite_ism_10.opc                      >>>> *
+                       * #<<< mie_read_opc reading file -- silicate_ism_10.opc                      >>>> *
+                       * element carbon scale -0.4                                                       *
+                       * grains PAH                                                                      *
+                       * #<<< mie_read_opc reading file -- pah1_ab08_10.opc                         >>>> *
+                       * stop temperature off                                                            *
+                       * stop zone 1                                                                     *
+                       * stop radius 0.14 linear parsec                                                  *
+                       * #                                                                               *
+                       * element Lithium    on                                                           *
+                       * element Beryllium  on                                                           *
+                       * element Boron      on                                                           *
+                       * element Scandium   on                                                           *
+                       * element Titanium   on                                                           *
+                       * element Vanadium   on                                                           *
+                       * element Chromium   on                                                           *
+                       * element Manganese  on                                                           *
+                       * element Cobalt     on                                                           *
+                       * element Copper     on                                                           *
+                       * element Zinc       on                                                           *
+                       * #                                                                               *
+                       * # output                                                                        *
+                       * save line data ".txt"                                                           *
+                       *                                                                                 *
+                       ***********************************************************************************
+
+
+
+Attention: duplicate reaction CH,O=>H,CO -- using new version
+Attention: duplicate reaction e-,CH2+=>H,CH -- using new version
+Attention: duplicate reaction e-,CH2+=>H2,C -- using new version
+Attention: duplicate reaction e-,CH3+=>H,H2,C -- using new version
+Attention: duplicate reaction e-,CH3+=>H,CH2 -- using new version
+Attention: duplicate reaction e-,CH3+=>H2,CH -- using new version
+Attention: duplicate reaction e-,CO+=>C,O -- using new version
+Attention: duplicate reaction H,CH=>H2,C -- using new version
+Attention: duplicate reaction H2,CO+=>H,HCO+ -- using new version
+Attention: duplicate reaction H2,CH2+=>H,CH3+ -- using new version
+Attention: duplicate reaction H2,C+=>PHOTON,CH2+ -- using new version
+Attention: duplicate reaction C2,N=>C,CN -- using new version
+Attention: duplicate reaction C+,CH=>H,C2+ -- using new version
+Attention: duplicate reaction C+,CH=>C,CH+ -- using new version
+Attention: duplicate reaction CH3+,O=>H2,HCO+ -- using new version
+Attention: duplicate reaction CH,N=>H,CN -- using new version
+Attention: duplicate reaction C+,NH=>H,CN+ -- using new version
+Attention: duplicate reaction e-,HCO+=>H,CO -- using new version
+Attention: duplicate reaction CRPHOT,C=>e-,C+ -- using new version
+Attention: duplicate reaction C+,OH=>H,CO+ -- using new version
+Attention: duplicate reaction H-,Li+=>H,Li -- using new version
+ NOTE Setcon: continuum has zero intensity starting at  4.7382e+03 Ryd.
+   245 cells in the incident continuum have zero intensity.  Problems???
+
+           9244CellPeak1.84E+00   Lo 3.04e-09=  29.98m   Hi-Con:7.13E+06 Ryd   E(hi):7.35E+06Ryd     E(hi):     100.00 MeV
+           L(nu>1ryd):  36.1392   Average nu:2.220E+00   L( X-ray):  30.0487   L(BalC):  35.1721     Q(Balmer C):  46.0129
+           Q(1.0-1.8):  46.0900   Q(1.8-4.0):  46.1552   Q(4.0-20):  45.2718   Q(20--):  39.0360     Ion pht flx:6.609E+10
+           L(gam ray):   0.0000   Q(gam ray):   0.0000   L(Infred):  33.9637   Alf(ox):  -2.9532     Total lumin:  36.1863
+           log L/Lsun:   2.6033   Abs bol mg:  -1.7683   Abs V mag:   4.6679   Bol cor:  -6.4362     nuFnu(Bbet):  33.6838
+           U(1.0----):1.470E-02   U(4.0----):9.654E-04   T(En-Den):1.120E+01   T(Comp):9.833E+04     nuJnu(912A):8.317E-01
+           Occ(FarIR):1.838E+04   Occ(H n=6):3.204E-15   Occ(1Ryd):3.834E-17   Occ(4R):3.002E-19     Occ (Nu-hi):0.000E+00
+           Tbr(FarIR):8.835E+00   Tbr(H n=6):1.403E-11   Tbr(1Ryd):6.052E-12   Tbr(4R):1.899E-13     Tbr (Nu-hi):0.000E+00
+  
+                                                  Gas Phase Chemical Composition
+        H :  0.0000  He: -1.0000  Li: -8.6904  Be:-10.5800  B : -9.2097  C : -3.5079  N : -3.7447  O : -3.3565  F : -6.5229
+        Ne: -3.9586  Na: -5.7212  Mg: -5.7959  Al: -6.5686  Si: -5.0000  P : -6.6990  S : -5.0000  Cl: -6.7696  Ar: -5.5686
+        K : -6.9208  Ca: -7.9208  Sc: -8.8297  Ti: -6.9788  V : -8.0000  Cr: -6.3298  Mn: -6.5406  Fe: -6.3010  Co: -7.0799
+                                               Ni: -7.7447  Cu: -7.7905  Zn: -7.4001
+ 
+                                                    Grain Chemical Composition
+                                  C : -3.5553  O : -3.8821  Mg: -4.4841  Si: -4.4841  Fe: -4.4841
+                                                   Sum Atoms Depleted: -30.0000
+                                                   Depletion/Grains-1: -100.00%
+ 
+              Number of grains per hydrogen (scale=1)                         Mass of grains per hydrogen (scale=1)
+        Carbonaceous: -9.811  Silicate: -9.748  PAH: -7.523         Carbonaceous: -2.476  Silicate: -2.248  PAH: -4.446
+
+ saving line data, then stopping
+
+ The code is left in a disturbed state after creating the SAVE LINE DATA file.
+ No calculation is actually performed, only the SAVE LINE DATA file is produced.
+ Remove the SAVE LINE DATA command to do the calculation.
+
+ ChkMonitorend is ok.
+ [Stop in SaveLineData at save_linedata.cpp:242, Cloudy exited OK]

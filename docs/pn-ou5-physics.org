@@ -59,6 +59,18 @@ Using the linewidth method with Ha and [N II]
 -
 
 
+** Metal recomb lines
+- Cloudy does not include these in the full line calculations (using STOUT data)
+- Instead it has a set of analytic fits from various sources.
+  - Often these are for the full multiplet instead of individual components
+- Particular cases
+  - O II multiplet V1
+    - ~O  2 4651.00A~ is type: r, recombination line
+      - Is this just the two components though? or the whole multiplet
+    - ~O 2R 4651.00A~ is type: t, total recombination, 4638.86-4696.35 (8 lines)
+    - ~O  2 4649.13A~ is one component: 3s 4P5/2  -- 3p 4D*7/2
+    - ~O  2 4650.84A~ is another component: 3s 4P1/2 -- 3p 4D*1/2
+
 ** TODO Adjusting the abundances
 - We should use the empirically determined abundances to set everything for the Cloudy models
   - At least for the warm phase with the CEL abundances
@@ -80,9 +92,6 @@ Ou 5
 
 
 
-
-
-
 | Element | Abundance.      | Corrected        |
 |---------+-----------------+------------------|
 | He      | 11.30 ÷ 0.05    | 11.29 $ 0.05     |
@@ -93,7 +102,22 @@ Ou 5
 | Ar      | 6.15 $ 0.05     | 6.29 ÷ 0.05      |
 | Cl      | 5.02 +0.20      | 5.20 +0.17 -0.20 |
 |         |                 |                  |
+*** Carbon abundance
+We observe only C++ so need an icf
 
+|  \omega | icf(C++/O++) |       |
+|-----+--------------+-------|
+| 0.1 |        0.245 | 0.301 |
+| 0.2 |        0.395 | 0.216 |
+| 0.3 |        0.511 | 0.148 |
+| 0.4 |        0.602 | 0.097 |
+| 0.5 |        0.680 | 0.066 |
+| 0.6 |        0.755 | 0.056 |
+| 0.7 |        0.837 | 0.069 |
+| 0.8 |        0.936 | 0.106 |
+| 0.9 |        1.064 | 0.169 |
+| 1.0 |        1.230 | 0.260 |
+#+TBLFM: $2=0.05 + 2.21 $1 - 2.77 $1**2 + 1.74 $1**3;f3::$3=0.4 − 1.06 $1 + 0.65 $1**2 + 0.27 $1**3;f3
 
 ** Checking the integrated line ratios
 - We grep the output files to get the information
@@ -115,7 +139,7 @@ Ou 5
 *** He II line
 - These are all too low
 #+begin_src bash :dir ../cloudy :results output table
-  for f in $(ls ou5-T115-L660*lha*.out); do
+  for f in $(ls ou5*-T115-L660*lha*.out); do
       printf "$f "; grep "4685.68A" $f |tail -1 | cut -c20-48
   done
 #+end_src
@@ -133,6 +157,7 @@ Ou 5
 | ou5-T115-L660-p-llha-Z6fluct-long.out  | 4685.68A |  32.96 | 0.5341 |
 | ou5-T115-L660-p-llha-Z6fluct-short.out | 4685.68A | 32.926 |  0.442 |
 | ou5-T115-L660-p-llha.out               | 4685.68A | 32.845 | 0.6067 |
+| ou5a-T115-L660-p-llha.out              | 4685.68A | 32.787 | 1.4119 |
 
 
 Broader range of models
@@ -167,18 +192,25 @@ Broader range of models
 
 *** Peimbert parameters
 #+begin_src bash :dir ../cloudy :results output table
-  for f in $(ls ou5-T115-L660*lha*.out); do
+  for f in $(ls ou5*-T115-L660*lha*.out); do
       printf "$f "; grep "Peimbert" $f |tail -1 #| cut -c20-48
   done
 #+end_src
 
 #+RESULTS:
-| ou5-T115-L660-n-lha-Z6fluct-long.out  | Peimbert | T(OIIIr)8.48E+03 | T(Bac)3.94E+03 | T(Hth)3.90E+03 | t2(Hstrc) |   0.154 | T(O3-BAC)4.69E+03 | t2(O3-BC) |  0.0983 | t2(O3str) |   0.191 |
-| ou5-T115-L660-n-lha-Z6fluct-short.out | Peimbert | T(OIIIr)8.67E+03 | T(Bac)3.64E+03 | T(Hth)3.61E+03 | t2(Hstrc) |    0.24 | T(O3-BAC)4.43E+03 | t2(O3-BC) |   0.109 | t2(O3str) |   0.235 |
-| ou5-T115-L660-n-lha.out               | Peimbert | T(OIIIr)1.02E+04 | T(Bac)1.02E+04 | T(Hth)1.01E+04 | t2(Hstrc) |  0.0067 | T(O3-BAC)1.02E+04 | t2(O3-BC) | 0.00272 | t2(O3str) | 0.00452 |
-| ou5-T115-L660-p-lha-Z6fluct-long.out  | Peimbert | T(OIIIr)8.00E+03 | T(Bac)3.35E+03 | T(Hth)3.33E+03 | t2(Hstrc) |   0.222 | T(O3-BAC)4.01E+03 | t2(O3-BC) |   0.101 | t2(O3str) |   0.177 |
-| ou5-T115-L660-p-lha-Z6fluct-short.out | Peimbert | T(OIIIr)7.56E+03 | T(Bac)3.31E+03 | T(Hth)3.30E+03 | t2(Hstrc) |   0.193 | T(O3-BAC)3.91E+03 | t2(O3-BC) |  0.0919 | t2(O3str) |   0.085 |
-| ou5-T115-L660-p-lha.out               | Peimbert | T(OIIIr)1.03E+04 | T(Bac)1.01E+04 | T(Hth)1.00E+04 | t2(Hstrc) | 0.00721 | T(O3-BAC)1.01E+04 | t2(O3-BC) | 0.00515 | t2(O3str) | 0.00442 |
+| ou5-T115-L660-n-lha-Z6fluct-long.out   | Peimbert | T(OIIIr)8.48E+03 | T(Bac)3.94E+03 | T(Hth)3.90E+03 | t2(Hstrc) |   0.154 | T(O3-BAC)4.69E+03 | t2(O3-BC) |  0.0983 | t2(O3str) |   0.191 |
+| ou5-T115-L660-n-lha-Z6fluct-short.out  | Peimbert | T(OIIIr)8.67E+03 | T(Bac)3.64E+03 | T(Hth)3.61E+03 | t2(Hstrc) |    0.24 | T(O3-BAC)4.43E+03 | t2(O3-BC) |   0.109 | t2(O3str) |   0.235 |
+| ou5-T115-L660-n-lha.out                | Peimbert | T(OIIIr)1.02E+04 | T(Bac)1.02E+04 | T(Hth)1.01E+04 | t2(Hstrc) |  0.0067 | T(O3-BAC)1.02E+04 | t2(O3-BC) | 0.00272 | t2(O3str) | 0.00452 |
+| ou5-T115-L660-n-llha-Z6fluct-long.out  | Peimbert | T(OIIIr)8.87E+03 | T(Bac)3.50E+03 | T(Hth)3.50E+03 | t2(Hstrc) |   0.187 | T(O3-BAC)4.35E+03 | t2(O3-BC) |   0.116 | t2(O3str) |   0.233 |
+| ou5-T115-L660-n-llha-Z6fluct-short.out | Peimbert | T(OIIIr)9.04E+03 | T(Bac)3.14E+03 | T(Hth)3.13E+03 | t2(Hstrc) |   0.301 | T(O3-BAC)4.00E+03 | t2(O3-BC) |   0.127 | t2(O3str) |   0.313 |
+| ou5-T115-L660-n-llha.out               | Peimbert | T(OIIIr)1.06E+04 | T(Bac)9.94E+03 | T(Hth)9.98E+03 | t2(Hstrc) | 0.00677 | T(O3-BAC)1.02E+04 | t2(O3-BC) |  0.0123 | t2(O3str) | 0.00453 |
+| ou5-T115-L660-p-lha-Z6fluct-long.out   | Peimbert | T(OIIIr)8.00E+03 | T(Bac)3.35E+03 | T(Hth)3.33E+03 | t2(Hstrc) |   0.222 | T(O3-BAC)4.01E+03 | t2(O3-BC) |   0.101 | t2(O3str) |   0.177 |
+| ou5-T115-L660-p-lha-Z6fluct-short.out  | Peimbert | T(OIIIr)7.56E+03 | T(Bac)3.31E+03 | T(Hth)3.30E+03 | t2(Hstrc) |   0.193 | T(O3-BAC)3.91E+03 | t2(O3-BC) |  0.0919 | t2(O3str) |   0.085 |
+| ou5-T115-L660-p-lha.out                | Peimbert | T(OIIIr)1.03E+04 | T(Bac)1.01E+04 | T(Hth)1.00E+04 | t2(Hstrc) | 0.00721 | T(O3-BAC)1.01E+04 | t2(O3-BC) | 0.00515 | t2(O3str) | 0.00442 |
+| ou5-T115-L660-p-llha-Z6fluct-long.out  | Peimbert | T(OIIIr)8.37E+03 | T(Bac)2.89E+03 | T(Hth)2.88E+03 | t2(Hstrc) |   0.288 | T(O3-BAC)3.61E+03 | t2(O3-BC) |   0.118 | t2(O3str) |   0.215 |
+| ou5-T115-L660-p-llha-Z6fluct-short.out | Peimbert | T(OIIIr)7.79E+03 | T(Bac)2.92E+03 | T(Hth)2.92E+03 | t2(Hstrc) |   0.236 | T(O3-BAC)3.55E+03 | t2(O3-BC) |   0.105 | t2(O3str) |  0.0894 |
+| ou5-T115-L660-p-llha.out               | Peimbert | T(OIIIr)1.07E+04 | T(Bac)9.84E+03 | T(Hth)9.94E+03 | t2(Hstrc) | 0.00731 | T(O3-BAC)1.02E+04 | t2(O3-BC) |  0.0162 | t2(O3str) | 0.00441 |
+| ou5a-T115-L660-p-llha.out              | Peimbert | T(OIIIr)1.41E+04 | T(Bac)1.10E+04 | T(Hth)1.09E+04 | t2(Hstrc) | 0.00615 | T(O3-BAC)1.23E+04 | t2(O3-BC) |  0.0658 | t2(O3str) | 0.00363 |
 
 ** Constant pressure models
 - These are tricky to get right, since we want the average density to be, say, 150 pcc, but we need to specify conditions at the illuminated face
@@ -200,6 +232,173 @@ Broader range of models
     - low L(Ha) with target of log10(L(Ha)) = 33.86 - 0.1 - 0.1308 = 33.6292
   - Assuming n ~ sqrt(L) then dex offset is 0.5 (log10(0.74) - 0.1) = -0.1154
   - Or factor of 10**-0.1154 = 0.7667
+*** Repeat for the new abundance set
+- We are getting lower luminosties now, possibly because of the increased temperature
+- I also want to try out higher amplitude abundance fluctuations
+  - We are now doing 6 and 30 for the amplitude
+  - 
+- We will go back to the n140 models to start with
+**** ou5a-T115-L660-n140: Fixed constant density models
+
+***** ou5a-T115-L660-n140 Temperatures
+#+begin_src bash :dir ../cloudy :results output table
+  echo "TEMPERATURES T(OIIIr) T(Bac) T(Hth) t2(Hstrc) T(O3-BAC) t2(O3-BC) t2(O3str)"
+  for f in $(ls ou5a-T115-L660-n140*.out); do
+      printf "$f "; grep "Peimbert" $f |tail -1 | sed 's/)/) /g' | cut -d' ' -f1,4,6,8,11,13,16,19
+  done
+#+end_src
+
+#+RESULTS:
+| TEMPERATURES                           | T(OIIIr) |  T(Bac) |  T(Hth) | t2(Hstrc) | T(O3-BAC) | t2(O3-BC) | t2(O3str) |
+| ou5a-T115-L660-n140-Z06fluct-long.out  |  10800.0 |  7220.0 |  7320.0 |    0.0456 |    8360.0 |    0.0733 |    0.0458 |
+| ou5a-T115-L660-n140-Z06fluct-short.out |  10000.0 |  6630.0 |  6700.0 |     0.097 |    7620.0 |    0.0709 |    0.0751 |
+| ou5a-T115-L660-n140-Z30fluct-long.out  |   9550.0 |  1290.0 |  1270.0 |     0.581 |    1820.0 |      0.18 |     0.955 |
+| ou5a-T115-L660-n140-Z30fluct-short.out |  10300.0 |  1150.0 |  1120.0 |      1.01 |    1690.0 |       0.2 |      1.18 |
+| ou5a-T115-L660-n140.out                |  13800.0 | 11200.0 | 11100.0 |   0.00584 |   12300.0 |     0.057 |   0.00383 |
+
+***** ou5a-T115-L660-n140 Ha fluxes
+#+begin_src bash :dir ../cloudy :results output table
+  echo "Ha-FLUXES Wav log10(F)"
+  for f in $(ls ou5a-T115-L660-n140*.out); do
+      printf "$f "; grep 6562.80A $f |tail -1 | cut -c20-38
+  done
+#+end_src
+
+#+RESULTS:
+| Ha-FLUXES                              | Wav      | log10(F) |
+| ou5a-T115-L660-n140-Z06fluct-long.out  | 6562.80A |   33.386 |
+| ou5a-T115-L660-n140-Z06fluct-short.out | 6562.80A |   33.429 |
+| ou5a-T115-L660-n140-Z30fluct-long.out  | 6562.80A |   33.877 |
+| ou5a-T115-L660-n140-Z30fluct-short.out | 6562.80A |   33.991 |
+| ou5a-T115-L660-n140.out                | 6562.80A |   33.241 |
+
+***** ou5a-T115-L660-n140 He II 4686 fluxes
+#+begin_src bash :dir ../cloudy :results output table
+  echo "He-II-FLUXES Wav log10(F) 4686/Hb"
+  for f in $(ls ou5a-T115-L660-n140*.out); do
+      printf "$f "; grep "4685.68A" $f |tail -1 | cut -c20-48
+  done
+#+end_src
+
+#+RESULTS:
+| He-II-FLUXES                           | Wav      | log10(F) | 4686/Hb |
+| ou5a-T115-L660-n140-Z06fluct-long.out  | 4685.68A |   32.985 |  1.1152 |
+| ou5a-T115-L660-n140-Z06fluct-short.out | 4685.68A |   32.986 |   1.016 |
+| ou5a-T115-L660-n140-Z30fluct-long.out  | 4685.68A |   33.041 |  0.4461 |
+| ou5a-T115-L660-n140-Z30fluct-short.out | 4685.68A |   33.046 |  0.3504 |
+| ou5a-T115-L660-n140.out                | 4685.68A |   32.899 |  1.2713 |
+
+***** ou5a-T115-L660-n140 O II 4651 fluxes
+#+begin_src bash :dir ../cloudy :results output table
+  echo "O-II-FLUXES Wav log10(F) 4651/Hb"
+  for f in $(ls ou5a-T115-L660-n140*.out); do
+      printf "$f "; grep "4651.00A" $f |tail -1 | cut  -c128-157
+  done
+#+end_src
+
+#+RESULTS:
+| He-II-FLUXES                           | Wav      | log10(F) | 4651/Hb |
+| ou5a-T115-L660-n140-Z06fluct-long.out  | 4651.00A |   30.651 |  0.0052 |
+| ou5a-T115-L660-n140-Z06fluct-short.out | 4651.00A |     30.9 |  0.0083 |
+| ou5a-T115-L660-n140-Z30fluct-long.out  | 4651.00A |   32.054 |  0.0459 |
+| ou5a-T115-L660-n140-Z30fluct-short.out | 4651.00A |   32.274 |  0.0592 |
+| ou5a-T115-L660-n140.out                | 4651.00A |   30.066 |  0.0019 |
+**** ou5a-T115-L660-n-lha: constant density tied to L(Ha)=33.86
+
+| Scaled density                         | Wav      | log10(F) | new n |
+|----------------------------------------+----------+----------+-------|
+| ou5a-T115-L660-n140-Z06fluct-long.out  | 6562.80A |   33.386 |  242. |
+| ou5a-T115-L660-n140-Z06fluct-short.out | 6562.80A |   33.429 |  230. |
+| ou5a-T115-L660-n140-Z30fluct-long.out  | 6562.80A |   33.877 |  137. |
+| ou5a-T115-L660-n140-Z30fluct-short.out | 6562.80A |   33.991 |  120. |
+| ou5a-T115-L660-n140.out                | 6562.80A |   33.241 |  286. |
+#+TBLFM: $4=140 sqrt(10**(33.86 - $3));f0
+
+So there is no need to change the Z30 ones really, although we do
+
+***** ou5a-T115-L660-n-lha Temperatures
+
+#+begin_src bash :dir ../cloudy :results output table
+  echo "TEMPERATURES T(OIIIr) T(Bac) T(Hth) t2(Hstrc) T(O3-BAC) t2(O3-BC) t2(O3str)"
+  for f in $(ls ou5a-T115-L660-n-lha*.out); do
+      printf "$f "; grep "Peimbert" $f |tail -1 | sed 's/)-/) -/g' |sed 's/)/) /g' | cut -d' ' -f1,4,6,8,11,13,16,19
+  done
+#+end_src
+
+#+RESULTS:
+| TEMPERATURES                            | T(OIIIr) |  T(Bac) |  T(Hth) | t2(Hstrc) | T(O3-BAC) | t2(O3-BC) | t2(O3str) |
+| ou5a-T115-L660-n-lha-Z06fluct-long.out  |   9520.0 |  8280.0 |  8220.0 |    0.0341 |    8620.0 |    0.0273 |     0.032 |
+| ou5a-T115-L660-n-lha-Z06fluct-short.out |   9400.0 |  7500.0 |  7470.0 |    0.0824 |    8030.0 |    0.0408 |    0.0616 |
+| ou5a-T115-L660-n-lha-Z30fluct-long.out  |   9570.0 |  1280.0 |  1250.0 |     0.584 |    1810.0 |     0.181 |     0.963 |
+| ou5a-T115-L660-n-lha-Z30fluct-short.out |  10600.0 |  1070.0 |  1040.0 |      1.06 |    1610.0 |     0.207 |      1.29 |
+| ou5a-T115-L660-n-lha.out                |  12400.0 | 12800.0 | 12500.0 |   0.00951 |   12500.0 |   -0.0028 |   0.00665 |
+
+| model                          | T(Ha) | log10(L(Ha)) |
+|--------------------------------+-------+--------------|
+| T115-L660-n-lha                | 13933 |      33.8987 |
+| T115-L660-n-lha-Z06fluct-long  |  9812 |      33.8877 |
+| T115-L660-n-lha-Z06fluct-short |  9026 |      33.8823 |
+| T115-L660-n-lha-Z30fluct-long  |  2766 |      33.8752 |
+| T115-L660-n-lha-Z30fluct-short |  2027 |      33.8866 |
+
+These look good and suggest that we should do an intermediate metallicity: 15
+
+***** ou5a-T115-L660-n-lha Ha fluxes
+These all hit the target of 33.86
+
+#+begin_src bash :dir ../cloudy :results output table
+  echo "Ha-FLUXES Wav log10(F)"
+  for f in $(ls ou5a-T115-L660-n-lha*.out); do
+      printf "$f "; grep 6562.80A $f |tail -1 | cut -c20-38
+  done
+#+end_src
+
+#+RESULTS:
+| Ha-FLUXES                               | Wav      | log10(F) |
+| ou5a-T115-L660-n-lha-Z06fluct-long.out  | 6562.80A |   33.864 |
+| ou5a-T115-L660-n-lha-Z06fluct-short.out | 6562.80A |   33.859 |
+| ou5a-T115-L660-n-lha-Z30fluct-long.out  | 6562.80A |    33.86 |
+| ou5a-T115-L660-n-lha-Z30fluct-short.out | 6562.80A |   33.874 |
+| ou5a-T115-L660-n-lha.out                | 6562.80A |   33.874 |
+
+***** ou5a-T115-L660-n-lha He II 4686 fluxes
+- We successfully bracket the observed value of 0.71
+- Interestingly, the variation is reversed with respect to the fixed n=140 case
+  - The high metallicity variation models have higher 4686/Hb 
+#+begin_src bash :dir ../cloudy :results output table
+  echo "He-II-FLUXES Wav log10(F) 4686/Hb"
+  for f in $(ls ou5a-T115-L660-n-lha*.out); do
+      printf "$f "; grep "4685.68A" $f |tail -1 | cut -c20-48
+  done
+#+end_src
+
+#+RESULTS:
+| He-II-FLUXES                            | Wav      | log10(F) | 4686/Hb |
+| ou5a-T115-L660-n-lha-Z06fluct-long.out  | 4685.68A |   33.022 |  0.4075 |
+| ou5a-T115-L660-n-lha-Z06fluct-short.out | 4685.68A |   33.019 |  0.4109 |
+| ou5a-T115-L660-n-lha-Z30fluct-long.out  | 4685.68A |   32.979 |  1.1486 |
+| ou5a-T115-L660-n-lha-Z30fluct-short.out | 4685.68A |   32.934 |  1.2193 |
+| ou5a-T115-L660-n-lha.out                | 4685.68A |   32.988 |  0.3657 |
+
+***** ou5a-T115-L660-n-lha O II 4651 fluxes
+- Increases by a factor of 20 as Z fluctuations go up to 30
+- Observed value is O II V1/Hb = 0.1 for the whole multiplet
+- So I guess we need to do 60 now?
+#+begin_src bash :dir ../cloudy :results output table
+  echo "O-II-FLUXES Wav log10(F) 4651/Hb"
+  for f in $(ls ou5a-T115-L660-n-lha*.out); do
+      printf "$f "; grep "4651.00A" $f |tail -1 | cut  -c128-157
+  done
+#+end_src
+
+#+RESULTS:
+| O-II-FLUXES                             | Wav      | log10(F) | 4651/Hb |
+| ou5a-T115-L660-n-lha-Z06fluct-long.out  | 4651.00A |   31.283 |  0.0074 |
+| ou5a-T115-L660-n-lha-Z06fluct-short.out | 4651.00A |   31.422 |  0.0104 |
+| ou5a-T115-L660-n-lha-Z30fluct-long.out  | 4651.00A |   32.034 |  0.0456 |
+| ou5a-T115-L660-n-lha-Z30fluct-short.out | 4651.00A |   32.145 |  0.0577 |
+| ou5a-T115-L660-n-lha.out                | 4651.00A |   30.867 |  0.0028 |
+
 *** Looking at all the models we have with the T115-L660 star
 :PROPERTIES:
 :ID:       BA67223A-8A53-49F5-83EB-A9B53C2F9670
@@ -230,34 +429,47 @@ Broader range of models
 - Getting the fluxes from all the models
 - We want the emergent flux from the last iteration, which conveniently is the last match for 6562.80A in the output file
 #+begin_src bash :dir ../cloudy :results output table
-  for f in $(ls ou5-T115-L660*.out); do
+  for f in $(ls ou5*-T115-L660*.out); do
       printf "$f "; grep 6562.80A $f |tail -1 | cut -c20-38
   done
 #+end_src
 
 #+RESULTS:
-| ou5-T115-L660-n140-Z6fluct-long.out:     | 6562.80A | 33.588 |
-| ou5-T115-L660-n140-Z6fluct-short.out:    | 6562.80A | 33.646 |
-| ou5-T115-L660-n140.out:                  | 6562.80A | 33.276 |
-| ou5-T115-L660-p-n300-Z6fluct-long.out:   | 6562.80A | 33.796 |
-| ou5-T115-L660-p-n300-Z6fluct-short.out:  | 6562.80A | 33.904 |
-| ou5-T115-L660-p-n300.out:                | 6562.80A | 34.215 |
-| ou5-T115-L660-p-nT2e6-Z6fluct-long.out:  | 6562.80A | 33.817 |
-| ou5-T115-L660-p-nT2e6-Z6fluct-short.out: | 6562.80A | 33.927 |
-| ou5-T115-L660-p-nT2e6.out:               | 6562.80A | 32.501 |
-| ou5-T115-L660-p-nT6-Z6fluct-long.out:    | 6562.80A |  33.46 |
-| ou5-T115-L660-p-nT6-Z6fluct-short.out:   | 6562.80A | 33.572 |
-| ou5-T115-L660-p-nT6.out:                 | 6562.80A |  31.72 |
-| ou5-T115-L660-Z6fluct-long.out:          | 6562.80A | 33.496 |
-| ou5-T115-L660-Z6fluct-short.out:         | 6562.80A |  33.56 |
-| ou5-T115-L660.out:                       | 6562.80A | 33.172 |
+| ou5-T115-L660-n-lha-Z6fluct-long.out    | 6562.80A |  33.83 |
+| ou5-T115-L660-n-lha-Z6fluct-short.out   | 6562.80A | 33.828 |
+| ou5-T115-L660-n-lha.out                 | 6562.80A |  33.88 |
+| ou5-T115-L660-n-llha-Z6fluct-long.out   | 6562.80A | 33.621 |
+| ou5-T115-L660-n-llha-Z6fluct-short.out  | 6562.80A |  33.63 |
+| ou5-T115-L660-n-llha.out                | 6562.80A | 33.644 |
+| ou5-T115-L660-n140-Z6fluct-long.out     | 6562.80A | 33.588 |
+| ou5-T115-L660-n140-Z6fluct-short.out    | 6562.80A | 33.646 |
+| ou5-T115-L660-n140.out                  | 6562.80A | 33.276 |
+| ou5-T115-L660-p-lha-Z6fluct-long.out    | 6562.80A |  33.84 |
+| ou5-T115-L660-p-lha-Z6fluct-short.out   | 6562.80A |  33.89 |
+| ou5-T115-L660-p-lha.out                 | 6562.80A |  33.81 |
+| ou5-T115-L660-p-llha-Z6fluct-long.out   | 6562.80A | 33.703 |
+| ou5-T115-L660-p-llha-Z6fluct-short.out  | 6562.80A | 33.752 |
+| ou5-T115-L660-p-llha.out                | 6562.80A | 33.508 |
+| ou5-T115-L660-p-n300-Z6fluct-long.out   | 6562.80A | 33.796 |
+| ou5-T115-L660-p-n300-Z6fluct-short.out  | 6562.80A | 33.904 |
+| ou5-T115-L660-p-n300.out                | 6562.80A | 34.215 |
+| ou5-T115-L660-p-nT2e6-Z6fluct-long.out  | 6562.80A | 33.817 |
+| ou5-T115-L660-p-nT2e6-Z6fluct-short.out | 6562.80A | 33.927 |
+| ou5-T115-L660-p-nT2e6.out               | 6562.80A | 32.501 |
+| ou5-T115-L660-p-nT6-Z6fluct-long.out    | 6562.80A |  33.46 |
+| ou5-T115-L660-p-nT6-Z6fluct-short.out   | 6562.80A | 33.572 |
+| ou5-T115-L660-p-nT6.out                 | 6562.80A |  31.72 |
+| ou5-T115-L660-Z6fluct-long.out          | 6562.80A | 33.496 |
+| ou5-T115-L660-Z6fluct-short.out         | 6562.80A |  33.56 |
+| ou5-T115-L660.out                       | 6562.80A | 33.172 |
+| ou5a-T115-L660-p-llha.out               | 6562.80A | 33.082 |
 
 
 *** Check that the adjustments have worked
 - They should all have 33.86 +/- 0.1
 - First iteration
   - They all worked except the constant pressure, constant metallicity one
-    | ou5-T115-L660-p-lha.out               | 6562.80A | 34.198 |
+    | ou5-T115-L660-p-lha.out | 6562.80A | 34.198 |
   - Not a surprise, since the luminosity was nearly 2 orders of magnitude too low originally
   - This is because the T has come down a bit from the 20,000 K we had before
 - So iterate again
@@ -281,7 +493,7 @@ Broader range of models
 And repeat for the Low L(Ha) models: target is 33.6292
 
 #+begin_src bash :dir ../cloudy :results output table
-  for f in $(ls ou5-T115-L660*-llha*.out); do
+  for f in $(ls ou5*-T115-L660*-llha*.out); do
       printf "$f "; grep 6562.80A $f |tail -1 | cut -c20-38
   done
 #+end_src
@@ -293,6 +505,7 @@ And repeat for the Low L(Ha) models: target is 33.6292
 | ou5-T115-L660-p-llha-Z6fluct-long.out  | 6562.80A | 33.703 |
 | ou5-T115-L660-p-llha-Z6fluct-short.out | 6562.80A | 33.752 |
 | ou5-T115-L660-p-llha.out               | 6562.80A | 33.508 |
+| ou5a-T115-L660-p-llha.out              | 6562.80A | 33.082 |
 
 ** Summary table of stellar spectrum
 This is to double check on the Zanstra method and to compare Black Body with Rauch atmosphere

@@ -1,0 +1,67 @@
+# Central star 
+table star Rauch H-Ni solar 115000 6.66
+luminosity total 660 linear solar
+# Diffuse X-rays (Leahy 1984)
+bremsstrahlung, temp = 6.94
+luminosity total 0.00050 linear solar
+CMB
+cosmic rays background
+#
+iterate 2
+hden 140 linear
+constant density
+radius 0.06 linear parsecs
+sphere expanding
+# Warm phase abundances from Corradi+2015
+abundances "ou5_warm_full_annotated.abn"
+grains ism
+# Fluctuations abundances, period, max, min, phase
+fluctuations abundances, 17.7, 1.778, 0.0, 0.0
+# Turn off rarer elements
+init "ism.ini"
+# Include more levels
+species "O+2" levels=50
+species "O+" levels=100
+species "C+" levels=50
+species "C+2" levels=50
+species "N+" levels=50
+species "N+2" levels=50
+# Stopping criterion
+stop temperature off 
+stop radius 0.14 linear parsec
+#
+# output
+set save hash "return"
+save overview last ".ovr"
+save continuum last ".cont"
+save dr last ".dr"
+save heating last ".het" 
+save cooling last ".col"
+save pressure last ".pre"
+save abundances last ".abun"
+save radius last ".rad"
+save results last column ".res"
+save line emissivity last ".ems"
+H  1 6562.80A
+Ca B 6562.81A
+H  1 4861.32A
+He 2 4685.68A
+He 2 6560.01A
+He 1 5015.68A
+O  3 5006.84A
+O  3 4363.21A
+O 3R 4363.00A
+O 3C 4363.00A
+O  2 7319.99A
+N  2 6583.45A
+Ar 4 4711.26A
+C  2 4267.00A
+C  2 4267.26A
+O 2R 4651.00A
+O 2P 4651.00A
+O  2 4651.00A
+O  2 4650.84A
+O  2 4094.00A
+O  1 7771.94A
+end of lines
+

@@ -52,11 +52,71 @@ Using the linewidth method with Ha and [N II]
 |     7 | -.030 | -1.36 | .447 | .423 | .386 |  .328 |  .265 |
 
 
+* Observed line ratios
+
+** From Corradi:2015a Table 2
+
+| Line              | 100 F/Hb | % err |
+|-------------------+----------+-------|
+| [Ar IV] 4741      |     2.73 |    16 |
+| O II V 1 4651 Sum |     10.2 |     9 |
+| He II 4685.68     |    71.11 |     1 |
+| [O III] 5006.84   |   567.04 |     1 |
+| [O III] 4363.21   |     6.33 |     9 |
+
+O II V 1 multiplet
+
+|                  |      |    |                      |
+|------------------+------+----+----------------------|
+| O II V 1 4641.81 | 2.68 | 17 | 2.68 +/- 0.4556      |
+| O II V 1 4649.13 | 3.81 | 12 | 3.81 +/- 0.4572      |
+| O II V 1 4650.84 | 1.80 | 24 | 1.8 +/- 0.432        |
+| O II V 1 4661.63 | 1.89 | 23 | 1.89 +/- 0.4347      |
+| O II V 1 4676.24 |      |    | 0                    |
+|------------------+------+----+----------------------|
+|                  |      |    | 10.18 +/- 0.89005129 |
+|                  |      |    |                      |
+#+TBLFM: $4=$2 (1 +/- ($3/100))::@7$4=vsum(@I..@II)
+
+** 
 
 * Cloudy models
 - These are toy models, so should not be expected to reproduce all observables
 - But they are still useful as a guide to what might work and what clearly does not
 -
+
+
+** Final steps to finish Cloudy model analysis
+1. [-] Run models
+   - [-] EOS variants
+     - [X] constant density
+     - [-] constant pressure (perhaps not necessary)
+   - Z fluctuation amplitude: 0, 6, 15, 30, 60
+   - Z fluctuation wavelength:
+     - short: 0.2 (r_out - r_in)
+     - long: 2 (r_out - r_in)
+2. [X] Make structure and emissivity plots
+   - [X] This is done in 05-02-cloudy-models.ipynb
+   - [X] Plot is of 3 models at a time
+   - [X] I need to tidy up the way of specifying the Z fluctuation variants
+     - Now done using ~enum.StrEnum~ 
+3. [-] Extract global quantities for each models
+   - Ha luminosity, line ratios, weighted temperatures, and t^2
+   - [X] First version from grepping in the .out files
+     - See tables in [[id:3D2FEE9E-5C10-4FAD-8AE9-E84BFC9BEDB7][ou5a-T115-L660-n-lha: constant density tied to L(Ha)=33.86]]
+     - This works fine, but Ha-emission-weighted temperatures is not obtainable from .out, so copied it over from the jupyter notebook 
+   - [-] Second version using the radial structure from .ems, .ovr, etc
+     - Is this really necessary?
+     - [X] Small python script that generalises the "Calculate Ha-weighted temperature" section of [[file:../notebooks/05-02-cloudy-models.ipynb]]
+       - Extract total line luminosity of all the emission lines in .ems
+       - Plus the emission-weighted temperature and electron density for each line
+       - Write YAML file for each model with the results
+     - [X] Use YAML files from previous step to make table of line ratios (and other quantities) versus model
+     - [-] In the "other" category, we can include the Peimbert O++ T and t^2 values derived from 4363, 5007, 4651
+4. [-] Make plot and/or latex table of selected global quantities
+   - [X] Done line ratios
+   - [ ] Maybe do some temperatures as well
+5. [ ] Write description for paper
 
 
 ** Metal recomb lines
@@ -71,41 +131,54 @@ Using the linewidth method with Ha and [N II]
     - ~O  2 4649.13A~ is one component: 3s 4P5/2  -- 3p 4D*7/2
     - ~O  2 4650.84A~ is another component: 3s 4P1/2 -- 3p 4D*1/2
 
-** TODO Adjusting the abundances
+** DONE Adjusting the abundances
+CLOSED: [2025-09-12 Fri 21:41]
 - We should use the empirically determined abundances to set everything for the Cloudy models
   - At least for the warm phase with the CEL abundances
     - Although we need to take into account the 1 - \omega factor
   - The ORL abundances will be weighted towards the higher abundance regions in the varying metallicity models
 - Anyway, first job is to grab the empirical abundances from the Corradi:2015a paper
-*** Corradi abundance table
-Ou 5
-
-11.30 ÷ 0.05 7.46 ÷ 0.05 8.18 $ 0.06 7.70 +0.08 -0.06 6.69 ÷ 0.08 6.15 ÷ 0.05 5.02 -0.15 -0.20 Correcteda
-
-11.29 $ 0.05 7.58 ÷ 0.05 8.40 0.05 7.96 ÷ 0.05 6.81 $ 0.07 6.29 $ 0.05 5.20 -0.10 -0.20
-
-Show Markup Toolbar
-Ou 5
 
 
+*** Corradi abundance table (mainly from their Table 8)
+#+tblname: ou5_abund_corrected
+| Element | 12+log(X/H)        |
+|---------+--------------------|
+| He      | 11.29 ± 0.05       |
+| C       | 8.09 ± 0.10        |
+| N       | 7.58 ± 0.05        |
+| O       | 8.40 ± 0.05        |
+| Ne      | 7.96 ± 0.05        |
+| S       | 6.81 ± 0.07        |
+| Ar      | 6.29 ± 0.05        |
+| Cl      | 5.20 (+0.17/−0.20) |
 
+The C abundance was not in the table, so I did it like this (helped a bit by ChatGPT):
 
+- He, N, O, Ne, S, Ar, Cl are the Ou 5 “Corrected” totals from Corradi et al. Table 8.
+  - Values and uncertainties match the table (including asymmetric errors for Cl).
+- For C/H, I used the ORL C/O from Table 7 and combined it with the CEL total O/H from Table 8:
+  - C/O(ORL) = (C²⁺/O²⁺)_ORL = 10^(9.70−10.01) = 0.49.
+    - (From Corradi Table 7 Ou 5: C²⁺(ORL)=9.70±0.05; O²⁺(ORL)=10.01±0.08.)  
+  - O/H(CEL,total) = 8.40±0.05 (Corradi Table 8)'
+  - ⇒ C/H(warm) = (C/O)_ORL × (O/H)_CEL = 8.09 dex.
+  - Uncertainty: σ[log(C/O)] = √(0.05²+0.08²)=0.09 dex;
+    - combine with σ[O/H]=0.05 dex → σ ≃ 0.10 dex.
+  - Using ω from ORL O⁺ and O²⁺ (Table 7) gives ω≈0.90–0.95, so the Delgado-Inglada et al. (2014) ICF for C²⁺ is ≈1; adopting it leaves C/H unchanged within 0.01 dex.
+    - (ICFs based on ω become ~unity as ω→1.)  
 
+*** Abundance table for the Cloudy models
+- This is now done in [[file:../cloudy/ou5_warm_full_annotated.abn]]
+- I use scaled ISM abundances for the elements not in Corradi
 
-| Element | Abundance.      | Corrected        |
-|---------+-----------------+------------------|
-| He      | 11.30 ÷ 0.05    | 11.29 $ 0.05     |
-| N       | 7.46 ≤ 0.05     | 7.58 ÷ 0.05      |
-| O       | 8.18 ÷ 0.06     | 8.40 ÷ 0.05      |
-| Ne      | 7.70 +0.08-0.06 | 7.96 ÷ 0.05      |
-| S       | 6.69 ÷ 0.08     | 6.81 $ 0.07      |
-| Ar      | 6.15 $ 0.05     | 6.29 ÷ 0.05      |
-| Cl      | 5.02 +0.20      | 5.20 +0.17 -0.20 |
-|         |                 |                  |
-*** Carbon abundance
-We observe only C++ so need an icf
+*** Carbon ionization correction factor
+:PROPERTIES:
+:ID:       5CE8B9B5-E548-4461-8ACD-53BF06C5CC3B
+:END:
+- We observe only C++ so need an icf
+- From Fig 14 of Delgado-Inglada:2014a and their analytic fit, icf(C++) = 1 for high O++/(O+ + O++)
 
-|  \omega | icf(C++/O++) |       |
+|  \omega | icf(C++/O++) | Error |
 |-----+--------------+-------|
 | 0.1 |        0.245 | 0.301 |
 | 0.2 |        0.395 | 0.216 |
@@ -118,6 +191,7 @@ We observe only C++ so need an icf
 | 0.9 |        1.064 | 0.169 |
 | 1.0 |        1.230 | 0.260 |
 #+TBLFM: $2=0.05 + 2.21 $1 - 2.77 $1**2 + 1.74 $1**3;f3::$3=0.4 − 1.06 $1 + 0.65 $1**2 + 0.27 $1**3;f3
+
 
 ** Checking the integrated line ratios
 - We grep the output files to get the information
@@ -232,12 +306,14 @@ Broader range of models
     - low L(Ha) with target of log10(L(Ha)) = 33.86 - 0.1 - 0.1308 = 33.6292
   - Assuming n ~ sqrt(L) then dex offset is 0.5 (log10(0.74) - 0.1) = -0.1154
   - Or factor of 10**-0.1154 = 0.7667
-*** Repeat for the new abundance set
+*** DONE Repeat for the new abundance set
+CLOSED: [2025-09-12 Fri 22:31]
 - We are getting lower luminosties now, possibly because of the increased temperature
 - I also want to try out higher amplitude abundance fluctuations
   - We are now doing 6 and 30 for the amplitude
-  - 
 - We will go back to the n140 models to start with
+- This is now complete for the constant density models
+  - I am not sure if it is worth doing the constant pressure ones
 **** ou5a-T115-L660-n140: Fixed constant density models
 
 ***** ou5a-T115-L660-n140 Temperatures
@@ -252,8 +328,12 @@ Broader range of models
 | TEMPERATURES                           | T(OIIIr) |  T(Bac) |  T(Hth) | t2(Hstrc) | T(O3-BAC) | t2(O3-BC) | t2(O3str) |
 | ou5a-T115-L660-n140-Z06fluct-long.out  |  10800.0 |  7220.0 |  7320.0 |    0.0456 |    8360.0 |    0.0733 |    0.0458 |
 | ou5a-T115-L660-n140-Z06fluct-short.out |  10000.0 |  6630.0 |  6700.0 |     0.097 |    7620.0 |    0.0709 |    0.0751 |
+| ou5a-T115-L660-n140-Z15fluct-long.out  |   9640.0 |  2680.0 |  2660.0 |     0.271 |    3580.0 |     0.151 |     0.364 |
+| ou5a-T115-L660-n140-Z15fluct-short.out |  10200.0 |  2530.0 |  2500.0 |     0.467 |    3480.0 |     0.165 |      0.48 |
 | ou5a-T115-L660-n140-Z30fluct-long.out  |   9550.0 |  1290.0 |  1270.0 |     0.581 |    1820.0 |      0.18 |     0.955 |
 | ou5a-T115-L660-n140-Z30fluct-short.out |  10300.0 |  1150.0 |  1120.0 |      1.01 |    1690.0 |       0.2 |      1.18 |
+| ou5a-T115-L660-n140-Z60fluct-long.out  |   9890.0 |   781.0 |   757.0 |      1.01 |    1140.0 |     0.199 |      1.72 |
+| ou5a-T115-L660-n140-Z60fluct-short.out |  10800.0 |   680.0 |   656.0 |      1.69 |    1050.0 |     0.221 |       1.8 |
 | ou5a-T115-L660-n140.out                |  13800.0 | 11200.0 | 11100.0 |   0.00584 |   12300.0 |     0.057 |   0.00383 |
 
 ***** ou5a-T115-L660-n140 Ha fluxes
@@ -268,8 +348,12 @@ Broader range of models
 | Ha-FLUXES                              | Wav      | log10(F) |
 | ou5a-T115-L660-n140-Z06fluct-long.out  | 6562.80A |   33.386 |
 | ou5a-T115-L660-n140-Z06fluct-short.out | 6562.80A |   33.429 |
+| ou5a-T115-L660-n140-Z15fluct-long.out  | 6562.80A |   33.645 |
+| ou5a-T115-L660-n140-Z15fluct-short.out | 6562.80A |   33.727 |
 | ou5a-T115-L660-n140-Z30fluct-long.out  | 6562.80A |   33.877 |
 | ou5a-T115-L660-n140-Z30fluct-short.out | 6562.80A |   33.991 |
+| ou5a-T115-L660-n140-Z60fluct-long.out  | 6562.80A |   34.079 |
+| ou5a-T115-L660-n140-Z60fluct-short.out | 6562.80A |    34.19 |
 | ou5a-T115-L660-n140.out                | 6562.80A |   33.241 |
 
 ***** ou5a-T115-L660-n140 He II 4686 fluxes
@@ -284,8 +368,12 @@ Broader range of models
 | He-II-FLUXES                           | Wav      | log10(F) | 4686/Hb |
 | ou5a-T115-L660-n140-Z06fluct-long.out  | 4685.68A |   32.985 |  1.1152 |
 | ou5a-T115-L660-n140-Z06fluct-short.out | 4685.68A |   32.986 |   1.016 |
+| ou5a-T115-L660-n140-Z15fluct-long.out  | 4685.68A |   33.053 |  0.7505 |
+| ou5a-T115-L660-n140-Z15fluct-short.out | 4685.68A |   33.043 |  0.6125 |
 | ou5a-T115-L660-n140-Z30fluct-long.out  | 4685.68A |   33.041 |  0.4461 |
 | ou5a-T115-L660-n140-Z30fluct-short.out | 4685.68A |   33.046 |  0.3504 |
+| ou5a-T115-L660-n140-Z60fluct-long.out  | 4685.68A |   32.976 |  0.2472 |
+| ou5a-T115-L660-n140-Z60fluct-short.out | 4685.68A |   33.011 |  0.2096 |
 | ou5a-T115-L660-n140.out                | 4685.68A |   32.899 |  1.2713 |
 
 ***** ou5a-T115-L660-n140 O II 4651 fluxes
@@ -297,13 +385,20 @@ Broader range of models
 #+end_src
 
 #+RESULTS:
-| He-II-FLUXES                           | Wav      | log10(F) | 4651/Hb |
+| O-II-FLUXES                            | Wav      | log10(F) | 4651/Hb |
 | ou5a-T115-L660-n140-Z06fluct-long.out  | 4651.00A |   30.651 |  0.0052 |
 | ou5a-T115-L660-n140-Z06fluct-short.out | 4651.00A |     30.9 |  0.0083 |
+| ou5a-T115-L660-n140-Z15fluct-long.out  | 4651.00A |   31.422 |  0.0176 |
+| ou5a-T115-L660-n140-Z15fluct-short.out | 4651.00A |   31.673 |  0.0261 |
 | ou5a-T115-L660-n140-Z30fluct-long.out  | 4651.00A |   32.054 |  0.0459 |
 | ou5a-T115-L660-n140-Z30fluct-short.out | 4651.00A |   32.274 |  0.0592 |
+| ou5a-T115-L660-n140-Z60fluct-long.out  | 4651.00A |   32.573 |  0.0978 |
+| ou5a-T115-L660-n140-Z60fluct-short.out | 4651.00A |    32.76 |  0.1178 |
 | ou5a-T115-L660-n140.out                | 4651.00A |   30.066 |  0.0019 |
 **** ou5a-T115-L660-n-lha: constant density tied to L(Ha)=33.86
+:PROPERTIES:
+:ID:       3D2FEE9E-5C10-4FAD-8AE9-E84BFC9BEDB7
+:END:
 
 | Scaled density                         | Wav      | log10(F) | new n |
 |----------------------------------------+----------+----------+-------|
@@ -312,6 +407,10 @@ Broader range of models
 | ou5a-T115-L660-n140-Z30fluct-long.out  | 6562.80A |   33.877 |  137. |
 | ou5a-T115-L660-n140-Z30fluct-short.out | 6562.80A |   33.991 |  120. |
 | ou5a-T115-L660-n140.out                | 6562.80A |   33.241 |  286. |
+| ou5a-T115-L660-n140-Z15fluct-long.out  | 6562.80A |   33.645 |  179. |
+| ou5a-T115-L660-n140-Z15fluct-short.out | 6562.80A |   33.727 |  163. |
+| ou5a-T115-L660-n140-Z60fluct-long.out  | 6562.80A |   34.079 |  109. |
+| ou5a-T115-L660-n140-Z60fluct-short.out | 6562.80A |    34.19 |   96. |
 #+TBLFM: $4=140 sqrt(10**(33.86 - $3));f0
 
 So there is no need to change the Z30 ones really, although we do
@@ -329,17 +428,27 @@ So there is no need to change the Z30 ones really, although we do
 | TEMPERATURES                            | T(OIIIr) |  T(Bac) |  T(Hth) | t2(Hstrc) | T(O3-BAC) | t2(O3-BC) | t2(O3str) |
 | ou5a-T115-L660-n-lha-Z06fluct-long.out  |   9520.0 |  8280.0 |  8220.0 |    0.0341 |    8620.0 |    0.0273 |     0.032 |
 | ou5a-T115-L660-n-lha-Z06fluct-short.out |   9400.0 |  7500.0 |  7470.0 |    0.0824 |    8030.0 |    0.0408 |    0.0616 |
+| ou5a-T115-L660-n-lha-Z15fluct-long.out  |   9290.0 |  3130.0 |  3090.0 |     0.241 |    3990.0 |     0.134 |     0.312 |
+| ou5a-T115-L660-n-lha-Z15fluct-short.out |   9920.0 |  2740.0 |  2710.0 |     0.435 |    3680.0 |     0.155 |     0.433 |
 | ou5a-T115-L660-n-lha-Z30fluct-long.out  |   9570.0 |  1280.0 |  1250.0 |     0.584 |    1810.0 |     0.181 |     0.963 |
 | ou5a-T115-L660-n-lha-Z30fluct-short.out |  10600.0 |  1070.0 |  1040.0 |      1.06 |    1610.0 |     0.207 |      1.29 |
+| ou5a-T115-L660-n-lha-Z60fluct-long.out  |  10200.0 |   704.0 |   685.0 |      1.07 |    1060.0 |     0.207 |      1.88 |
+| ou5a-T115-L660-n-lha-Z60fluct-short.out |  11700.0 |   590.0 |   411.0 |       1.9 |     707.0 |     0.247 |      2.15 |
 | ou5a-T115-L660-n-lha.out                |  12400.0 | 12800.0 | 12500.0 |   0.00951 |   12500.0 |   -0.0028 |   0.00665 |
 
+Ha-emission-weighted temperatures, calculated from notebook and pasted by hand
 | model                          | T(Ha) | log10(L(Ha)) |
 |--------------------------------+-------+--------------|
 | T115-L660-n-lha                | 13933 |      33.8987 |
 | T115-L660-n-lha-Z06fluct-long  |  9812 |      33.8877 |
 | T115-L660-n-lha-Z06fluct-short |  9026 |      33.8823 |
+| T115-L660-n-lha-Z15fluct-long  |  5446 |      33.8543 |
+| T115-L660-n-lha-Z15fluct-short |  4422 |      33.8618 |
 | T115-L660-n-lha-Z30fluct-long  |  2766 |      33.8752 |
 | T115-L660-n-lha-Z30fluct-short |  2027 |      33.8866 |
+| T115-L660-n-lha-Z60fluct-long  |  1493 |      33.8965 |
+| T115-L660-n-lha-Z60fluct-short |  1087 |      33.9128 |
+
 
 These look good and suggest that we should do an intermediate metallicity: 15
 
@@ -357,14 +466,17 @@ These all hit the target of 33.86
 | Ha-FLUXES                               | Wav      | log10(F) |
 | ou5a-T115-L660-n-lha-Z06fluct-long.out  | 6562.80A |   33.864 |
 | ou5a-T115-L660-n-lha-Z06fluct-short.out | 6562.80A |   33.859 |
+| ou5a-T115-L660-n-lha-Z15fluct-long.out  | 6562.80A |   33.835 |
+| ou5a-T115-L660-n-lha-Z15fluct-short.out | 6562.80A |   33.845 |
 | ou5a-T115-L660-n-lha-Z30fluct-long.out  | 6562.80A |    33.86 |
 | ou5a-T115-L660-n-lha-Z30fluct-short.out | 6562.80A |   33.874 |
+| ou5a-T115-L660-n-lha-Z60fluct-long.out  | 6562.80A |   33.884 |
+| ou5a-T115-L660-n-lha-Z60fluct-short.out | 6562.80A |   33.903 |
 | ou5a-T115-L660-n-lha.out                | 6562.80A |   33.874 |
 
 ***** ou5a-T115-L660-n-lha He II 4686 fluxes
-- We successfully bracket the observed value of 0.71
-- Interestingly, the variation is reversed with respect to the fixed n=140 case
-  - The high metallicity variation models have higher 4686/Hb 
+- We now fail to bracket the observed value of 0.71
+- Interestingly, the 4686/Hb has a peak at intermediate metallicity amplitude
 #+begin_src bash :dir ../cloudy :results output table
   echo "He-II-FLUXES Wav log10(F) 4686/Hb"
   for f in $(ls ou5a-T115-L660-n-lha*.out); do
@@ -376,14 +488,19 @@ These all hit the target of 33.86
 | He-II-FLUXES                            | Wav      | log10(F) | 4686/Hb |
 | ou5a-T115-L660-n-lha-Z06fluct-long.out  | 4685.68A |   33.022 |  0.4075 |
 | ou5a-T115-L660-n-lha-Z06fluct-short.out | 4685.68A |   33.019 |  0.4109 |
-| ou5a-T115-L660-n-lha-Z30fluct-long.out  | 4685.68A |   32.979 |  1.1486 |
-| ou5a-T115-L660-n-lha-Z30fluct-short.out | 4685.68A |   32.934 |  1.2193 |
+| ou5a-T115-L660-n-lha-Z15fluct-long.out  | 4685.68A |   33.056 |  0.4877 |
+| ou5a-T115-L660-n-lha-Z15fluct-short.out | 4685.68A |   33.047 |   0.472 |
+| ou5a-T115-L660-n-lha-Z30fluct-long.out  | 4685.68A |   33.042 |   0.464 |
+| ou5a-T115-L660-n-lha-Z30fluct-short.out | 4685.68A |   33.042 |  0.4551 |
+| ou5a-T115-L660-n-lha-Z60fluct-long.out  | 4685.68A |   32.984 |  0.3953 |
+| ou5a-T115-L660-n-lha-Z60fluct-short.out | 4685.68A |   33.004 |  0.4006 |
 | ou5a-T115-L660-n-lha.out                | 4685.68A |   32.988 |  0.3657 |
 
 ***** ou5a-T115-L660-n-lha O II 4651 fluxes
 - Increases by a factor of 20 as Z fluctuations go up to 30
 - Observed value is O II V1/Hb = 0.1 for the whole multiplet
 - So I guess we need to do 60 now?
+  - Yes, this gives 0.1 easily
 #+begin_src bash :dir ../cloudy :results output table
   echo "O-II-FLUXES Wav log10(F) 4651/Hb"
   for f in $(ls ou5a-T115-L660-n-lha*.out); do
@@ -395,8 +512,12 @@ These all hit the target of 33.86
 | O-II-FLUXES                             | Wav      | log10(F) | 4651/Hb |
 | ou5a-T115-L660-n-lha-Z06fluct-long.out  | 4651.00A |   31.283 |  0.0074 |
 | ou5a-T115-L660-n-lha-Z06fluct-short.out | 4651.00A |   31.422 |  0.0104 |
+| ou5a-T115-L660-n-lha-Z15fluct-long.out  | 4651.00A |   31.666 |  0.0199 |
+| ou5a-T115-L660-n-lha-Z15fluct-short.out | 4651.00A |    31.81 |  0.0273 |
 | ou5a-T115-L660-n-lha-Z30fluct-long.out  | 4651.00A |   32.034 |  0.0456 |
 | ou5a-T115-L660-n-lha-Z30fluct-short.out | 4651.00A |   32.145 |  0.0577 |
+| ou5a-T115-L660-n-lha-Z60fluct-long.out  | 4651.00A |   32.356 |  0.0929 |
+| ou5a-T115-L660-n-lha-Z60fluct-short.out | 4651.00A |   32.459 |   0.114 |
 | ou5a-T115-L660-n-lha.out                | 4651.00A |   30.867 |  0.0028 |
 
 *** Looking at all the models we have with the T115-L660 star

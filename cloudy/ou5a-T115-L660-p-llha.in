@@ -8,14 +8,14 @@ CMB
 cosmic rays background
 #
 iterate 2
-hden 150 linear
-# Fix pressure at n T at illuminated face to match lower bound log L(Ha) = 33.6292
-constant pressure set 6.69
+hden 220 linear
+constant pressure set 6.84
 radius 0.06 linear parsecs
 sphere expanding
 # Warm phase abundances from Corradi+2015
 abundances "ou5_warm_full_annotated.abn"
 grains ism
+no molecules
 # Turn off rarer elements
 init "ism.ini"
 # Include more levels

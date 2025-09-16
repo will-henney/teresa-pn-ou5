@@ -58,11 +58,19 @@ Using the linewidth method with Ha and [N II]
 
 | Line              | 100 F/Hb | % err |
 |-------------------+----------+-------|
+| [Ar IV] 4711      |     3.61 |    12 |
 | [Ar IV] 4741      |     2.73 |    16 |
 | O II V 1 4651 Sum |     13.0 |    15 |
 | He II 4685.68     |    71.11 |     1 |
-| [O III] 5006.84   |   567.04 |     1 |
 | [O III] 4363.21   |     6.33 |     9 |
+| [O III] 5006.84   |   567.04 |     1 |
+| He I 5875.64      |    20.12 |     6 |
+| [S III] 6312.10   |      1.0 |    21 |
+| C II 6461.95      |     0.54 |    34 |
+| [N II] 6548.03    |     5.44 |     9 |
+| C II 6578.05      |     0.64 |    29 |
+| [N II] 6583.41    |    15.05 |     8 |
+|                   |          |       |
 
 O II V 1 multiplet
 
@@ -93,10 +101,10 @@ O II V 1 multiplet
 
 
 ** Final steps to finish Cloudy model analysis
-1. [-] Run models
-   - [-] EOS variants
+1. [X] Run models
+   - [X] EOS variants
      - [X] constant density
-     - [-] constant pressure (perhaps not necessary)
+     - [X] constant pressure (perhaps not necessary)
    - Z fluctuation amplitude: 0, 6, 15, 30, 60
    - Z fluctuation wavelength:
      - short: 0.2 (r_out - r_in)
@@ -107,7 +115,7 @@ O II V 1 multiplet
    - [X] I need to tidy up the way of specifying the Z fluctuation variants
      - Now done using ~enum.StrEnum~ 
 3. [-] Extract global quantities for each models
-   - Ha luminosity, line ratios, weighted temperatures, and t^2
+   - [X] Ha luminosity, line ratios, weighted temperatures, and t^2
    - [X] First version from grepping in the .out files
      - See tables in [[id:3D2FEE9E-5C10-4FAD-8AE9-E84BFC9BEDB7][ou5a-T115-L660-n-lha: constant density tied to L(Ha)=33.86]]
      - This works fine, but Ha-emission-weighted temperatures is not obtainable from .out, so copied it over from the jupyter notebook 
@@ -122,7 +130,12 @@ O II V 1 multiplet
 4. [-] Make plot and/or latex table of selected global quantities
    - [X] Done line ratios
    - [ ] Maybe do some temperatures as well
-5. [ ] Write description for paper
+5. Understand what is going on in the plots better
+   - I have added a panel of O++/O fraction to the physical variables plot, which helps a lot
+     - For constant density models, O++/O rises in cool high-Z peaks in the inner half of the shell
+       - In the outer half of the shell O++/O is unity in both phases
+       - Despite this, the [O III] emissivity and the [O III]/Hb ratio peak in the warm phase
+6. [ ] Write description for paper
 
 
 ** Metal recomb lines
@@ -715,6 +728,381 @@ Done in notebooks. For example
 Global summary graph
 
 [[file:../notebooks/ou5-cloudy-line-ratios-vs-observed-n-llha.pdf]]
+
+
+
+**** TODO [8/9] ou5a-T115-L660-p-llha: constant pressure tied to LOWER L(Ha)=33.63
+
+***** First look at the constant pressure with old abundances
+#+begin_src bash :dir ../cloudy :results output table
+   for f in $(ls ou5-T115-L660-p-*lha*.in); do
+      printf "$f "; grep "constant pressure set" $f 
+  done
+#+end_src
+
+#+RESULTS:
+| ou5-T115-L660-p-lha-Z6fluct-long.in   | constant | pressure | set | 6.32 |
+| ou5-T115-L660-p-lha-Z6fluct-short.in  | constant | pressure | set | 6.27 |
+| ou5-T115-L660-p-lha.in                | constant | pressure | set | 6.81 |
+| ou5-T115-L660-p-llha-Z6fluct-long.in  | constant | pressure | set |  6.2 |
+| ou5-T115-L660-p-llha-Z6fluct-short.in | constant | pressure | set | 6.15 |
+| ou5-T115-L660-p-llha.in               | constant | pressure | set | 6.69 |
+
+Compare with constant density at old abundance
+#+begin_src bash :dir ../cloudy :results output table
+   for f in $(ls ou5-T115-L660-n-*lha*.in); do
+      printf "$f "; grep "hden" $f 
+  done
+#+end_src
+
+#+RESULTS:
+| ou5-T115-L660-n-lha-Z6fluct-long.in   | hden | 191 | linear |
+| ou5-T115-L660-n-lha-Z6fluct-short.in  | hden | 179 | linear |
+| ou5-T115-L660-n-lha.in                | hden | 274 | linear |
+| ou5-T115-L660-n-llha-Z6fluct-long.in  | hden | 146 | linear |
+| ou5-T115-L660-n-llha-Z6fluct-short.in | hden | 137 | linear |
+| ou5-T115-L660-n-llha.in               | hden | 210 | linear |
+
+And new abundance
+#+begin_src bash :dir ../cloudy :results output table
+   for f in $(ls ou5a-T115-L660-n-*lha*.in); do
+      printf "$f "; grep "hden" $f 
+  done
+#+end_src
+
+#+RESULTS:
+| ou5a-T115-L660-n-lha-Z06fluct-long.in   | hden | 242 | linear |
+| ou5a-T115-L660-n-lha-Z06fluct-short.in  | hden | 230 | linear |
+| ou5a-T115-L660-n-lha-Z15fluct-long.in   | hden | 179 | linear |
+| ou5a-T115-L660-n-lha-Z15fluct-short.in  | hden | 163 | linear |
+| ou5a-T115-L660-n-lha-Z30fluct-long.in   | hden | 137 | linear |
+| ou5a-T115-L660-n-lha-Z30fluct-short.in  | hden | 120 | linear |
+| ou5a-T115-L660-n-lha-Z60fluct-long.in   | hden | 109 | linear |
+| ou5a-T115-L660-n-lha-Z60fluct-short.in  | hden |  96 | linear |
+| ou5a-T115-L660-n-lha.in                 | hden | 286 | linear |
+| ou5a-T115-L660-n-llha-Z06fluct-long.in  | hden | 186 | linear |
+| ou5a-T115-L660-n-llha-Z06fluct-short.in | hden | 177 | linear |
+| ou5a-T115-L660-n-llha-Z15fluct-long.in  | hden | 138 | linear |
+| ou5a-T115-L660-n-llha-Z15fluct-short.in | hden | 125 | linear |
+| ou5a-T115-L660-n-llha-Z30fluct-long.in  | hden | 105 | linear |
+| ou5a-T115-L660-n-llha-Z30fluct-short.in | hden |  92 | linear |
+| ou5a-T115-L660-n-llha-Z60fluct-long.in  | hden |  84 | linear |
+| ou5a-T115-L660-n-llha-Z60fluct-short.in | hden |  74 | linear |
+| ou5a-T115-L660-n-llha.in                | hden | 220 | linear |
+
+So comparing these:
+
+|                         | 0ld n | New n | n increase | Old log nT | Old n T / 1e4 |
+|-------------------------+-------+-------+------------+------------+---------------|
+| n-lha-Z6fluct-long.in   |   191 |   242 |       1.27 |       6.32 |          209. |
+| n-lha-Z6fluct-short.in  |   179 |   230 |       1.28 |       6.27 |          186. |
+| n-lha.in                |   274 |   286 |       1.04 |       6.81 |          646. |
+| n-llha-Z6fluct-long.in  |   146 |   186 |       1.27 |        6.2 |          158. |
+| n-llha-Z6fluct-short.in |   137 |   177 |       1.29 |       6.15 |          141. |
+| n-llha.in               |   210 |   220 |       1.05 |       6.69 |          490. |
+#+TBLFM: $4=$3/$2;f2::$6=10**($5-4);f0
+
+Conclusion - just try 6.2 and see what happens - call them ~nT62~
+
+
+
+***** DONE Make the new input files automatically
+CLOSED: [2025-09-15 Mon 13:28]
+
+#+begin_src sh :results verbatim
+  for f in $(ls ../cloudy/ou5a-T115-L660-n-llha*.in); do
+      ff=$(echo $f | sed "s/n-llha/p-nT62/")
+      sed "s/constant density/constant pressure set 6.2/" $f > $ff
+  done
+#+end_src
+
+#+RESULTS:
+
+***** DONE Run the p-nT62 models so that we can use the luminosities to iterate
+CLOSED: [2025-09-15 Mon 14:40]
+- The Z60 models crashed in a molecule solver, so I turned off all molecules with "no molecules"
+  - So the reason is that we got an ionization front in those models
+- Check the luminosities
+  #+begin_src bash :dir ../cloudy :results output table
+  echo "Ha-FLUXES Wav log10(F)"
+  for f in $(ls ou5a-T115-L660-p-nT62*.out); do
+      printf "$f "; grep 6562.80A $f |tail -1 | cut -c20-38
+  done
+  #+end_src
+
+  #+RESULTS:
+  | Ha-FLUXES                                | Wav      | log10(F) | 
+  | ou5a-T115-L660-p-nT62-Z06fluct-long.out  | 6562.80A |   32.519 |
+  | ou5a-T115-L660-p-nT62-Z06fluct-short.out | 6562.80A |   32.807 |
+  | ou5a-T115-L660-p-nT62-Z15fluct-long.out  | 6562.80A |    33.83 |
+  | ou5a-T115-L660-p-nT62-Z15fluct-short.out | 6562.80A |   34.003 |
+  | ou5a-T115-L660-p-nT62-Z30fluct-long.out  | 6562.80A |   34.517 |
+  | ou5a-T115-L660-p-nT62-Z30fluct-short.out | 6562.80A |   34.627 |
+  | ou5a-T115-L660-p-nT62-Z60fluct-long.out  | 6562.80A |   33.457 |
+  | ou5a-T115-L660-p-nT62-Z60fluct-short.out | 6562.80A |   34.399 |
+  | ou5a-T115-L660-p-nT62.out                | 6562.80A |    31.82 |
+  
+
+***** DONE Make new p-llha models that try to converge on L(Ha)=33.63
+CLOSED: [2025-09-15 Mon 14:16]
+- First calculate a new nT that might fix the Luminosity discrepancy
+- This will only work if there are no changes to the T structure as a result
+| Ha-FLUXES                                | Wav      | log10(F) | Offset | New nT |
+|------------------------------------------+----------+----------+--------+--------|
+| ou5a-T115-L660-p-nT62-Z06fluct-long.out  | 6562.80A |   32.519 |  -1.11 |   6.76 |
+| ou5a-T115-L660-p-nT62-Z06fluct-short.out | 6562.80A |   32.807 |  -0.82 |   6.61 |
+| ou5a-T115-L660-p-nT62-Z15fluct-long.out  | 6562.80A |    33.83 |   0.20 |   6.10 |
+| ou5a-T115-L660-p-nT62-Z15fluct-short.out | 6562.80A |   34.003 |   0.37 |   6.02 |
+| ou5a-T115-L660-p-nT62-Z30fluct-long.out  | 6562.80A |   34.517 |   0.89 |   5.76 |
+| ou5a-T115-L660-p-nT62-Z30fluct-short.out | 6562.80A |   34.627 |   1.00 |   5.70 |
+| ou5a-T115-L660-p-nT62-Z60fluct-long.out  | 6562.80A |   33.457 |  -0.17 |   6.29 |
+| ou5a-T115-L660-p-nT62-Z60fluct-short.out | 6562.80A |   34.399 |   0.77 |   5.82 |
+| ou5a-T115-L660-p-nT62.out                | 6562.80A |    31.82 |  -1.81 |   7.11 |
+#+TBLFM: $4=$-1 - 33.63;f2::$5=6.2 - 0.5 $-1;f2
+
+- Now make new input files
+
+#+begin_src sh :results verbatim
+  for f in $(ls ../cloudy/ou5a-T115-L660-p-nT62*.in); do
+      ff=$(echo $f | sed "s/-nT62/-llha/")
+      cp -v $f $ff
+  done
+#+end_src
+
+#+RESULTS:
+: ../cloudy/ou5a-T115-L660-p-nT62-Z06fluct-long.in -> ../cloudy/ou5a-T115-L660-p-llha-Z06fluct-long.in
+: ../cloudy/ou5a-T115-L660-p-nT62-Z06fluct-short.in -> ../cloudy/ou5a-T115-L660-p-llha-Z06fluct-short.in
+: ../cloudy/ou5a-T115-L660-p-nT62-Z15fluct-long.in -> ../cloudy/ou5a-T115-L660-p-llha-Z15fluct-long.in
+: ../cloudy/ou5a-T115-L660-p-nT62-Z15fluct-short.in -> ../cloudy/ou5a-T115-L660-p-llha-Z15fluct-short.in
+: ../cloudy/ou5a-T115-L660-p-nT62-Z30fluct-long.in -> ../cloudy/ou5a-T115-L660-p-llha-Z30fluct-long.in
+: ../cloudy/ou5a-T115-L660-p-nT62-Z30fluct-short.in -> ../cloudy/ou5a-T115-L660-p-llha-Z30fluct-short.in
+: ../cloudy/ou5a-T115-L660-p-nT62-Z60fluct-long.in -> ../cloudy/ou5a-T115-L660-p-llha-Z60fluct-long.in
+: ../cloudy/ou5a-T115-L660-p-nT62-Z60fluct-short.in -> ../cloudy/ou5a-T115-L660-p-llha-Z60fluct-short.in
+: ../cloudy/ou5a-T115-L660-p-nT62.in -> ../cloudy/ou5a-T115-L660-p-llha.in
+
+- Edit the input files to use the new inner nT from the above table
+  - Except for Z60fluct-long that had an ionization front
+***** DONE Run the p-llha models
+CLOSED: [2025-09-15 Mon 14:40]
+#+begin_src bash :dir ../cloudy :results output verbatim
+   for f in $(ls ou5a-T115-L660-p-llha*.out); do
+      printf "$f "; grep "Cloudy ends: " $f | cut -c13-
+  done
+#+end_src
+
+#+RESULTS:
+: ou5a-T115-L660-p-llha-Z06fluct-long.out : 52 zones, 2 iterations. (single thread) ExecTime(s) 30.42
+: ou5a-T115-L660-p-llha-Z06fluct-short.out : 323 zones, 2 iterations. (single thread) ExecTime(s) 119.66
+: ou5a-T115-L660-p-llha-Z15fluct-long.out : 87 zones, 2 iterations. (single thread) ExecTime(s) 42.51
+: ou5a-T115-L660-p-llha-Z15fluct-short.out : 770 zones, 2 iterations, 2 cautions. (single thread) ExecTime(s) 289.63
+: ou5a-T115-L660-p-llha-Z30fluct-long.out : 115 zones, 2 iterations, 2 cautions. (single thread) ExecTime(s) 55.94
+: ou5a-T115-L660-p-llha-Z30fluct-short.out : 1074 zones, 2 iterations, 2 cautions. (single thread) ExecTime(s) 409.00
+: ou5a-T115-L660-p-llha-Z60fluct-long.out : 134 zones, 2 iterations, 2 cautions. (single thread) ExecTime(s) 69.82
+: ou5a-T115-L660-p-llha-Z60fluct-short.out : 1044 zones, 2 iterations, 2 cautions. (single thread) ExecTime(s) 442.49
+: ou5a-T115-L660-p-llha.out : 54 zones, 2 iterations. (single thread) ExecTime(s) 31.56
+
+***** DONE Check luminosities of p-llha - should be 33.63
+CLOSED: [2025-09-15 Mon 14:38]
+
+#+begin_src bash :dir ../cloudy :results output table
+  echo "Ha-FLUXES Wav log10(F)"
+  for f in $(ls ou5a-T115-L660-p-llha*.out); do
+      printf "$f "; grep 6562.80A $f |tail -1 | cut -c20-38
+  done
+#+end_src
+
+#+RESULTS:
+| Ha-FLUXES                                | Wav      | log10(F) |
+| ou5a-T115-L660-p-llha-Z06fluct-long.out  | 6562.80A |   33.936 |
+| ou5a-T115-L660-p-llha-Z06fluct-short.out | 6562.80A |   33.728 |
+| ou5a-T115-L660-p-llha-Z15fluct-long.out  | 6562.80A |   33.696 |
+| ou5a-T115-L660-p-llha-Z15fluct-short.out | 6562.80A |   33.771 |
+| ou5a-T115-L660-p-llha-Z30fluct-long.out  | 6562.80A |   34.064 |
+| ou5a-T115-L660-p-llha-Z30fluct-short.out | 6562.80A |   34.173 |
+| ou5a-T115-L660-p-llha-Z60fluct-long.out  | 6562.80A |   34.697 |
+| ou5a-T115-L660-p-llha-Z60fluct-short.out | 6562.80A |   34.759 |
+| ou5a-T115-L660-p-llha.out                | 6562.80A |   34.173 |
+
+He II
+
+#+begin_src bash :dir ../cloudy :results output table
+  echo "He-II-FLUXES Wav log10(F) 4686/Hb"
+  for f in $(ls ou5a-T115-L660-p-llha*.out); do
+      printf "$f "; grep "4685.68A" $f |tail -1 | cut -c20-48
+  done
+#+end_src
+
+#+RESULTS:
+| He-II-FLUXES                             | Wav      | log10(F) | 4686/Hb |
+| ou5a-T115-L660-p-llha-Z06fluct-long.out  | 4685.68A |   33.019 |  0.3453 |
+| ou5a-T115-L660-p-llha-Z06fluct-short.out | 4685.68A |   33.023 |  0.5607 |
+| ou5a-T115-L660-p-llha-Z15fluct-long.out  | 4685.68A |   33.055 |   0.685 |
+| ou5a-T115-L660-p-llha-Z15fluct-short.out | 4685.68A |   33.046 |  0.5644 |
+| ou5a-T115-L660-p-llha-Z30fluct-long.out  | 4685.68A |   33.036 |  0.2909 |
+| ou5a-T115-L660-p-llha-Z30fluct-short.out | 4685.68A |   33.049 |  0.2342 |
+| ou5a-T115-L660-p-llha-Z60fluct-long.out  | 83.0000m |   35.674 | 29.9755 |
+| ou5a-T115-L660-p-llha-Z60fluct-short.out | 21.7500m |   35.781 | 33.1467 |
+| ou5a-T115-L660-p-llha.out                | 4685.68A |    32.98 |  0.1817 |
+
+
+***** DONE Is further iteration necessary? Yes, it is
+CLOSED: [2025-09-15 Mon 14:38]
+| Ha-FLUXES                                | Wav      | log10(F) | Offset | first nT | new nT |
+|------------------------------------------+----------+----------+--------+----------+--------|
+| ou5a-T115-L660-p-llha-Z06fluct-long.out  | 6562.80A |   33.936 |   0.31 |     6.76 |   6.61 |
+| ou5a-T115-L660-p-llha-Z06fluct-short.out | 6562.80A |   33.728 |   0.10 |     6.61 |   6.56 |
+| ou5a-T115-L660-p-llha-Z15fluct-long.out  | 6562.80A |   33.696 |   0.07 |     6.10 |   6.07 |
+| ou5a-T115-L660-p-llha-Z15fluct-short.out | 6562.80A |   33.771 |   0.14 |     6.02 |   5.95 |
+| ou5a-T115-L660-p-llha-Z30fluct-long.out  | 6562.80A |   34.064 |   0.43 |     5.76 |   5.55 |
+| ou5a-T115-L660-p-llha-Z30fluct-short.out | 6562.80A |   34.173 |   0.54 |     5.70 |   5.43 |
+| ou5a-T115-L660-p-llha-Z60fluct-long.out  | 6562.80A |   34.697 |   1.07 |     6.29 |   5.76 |
+| ou5a-T115-L660-p-llha-Z60fluct-short.out | 6562.80A |   34.759 |   1.13 |     5.82 |   5.26 |
+| ou5a-T115-L660-p-llha.out                | 6562.80A |   34.173 |   0.54 |     7.11 |   6.84 |
+#+TBLFM: $4=$-1 - 33.63;f2::$6=$5 - 0.5 $4;f2
+
+New offsets are a bit smaller than the first ones and are all positive, so we overdid the densities
+
+
+***** DONE Run second iteration models
+CLOSED: [2025-09-15 Mon 17:42]
+#+begin_src bash :dir ../cloudy :results output verbatim
+   for f in $(ls ou5a-T115-L660-p-llha*.out); do
+      printf "$f "; grep "Cloudy ends: " $f | cut -c13-
+  done
+#+end_src
+
+#+RESULTS:
+: ou5a-T115-L660-p-llha-Z06fluct-long.out : 48 zones, 2 iterations. (single thread) ExecTime(s) 30.26
+: ou5a-T115-L660-p-llha-Z06fluct-short.out : 331 zones, 2 iterations. (single thread) ExecTime(s) 121.01
+: ou5a-T115-L660-p-llha-Z15fluct-long.out : 89 zones, 2 iterations. (single thread) ExecTime(s) 44.04
+: ou5a-T115-L660-p-llha-Z15fluct-short.out : 799 zones, 2 iterations, 2 cautions. (single thread) ExecTime(s) 294.52
+: ou5a-T115-L660-p-llha-Z30fluct-long.out : 120 zones, 2 iterations, 2 cautions. (single thread) ExecTime(s) 55.77
+: ou5a-T115-L660-p-llha-Z30fluct-short.out : 1186 zones, 2 iterations, 2 cautions. (single thread) ExecTime(s) 429.29
+: ou5a-T115-L660-p-llha-Z60fluct-long.out : 142 zones, 2 iterations, 2 cautions. (single thread) ExecTime(s) 54.13
+: ou5a-T115-L660-p-llha-Z60fluct-short.out : 1026 zones, 2 iterations, 5 cautions. Failures: 0 thermal, 3 pressure, 0 ionization, 0 electron density. (single thread) ExecTime(s) 419.12
+: ou5a-T115-L660-p-llha.out : 45 zones, 2 iterations. (single thread) ExecTime(s) 30.65
+
+***** DONE Check luminosities of second iteration models
+CLOSED: [2025-09-15 Mon 17:36]
+- These are close enough
+  - Except for Z60fluct-long which is way to bright
+  - I have fixed those by reducing the nT a lot
+
+#+name: extract-ha-fluxes-p-llha-2nd-iter
+#+begin_src bash :dir ../cloudy :results output table
+  echo "Ha-FLUXES Wav log10(F)"
+  for f in $(ls ou5a-T115-L660-p-llha*.out); do
+      printf "$f "; grep 6562.80A $f |tail -1 | cut -c20-38
+  done
+#+end_src
+
+#+RESULTS: extract-ha-fluxes-p-llha-2nd-iter
+| Ha-FLUXES                                | Wav      | log10(F) |
+| ou5a-T115-L660-p-llha-Z06fluct-long.out  | 6562.80A |   33.582 |
+| ou5a-T115-L660-p-llha-Z06fluct-short.out | 6562.80A |    33.61 |
+| ou5a-T115-L660-p-llha-Z15fluct-long.out  | 6562.80A |   33.656 |
+| ou5a-T115-L660-p-llha-Z15fluct-short.out | 6562.80A |   33.679 |
+| ou5a-T115-L660-p-llha-Z30fluct-long.out  | 6562.80A |   33.778 |
+| ou5a-T115-L660-p-llha-Z30fluct-short.out | 6562.80A |    33.81 |
+| ou5a-T115-L660-p-llha-Z60fluct-long.out  | 6562.80A |    33.56 |
+| ou5a-T115-L660-p-llha-Z60fluct-short.out | 6562.80A |   33.684 |
+| ou5a-T115-L660-p-llha.out                | 6562.80A |   33.483 |
+
+#+nme: check-extract-ha-fluxes-p-llha-2nd-iter
+| Ha-FLUXES                                | Wav      |       log10(F) |
+|------------------------------------------+----------+----------------|
+| ou5a-T115-L660-p-llha-Z06fluct-long.out  | 6562.80A |         33.582 |
+| ou5a-T115-L660-p-llha-Z06fluct-short.out | 6562.80A |          33.61 |
+| ou5a-T115-L660-p-llha-Z15fluct-long.out  | 6562.80A |         33.656 |
+| ou5a-T115-L660-p-llha-Z15fluct-short.out | 6562.80A |         33.679 |
+| ou5a-T115-L660-p-llha-Z30fluct-long.out  | 6562.80A |         33.778 |
+| ou5a-T115-L660-p-llha-Z30fluct-short.out | 6562.80A |          33.81 |
+| ou5a-T115-L660-p-llha-Z60fluct-long.out  | 6562.80A |          33.56 |
+| ou5a-T115-L660-p-llha-Z60fluct-short.out | 6562.80A |         33.684 |
+| ou5a-T115-L660-p-llha.out                | 6562.80A |         33.483 |
+|------------------------------------------+----------+----------------|
+|                                          |          | 33.65 +/- 0.03 |
+#+TBLFM: $3=vmeane(@I..@II);f2
+
+He II is now all reasonable
+
+#+begin_src bash :dir ../cloudy :results output table
+  echo "He-II-FLUXES Wav log10(F) 4686/Hb"
+  for f in $(ls ou5a-T115-L660-p-llha*.out); do
+      printf "$f "; grep "4685.68A" $f |tail -1 | cut -c20-48
+  done
+#+end_src
+
+#+RESULTS:
+| He-II-FLUXES                             | Wav      | log10(F) | 4686/Hb |
+| ou5a-T115-L660-p-llha-Z06fluct-long.out  | 4685.68A |   33.021 |  0.7769 |
+| ou5a-T115-L660-p-llha-Z06fluct-short.out | 4685.68A |   33.014 |  0.7184 |
+| ou5a-T115-L660-p-llha-Z15fluct-long.out  | 4685.68A |   33.054 |  0.7484 |
+| ou5a-T115-L660-p-llha-Z15fluct-short.out | 4685.68A |    33.03 |  0.6722 |
+| ou5a-T115-L660-p-llha-Z30fluct-long.out  | 4685.68A |   33.036 |  0.5634 |
+| ou5a-T115-L660-p-llha-Z30fluct-short.out | 4685.68A |   33.016 |  0.5025 |
+| ou5a-T115-L660-p-llha-Z60fluct-long.out  | 4685.68A |   32.946 |  0.7709 |
+| ou5a-T115-L660-p-llha-Z60fluct-short.out | 4685.68A |   32.917 |  0.5455 |
+| ou5a-T115-L660-p-llha.out                | 4685.68A |   32.975 |  0.8678 |
+
+O II
+
+#+begin_src bash :dir ../cloudy :results output table
+  echo "O-II-FLUXES Wav log10(F) 4651/Hb"
+  for f in $(ls ou5a-T115-L660-p-llha*.out); do
+      printf "$f "; grep "4651.00A" $f |tail -1 | cut  -c128-157
+  done
+#+end_src
+
+#+RESULTS:
+| O-II-FLUXES                              | Wav      | log10(F) | 4651/Hb |
+| ou5a-T115-L660-p-llha-Z06fluct-long.out  | 4651.00A |   31.018 |  0.0077 |
+| ou5a-T115-L660-p-llha-Z06fluct-short.out | 4651.00A |   31.219 |  0.0115 |
+| ou5a-T115-L660-p-llha-Z15fluct-long.out  | 4651.00A |   31.635 |  0.0285 |
+| ou5a-T115-L660-p-llha-Z15fluct-short.out | 4651.00A |   31.713 |  0.0324 |
+| ou5a-T115-L660-p-llha-Z30fluct-long.out  | 4651.00A |   32.061 |  0.0597 |
+| ou5a-T115-L660-p-llha-Z30fluct-short.out | 4651.00A |   32.149 |  0.0682 |
+| ou5a-T115-L660-p-llha-Z60fluct-long.out  | 4651.00A |   32.023 |  0.0921 |
+| ou5a-T115-L660-p-llha-Z60fluct-short.out | 4651.00A |   32.288 |  0.1284 |
+| ou5a-T115-L660-p-llha.out                | 4651.00A |   30.408 |  0.0024 |
+
+***** TODO Run the scripts and make the plots
+#+begin_src sh :results verbatim :dir ../cloudy
+  uv run ../scripts/cloudy_line_extract.py --verbose "ou5a-T115-L660-p-llha*"
+#+end_src
+
+#+RESULTS:
+: Global line data saved to ou5a-T115-L660-p-llha-Z30fluct-long-global.yaml
+: Global line data saved to ou5a-T115-L660-p-llha-Z06fluct-long-global.yaml
+: Global line data saved to ou5a-T115-L660-p-llha-global.yaml
+: Global line data saved to ou5a-T115-L660-p-llha-Z15fluct-long-global.yaml
+: Global line data saved to ou5a-T115-L660-p-llha-Z06fluct-short-global.yaml
+: Global line data saved to ou5a-T115-L660-p-llha-Z15fluct-short-global.yaml
+: Global line data saved to ou5a-T115-L660-p-llha-Z60fluct-short-global.yaml
+: Global line data saved to ou5a-T115-L660-p-llha-Z30fluct-short-global.yaml
+: Global line data saved to ou5a-T115-L660-p-llha-Z60fluct-long-global.yaml
+
+#+begin_src sh :results verbatim :dir ../cloudy
+  uv run ../scripts/cloudy_tstruct.py --verbose "ou5a-T115-L660-p-llha*"
+#+end_src
+
+#+RESULTS:
+: Global per-ion T structure data saved to ou5a-T115-L660-p-llha-Z30fluct-long-tstruct.yaml
+: Global per-ion T structure data saved to ou5a-T115-L660-p-llha-Z06fluct-long-tstruct.yaml
+: Global per-ion T structure data saved to ou5a-T115-L660-p-llha-tstruct.yaml
+: Global per-ion T structure data saved to ou5a-T115-L660-p-llha-Z15fluct-long-tstruct.yaml
+: Global per-ion T structure data saved to ou5a-T115-L660-p-llha-Z06fluct-short-tstruct.yaml
+: Global per-ion T structure data saved to ou5a-T115-L660-p-llha-Z15fluct-short-tstruct.yaml
+: Global per-ion T structure data saved to ou5a-T115-L660-p-llha-Z60fluct-short-tstruct.yaml
+: Global per-ion T structure data saved to ou5a-T115-L660-p-llha-Z30fluct-short-tstruct.yaml
+: Global per-ion T structure data saved to ou5a-T115-L660-p-llha-Z60fluct-long-tstruct.yaml
+
+#+begin_src sh :results verbatim :dir ../cloudy
+  uv run ../scripts/cloudy_observable_table.py -p "ou5a-T115-L660-p-llha*-global.yaml" -o ou5a-p-llha-observables.csv
+#+end_src
+
+#+RESULTS:
+: Wrote ou5a-p-llha-observables.csv (9 models)
 
 
 

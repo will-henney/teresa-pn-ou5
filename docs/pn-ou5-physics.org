@@ -405,6 +405,27 @@ Broader range of models
 - Exact value depend on if it is H density or total particle density
 - Seems need to multiply by 2 at least
 - This turns out to be best dealt with by normalizing to the observed Ha flux, see next section
+** Models with "no induced processes"
+- Checking to see if there are any fluorescence effects. I think not
+- I have also set drmin 14.5 on the short models to speed things up
+*** Run ou5ani models
+#+begin_src bash :dir ../cloudy :results output verbatim
+   for f in $(ls ou5ani-T115-L660-p-llha*.out); do
+      printf "$f "; grep "Cloudy ends: " $f | cut -c13-
+  done
+#+end_src
+
+#+RESULTS:
+: ou5ani-T115-L660-p-llha-Z06fluct-long.out : 48 zones, 2 iterations. (single thread) ExecTime(s) 26.44
+: ou5ani-T115-L660-p-llha-Z06fluct-short.out : 331 zones, 2 iterations, 2 cautions. (single thread) ExecTime(s) 115.22
+: ou5ani-T115-L660-p-llha-Z15fluct-long.out : 89 zones, 2 iterations, 1 caution. (single thread) ExecTime(s) 33.19
+: ou5ani-T115-L660-p-llha-Z15fluct-short.out : 591 zones, 2 iterations, 4 cautions. (single thread) ExecTime(s) 216.94
+: ou5ani-T115-L660-p-llha-Z30fluct-long.out : 129 zones, 2 iterations, 2 cautions. (single thread) ExecTime(s) 44.83
+: ou5ani-T115-L660-p-llha-Z30fluct-short.out : 598 zones, 2 iterations, 7 cautions. (single thread) ExecTime(s) 261.26
+: ou5ani-T115-L660-p-llha-Z60fluct-long.out : 170 zones, 2 iterations, 3 cautions. (single thread) ExecTime(s) 56.50
+: ou5ani-T115-L660-p-llha-Z60fluct-short.out : 543 zones, 2 iterations, 15 cautions. (single thread) ExecTime(s) 277.05
+: ou5ani-T115-L660-p-llha.out : 45 zones, 2 iterations. (single thread) ExecTime(s) 26.25
+
 ** Normalization to the H line luminosity
 - From the extinction-corrected H alpha flux of 3.8e-12 (1 +/- 0.23) erg/s/cm2, then we can calculate the line luminosity to constrain the models:
   - L = (4 pi D**2) F = (4 pi 4000**2 3.085677582e18**2) 3.8e-12  = 7.3e+33 erg/s
@@ -731,7 +752,8 @@ Global summary graph
 
 
 
-**** TODO [8/9] ou5a-T115-L660-p-llha: constant pressure tied to LOWER L(Ha)=33.63
+**** DONE [9/9] ou5a-T115-L660-p-llha: constant pressure tied to LOWER L(Ha)=33.63
+CLOSED: [2025-09-15 Mon 22:32]
 
 ***** First look at the constant pressure with old abundances
 #+begin_src bash :dir ../cloudy :results output table
@@ -1066,7 +1088,8 @@ O II
 | ou5a-T115-L660-p-llha-Z60fluct-short.out | 4651.00A |   32.288 |  0.1284 |
 | ou5a-T115-L660-p-llha.out                | 4651.00A |   30.408 |  0.0024 |
 
-***** TODO Run the scripts and make the plots
+***** DONE Run the scripts and make the plots
+CLOSED: [2025-09-15 Mon 22:32]
 #+begin_src sh :results verbatim :dir ../cloudy
   uv run ../scripts/cloudy_line_extract.py --verbose "ou5a-T115-L660-p-llha*"
 #+end_src

@@ -399,8 +399,8 @@ ax.set_title("Co-added Slits c + d + e: [O III] 5007", pad=16)
 ax.set_xlabel("Heliocentric velocity, km/s")
 ax.set_ylabel("Offset N–S from star, arcsec")
 figfile = "ou5-coadd-2dspec-oiii.pdf"
-fig.savefig(figfile)
-fig.savefig(figfile.replace(".pdf", ".jpg"))
+fig.savefig(figfile, bbox_inches="tight")
+fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
 ...;
 # -
 

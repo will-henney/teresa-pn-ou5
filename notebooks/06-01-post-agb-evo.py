@@ -96,7 +96,7 @@ def extract_masses(data):
 #
 # Make it into a Kiel diagram like in Jones+2022
 
-log_g, dlog_g = 6.38, 0.08
+log_g, dlog_g = 6.659, 0.068
 # say 10% uncertainty in T
 T, dT = 115, 10
 
@@ -273,7 +273,10 @@ None
 
 # ## Now try the MIST tracks
 
-mist_files = sorted((datadir / "MIST").glob("*.track.eep"))
+mist_variant = ""
+# mist_variant = "-norot"
+
+mist_files = sorted((datadir / f"MIST{mist_variant}").glob("*.track.eep"))
 mist_files
 
 mist_tables = [
@@ -293,7 +296,6 @@ iWD = 1710 - 1
 # Initial masses
 
 m_init = [np.round(tab["star_mass"][0], 4) for tab in mist_tables]
-m_init
 
 # Final masses
 
@@ -335,7 +337,7 @@ R_sun.cgs.value
 
 tkin_min, tkin, tkin_max = 7.5e3, 9e3, 10.5e3
 
-with sns.color_palette("rocket_r", n_colors=len(mist_tables)):
+with sns.color_palette("icefire", n_colors=len(mist_tables)):
 
     fig, axes = plt.subplots(4, 1, sharex=True, figsize=(10, 10))
     axM, axV, axL, ax = axes
@@ -389,7 +391,7 @@ with sns.color_palette("rocket_r", n_colors=len(mist_tables)):
          )
     
     # MIST tracks
-    mist_plot_kws = dict(lw=0.7)
+    mist_plot_kws = dict(lw=0.7, alpha=0.3)
     for label, data in zip(mass_tab["Label"], mist_tables):
         # Where MIST says that post-AGB starts
         t0 = data["star_age"][iPost]
@@ -456,7 +458,7 @@ with sns.color_palette("rocket_r", n_colors=len(mist_tables)):
 
 # ### MIST Kiel diagram
 
-with sns.color_palette("rocket_r", n_colors=len(mist_tables)):
+with sns.color_palette("icefire", n_colors=len(mist_tables)):
 
     fig, ax = plt.subplots(figsize=(6, 6))
     ax.axvspan(T - dT, T + dT, color="k", alpha=0.1)
@@ -474,10 +476,14 @@ with sns.color_palette("rocket_r", n_colors=len(mist_tables)):
             label=None, alpha=alphaMB, color="k",
         )
     for data, label in zip(mist_tables, mass_tab["Label"]):
+        if label[3] == "0":
+            _label = label
+        else:
+            _label = "_"
         ax.plot(
             0.001 * 10**data["log_Teff"],
             data["log_g"],
-            label=label,
+            label=_label,
             **mist_plot_kws,
         )
     
@@ -491,90 +497,148 @@ with sns.color_palette("rocket_r", n_colors=len(mist_tables)):
     sns.despine()
 ...;
 
+label[3] == "0"
+
+
+# I do not understand why the M_f ~ 0.574 tracks have such high log g ~ 7 at the point where T = 120 kK
+
+# ### MIST table of results
+#
+# I want to separate the table from the plotting
+
+def stats_from_track(data, columns, tzero, t, dt, return_mask=False):
+    """
+    Calculate mean and limits of selected `columns` from MIST model `data` for time `tzero` + `t` +/- `dt`
+    """
+    mask = (data["star_age"] > tzero + t - dt) & (data["star_age"] < tzero + t + dt)
+    rslt = {}
+    rslt["t"] = t
+    rslt["dt"] = dt
+    rslt["tzero"] = tzero
+    for column in columns:
+        rslt[column] = np.interp(tzero + t, data["star_age"], data[column])
+        if mask.any():
+            rslt[column + "_MIN"] = np.min(data[column][mask])
+            rslt[column + "_MAX"] = np.max(data[column][mask])
+        else:
+            rslt[column + "_MIN"] = np.nan
+            rslt[column + "_MAX"] = np.nan
+    if return_mask:
+        return rslt, mask
+    else:
+        return rslt
+
+
+def get_all_stats_at_time(
+    time: float,
+    dtime: float,
+    mist_tables: list[Table],
+    columns: list[str] = ["log_Teff", "log_L", "star_mass", "log_R", "log_g"],
+    Teff_zero: float = 1.0e4,
+    return_masks: bool = False,
+) -> Table:
+    """
+    Return a Table of selected `columns` from the MIST model tracks in `mist_tables`. 
+    
+    Each is evaluated at fuzzy `time` +/- `dtime`.
+    The zero-point of the post-AGB track is when effective temperature first passes `Teff_zero` (default: 1e4 K)
+    If `return_masks` is True, also return a list of masks into each track that selects `time` +/- `dtime`
+    """
+    savedata, masks = [], []
+    for data in mist_tables:
+        # Calculate zero point for ages: T_eff > 10_000 K
+        t00 = np.interp(logTion, data["log_Teff"], data["star_age"])
+        stats, m = stats_from_track(
+            data, 
+            columns, 
+            tzero=t00, 
+            t=time, 
+            dt=dtime,
+            return_mask=True,
+        )
+        savedata.append(stats)
+        masks.append(m)
+    if return_masks:
+        return Table(savedata), masks
+    else:
+        return Table(savedata)
+
+
+# #### Define the distance
+
+D_kpc = 4
+# D_kpc = 3
+# D_kpc = 7
+
+# Use looser bounds on the kinematic age: $8.2 \pm 1$ (if we go with this, I need to update what the table in the paper says).
+#
+# We also want to investigate what happens if we change the distance, so we introduce `D_scale` = $D / \mathrm{4\,kpc}$
+
+# tkin, dtkin = 8.2e3, 0.4e3
+D_scale = D_kpc / 4
+tkin, dtkin = D_scale * 8.2e3, D_scale * 1e3
+L_obs_min, L_obs_max = 310 * D_scale ** 2, 600 * D_scale ** 2 
+
+tkin_tab, tkin_masks = get_all_stats_at_time(tkin, dtkin, mist_tables, Teff_zero=1e4, return_masks=True)
+
+len(tkin_tab), len(mass_tab)
+
+# Combine the tables and add in a column with the masks, but we have to make a pandas dataframe first if we want to use one later, since it does not support maak arrays in cells
+
+full_tab = mass_tab | tkin_tab
+
+df = full_tab.to_pandas()
+
+full_tab["mask"] = tkin_masks
+
+full_tab[::2]
+
+
 # ### MIST HR diagram
 
-# Use tighter bounds on the kinematic age: $8.2 \pm 0.4$ as in the Table
-
-tkin_min, tkin, tkin_max = 7.8e3, 8.2e3, 8.6e3
-
-
 def limits(a, b, ax):
-    if a>b : a, b = b, a
+    """Helper function for converting from data to fractional axis coordinates"""
+    if a > b:
+        a, b = b, a
     ymin, ymax = ax.get_ylim()
-    dy = ymax-ymin
-    return ((y-ymin)/dy for y in (a, b))
+    return ((y - ymin) / (ymax - ymin) for y in (a, b))
 
 
-
-with sns.color_palette("icefire", n_colors=len(mist_tables)):
+istart, istep = 0, 1
+# istart, istep = 0, 1
+with sns.color_palette("icefire", n_colors=1 + len(full_tab[istart::istep])):
     fig, ax = plt.subplots(figsize=(8, 8))
-    #ax.axvspan(4.7, 5.0, 0.6, 0.9, color="k", alpha=0.1)
-    
-    # ax.axvline(np.log10(1000 * T), color="k", lw=0.5)
-    # ax.axhspan(np.log10(310), np.log10(600), color="b", alpha=0.1)
     
     lw = 0.5
-    logTion = np.log10(10_000)
-    
-    # for data in tabs:
-    #     try:
-    #         Mi, Mf = extract_masses(data)
-    #         label = f"({Mi}, {Mf})"
-    #     except:
-    #         continue
-    #     ax.plot(
-    #         "logTeff", "logL",
-    #         data=data, label="_nolabel_",
-    #         zorder=-100, c="0.95", lw=lw,
-    #     )
-    #     t0 = np.interp(logTion, data["logTeff"], data["t"])
-    #     logT = np.interp(tkin + t0, data["t"], data["logTeff"])
-    #     logL = np.interp(tkin + t0, data["t"], data["logL"])
-    #     ax.plot(logT, logL, "*", c="0.9")
-    #     m = (data["t"] > t0 + tkin_min) & (data["t"] < t0 + tkin_max)
-    #     ax.plot(
-    #         "logTeff", "logL",
-    #         data=data[m], label="_nolabel_",
-    #         zorder=-100, c="y", lw=7, alpha=0.2,
-    #     )
-    #     lw += 0.2
-    
-    lw = 0.5
-    for data, label in zip(mist_tables, mass_tab["Label"]):
+    for tdata, mist_data in zip(full_tab[istart::istep], mist_tables[istart::istep]):
         # Plot the evolutionary track
         ax.plot(
             "log_Teff", "log_L",
-            data=data, label="_nolabel_",
+            data=mist_data, label="_nolabel_",
             zorder=-100, c="k", lw=lw,
         )
-        # Calculate zero point for ages: T_eff > 15_000 K
-        t00 = np.interp(logTion, data["log_Teff"], data["star_age"])
-        age = data["star_age"] - t00
-        logT = np.interp(tkin + t00, data["star_age"], data["log_Teff"])
-        logL = np.interp(tkin + t00, data["star_age"], data["log_L"])
+        logT = tdata["log_Teff"]
+        logL = tdata["log_L"]
         # Put symbol at kinematic age
-        line, = ax.plot(logT, logL, "*", markersize=15, mew=0.5, mec="k", label=label)
-        m = (data["star_age"] > t00 + tkin_min) & (data["star_age"] < t00 + tkin_max)
+        if tdata["Label"][3] == "0":
+            _label = tdata["Label"]
+        else:
+            _label = "_"
+        line, = ax.plot(logT, logL, "*", markersize=15, mew=0.5, mec="k", label=_label)
         # Indicate uncertainty range in kinematic age
+        m = tdata["mask"]
         ax.plot(
             "log_Teff", "log_L",
-            data=data[m], label="_nolabel_",
+            data=mist_data[m], label="_nolabel_",
             zorder=-100, c=line.get_color(), lw=3, alpha=0.7,
         )
-        # lw += 0.1
-        ...
 
-    # ou5_text = "\n".join([
-    #     "Ou 5",
-    #     r"$T = 100$ to 115 kK",
-    #     r"$L = 300$ to 660 L$_\odot$",
-    # ])
     ou5_text = "Ou 5"
     ax.text(3 + np.log10(T), np.log10(430), ou5_text, fontweight="black", ha="center", va="center")
     title = (
         r"MIST Post-AGB tracks: $M_\mathrm{initial}$, $M_\mathrm{final}$"
         "\n"
-        r"$t_\mathrm{evol}$ = 8200 $\pm$ 400 yr"
+        rf"$t_\mathrm{{evol}}$ = {tkin:.0f} $\pm$ {dtkin:.0f} yr"
     )
     ax.legend(
         ncol=2, 
@@ -586,25 +650,63 @@ with sns.color_palette("icefire", n_colors=len(mist_tables)):
     ax.set(
         ylabel=r"$\log_{10}\, L\,/\,L_\odot$",
         xlabel=r"$\log_{10}\, T_{\mathrm{eff}}$",
-        xlim=[5.2, 4.7],
-        ylim=[2.1, 3.7],
+        xlim=[5.25, 4.62],
+        ylim=[1.9, 3.9],
     )
     ax.axvspan(
         np.log10(1000 * (T - dT)), np.log10(1000 * (T + dT)),
-        *limits(np.log10(310), np.log10(600), ax),
+        *limits(np.log10(L_obs_min), np.log10(L_obs_max), ax),
         color="xkcd:dull green", alpha=0.6, zorder=-1000,
     )
 
     sns.despine()
-    fig.savefig("hr-mist-ou5.pdf", bbox_inches="tight")
+    fig.savefig(f"hr-mist{mist_variant}-ou5-D{D_kpc:.0f}.pdf", bbox_inches="tight")
 ...;
 
+tdata["Label"][3]
+
+# ### Initial versus final mass
+
+sns.lineplot(mass_tab.to_pandas(), x="Initial", y="Final")
+
+# ### L, Teff, and R versus M_final
+
+mvar = "Initial"
+# mvar = "star_mass"
+g = sns.lineplot(df, x=mvar, y="log_Teff")
+g.fill_between(x=mvar, y1="log_Teff_MIN", y2="log_Teff_MAX", data=df, color="r", alpha=0.4, zorder=-1000)
+sns.scatterplot(df, x=mvar, y="log_Teff", hue="star_mass", palette="icefire", zorder=100)
+g.axhline(3 + np.log10(T))
+g.axhspan(3 + np.log10(T - dT), 3 + np.log10(T + dT), alpha=0.2)
+
+# This shows that many models with M > 0.57 are consistent with T_eff
+
+from matplotlib.colors import Normalize
+
+g = sns.lineplot(df, x=mvar, y="log_L")
+g.fill_between(x=mvar, y1="log_L_MIN", y2="log_L_MAX", data=df, color="r", alpha=0.4, zorder=-1000)
+sns.scatterplot(df, x=mvar, y="log_L", hue="log_Teff", hue_norm=Normalize(vmin=5.03, vmax=5.1), palette="magma", zorder=100)
+g.axhspan(np.log10(L_obs_min), np.log10(L_obs_max), alpha=0.2)
+
+# This shows that the only ones consistent with log_L are between 0.572 and 0.576
+
+g = sns.lineplot(df, x="star_mass", y="log_R")
+g.fill_between(x="star_mass", y1="log_R_MIN", y2="log_R_MAX", data=df, color="r", alpha=0.4, zorder=-1000)
+sns.scatterplot(df, x="star_mass", y="log_R", hue="star_mass", palette="icefire", zorder=100,)
+R, dR = 0.078, 0.006
+g.axhspan(np.log10(R - dR), np.log10(R + dR), alpha=0.2)
+R, dR = 0.0587, 0.0046
+g.axhspan(np.log10(R - dR), np.log10(R + dR), alpha=0.2)
 
 
+# Make a list of masses to use as input to MIST for different parameter sets
 
-
-
+print(" ".join(str(_) for _ in mass_tab["Initial"]))
 
 Table.read.help("ascii.commented_header")
+
+# +
+# sns.scatterplot??
+# -
 
 

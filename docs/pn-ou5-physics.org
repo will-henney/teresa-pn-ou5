@@ -1736,8 +1736,35 @@ This is to double check on the Zanstra method and to compare Black Body with Rau
 * Stellar evolution
 - Using MB2016 tracks and MIST
 
+-
+  
+** Initial and final masses
+- WD mass below 0.53 M⊙ is the cutoff, which is usually taken between 
 
 
+** Sensitivity to distance
+- In order for the horizontal-track stars to work, we need the luminosity to L_* = 10**3.5 = 3000 Lsun
+- So this means the distance needs to be bigger by factor of sqrt(3000/400) = 2.74
+- So D = 11 kpc, instead of 4 kpc
+- If that were the case, then the kinematic times would also be longer: 22,000 years
+  - But that would not change things much
+*** 1.5 times farther: D = 6 kpc
+- t_kin = 12300 yr
+- L = 1000 Lsun
+- M_f = 0.555 +/- 0.005 with v_rot = 0
+*** D = 3 kpc
+- t_kin = 6000 yr
+- L = 250 L_sun
+- M_f = 0.605 \pm 0.005, M_i = 2.4 \pm 0.2
+*** D = 5 kpc
+- t_kin = 6000
+- L = 650
+- M_f = 0.57 approx
+*** Back to D = 4 kpc with vrot = 0
+- M_f = 0.572, M_i = 1.60
+** Zero point of AGB
+- I am taking Teff = 1e4 K as t=0
+- Evolution from 0.5e4 to 2.0e4 takes 400 years for the higher mass models (the ones that fit the dynamic age)
 
 ** Escape velocity
 - 0.5 v^2 = G M / R
@@ -1773,11 +1800,15 @@ This is to double check on the Zanstra method and to compare Black Body with Rau
 - Stellar radius from Stefan Boltzmann
   - R / R_sun = sqrt(L / L_sun) / (T / T_sun)**2 = sqrt(400 +/- 92) / (103 +/- 4 / 5.578)**2
   - BB: R / R_sun = 0.059 +/- 0.008
-  - Rauch: R / R_sun = sqrt(660) / (103 +/- 4 / 5.578)**2 = 0.0753 +/- 0.0058 
+  - Rauch: R / R_sun = sqrt(660) / (103 +/- 4 / 5.578)**2 = 0.0753 +/- 0.0058
+  - Rauch with L=400: R / R_sun = sqrt(400) / (103 +/- 4 / 5.578)**2 = 0.0587 +/- 0.0046
   - So our radius is consistent with Jones if we use the Rauch value
 - Stellar gravity, assuming M_1 = 0.53 Msun (why? Jones has 0.50 ± 0.06)
   - BB: log g = G M / R^2 = log10(6.673e-8  1.989e33 (0.50 +/- 0.06) / (0.06 6.96e10)**2) = 6.58 +/- 0.05
   - Rauch: log10(6.673e-8 (0.50 +/- 0.06) 1.989e33 / ((0.0753 +/- 0.0058) 6.96e10)**2) = 6.38 +/- 0.08
+- Repeat gravity but using M = 0.574 from our fitting
+  - Rauch 400: log10(6.673e-8 (0.574 +/- 0.001) 1.989e33 / ((0.0587 +/- 0.0046) 6.96e10)**2) = 6.659 +/- 0.068
+  
 - Optical depth of Lyman continuum from [[id:B9698DFD-3E25-41CF-B77E-893B44846D71][H beta gives fraction of H-ionizing photons absorbed]]
   - \eta = 0.198 \pm 0.002
 ** Constraints from visual magnitudes

@@ -20,7 +20,7 @@ grains ism
 no molecules
 no induced processes
 # Turn off rarer elements
-init "ism.ini"
+init "ism.ini"g
 # Include more levels
 species "O+2" levels=50
 species "O+" levels=100

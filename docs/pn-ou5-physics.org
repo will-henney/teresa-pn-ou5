@@ -817,9 +817,13 @@ Global summary graph
 
 
 
-**** DONE Look at singly ionized species in both models: n-llha and p-llha
-CLOSED: [2025-09-22 Mon 09:02]
+**** DONE Look at singly ionized species in all models: n-llha and p-llha (for L400 too)
+CLOSED: [2025-09-28 Sun 18:50]
 :LOGBOOK:
+- State "DONE"       from "TODO"       [2025-09-28 Sun 18:50] \\
+  So the conclusion is that the lower luminosity can help with increasing the [N II] and [O II] but only at the cost of reducing the He II
+- Note taken on [2025-09-28 Sun 18:36] \\
+  Add the low stellar luminosity models
 - Note taken on [2025-09-21 Sun 09:16] \\
   This is something I really need to mention in the paper, since it is a serious discrepancy between the models and the observations
 :END:
@@ -829,9 +833,11 @@ Extract them from the .res file, except they need to be divided by H beta
 - Results:
   - [O II] 3726 / H beta = 0.11 homogeneous
     - 0.02 (Z_0 = 15), 0.003 (Z_0 = 60)
+    - L400 gives 0.23 (0.03, 0.004)
     - Observed: 0.26
   - [N II] 6583 / H beta = 0.03 homogeneous
     - 0.007 (Z_0 = 15), 0.0005 (Z_0 = 60)
+    - L400 gives 0.08 (0.015, 0.0015)
     - Observed: 0.15
 - Conclusions:
   - We totally fail to reproduce these ratios
@@ -840,6 +846,15 @@ Extract them from the .res file, except they need to be divided by H beta
 : remote(NAME,REF)
 | Model                                    | 4651/Hb | 4686/Hb | 6583/Hb | 3726/Hb |
 |------------------------------------------+---------+---------+---------+---------|
+| ou5a-T115-L400-n-llha-Z06fluct-long.res  | 0.00765 | 0.41599 | 0.05978 | 0.13730 |
+| ou5a-T115-L400-n-llha-Z06fluct-short.res | 0.01050 | 0.41730 | 0.06415 | 0.09739 |
+| ou5a-T115-L400-n-llha-Z15fluct-long.res  | 0.02071 | 0.48705 | 0.02178 | 0.04306 |
+| ou5a-T115-L400-n-llha-Z15fluct-short.res | 0.02779 | 0.47067 | 0.01062 | 0.01767 |
+| ou5a-T115-L400-n-llha-Z30fluct-long.res  | 0.04680 | 0.46425 | 0.00684 | 0.01434 |
+| ou5a-T115-L400-n-llha-Z30fluct-short.res | 0.05830 | 0.44608 | 0.00220 | 0.00526 |
+| ou5a-T115-L400-n-llha-Z60fluct-long.res  | 0.09436 | 0.39170 | 0.00252 | 0.00589 |
+| ou5a-T115-L400-n-llha-Z60fluct-short.res | 0.11437 | 0.38754 | 0.00088 | 0.00265 |
+| ou5a-T115-L400-n-llha.res                | 0.00279 | 0.37372 | 0.07297 | 0.22645 |
 | ou5a-T115-L660-n-llha-Z06fluct-long.res  | 0.00651 | 0.68727 | 0.02535 | 0.07501 |
 | ou5a-T115-L660-n-llha-Z06fluct-short.res | 0.00955 | 0.68836 | 0.02818 | 0.05456 |
 | ou5a-T115-L660-n-llha-Z15fluct-long.res  | 0.01744 | 0.77016 | 0.00896 | 0.02440 |
@@ -864,13 +879,22 @@ Extract them from the .res file, except they need to be divided by H beta
 #+name: res-3726
 #+begin_src bash :dir ../cloudy :results output table
   echo "O-II-FLUXES Wav F(3726.03A)"
-  for f in $(ls ou5a-T115-L660-?-llha*.res); do
+  for f in $(ls ou5a-T115-L??0-?-llha*.res); do
       printf "$f "; grep "O  2                3726.03A" $f | cut -c21-
   done
 #+end_src
 
 #+RESULTS: res-3726
 | O-II-FLUXES                              | Wav      | F(3726.03A) |
+| ou5a-T115-L400-n-llha-Z06fluct-long.res  | 3726.03A |   0.0005271 |
+| ou5a-T115-L400-n-llha-Z06fluct-short.res | 3726.03A |   0.0003692 |
+| ou5a-T115-L400-n-llha-Z15fluct-long.res  | 3726.03A |   0.0001496 |
+| ou5a-T115-L400-n-llha-Z15fluct-short.res | 3726.03A |   6.146e-05 |
+| ou5a-T115-L400-n-llha-Z30fluct-long.res  | 3726.03A |   4.995e-05 |
+| ou5a-T115-L400-n-llha-Z30fluct-short.res | 3726.03A |   1.862e-05 |
+| ou5a-T115-L400-n-llha-Z60fluct-long.res  | 3726.03A |    2.13e-05 |
+| ou5a-T115-L400-n-llha-Z60fluct-short.res | 3726.03A |   9.834e-06 |
+| ou5a-T115-L400-n-llha.res                | 3726.03A |   0.0009083 |
 | ou5a-T115-L660-n-llha-Z06fluct-long.res  | 3726.03A |   0.0002828 |
 | ou5a-T115-L660-n-llha-Z06fluct-short.res | 3726.03A |   0.0002029 |
 | ou5a-T115-L660-n-llha-Z15fluct-long.res  | 3726.03A |   8.714e-05 |
@@ -890,38 +914,28 @@ Extract them from the .res file, except they need to be divided by H beta
 | ou5a-T115-L660-p-llha-Z60fluct-short.res | 3726.03A |    7.65e-06 |
 | ou5a-T115-L660-p-llha.res                | 3726.03A |   0.0002987 |
 
-#+RESULTS: res-3727
-| O-II-FLUXES                              | Wav      | F(3727.32A) |
-| ou5a-T115-L660-n-llha-Z06fluct-long.res  | 3727.32A |    5.23e-07 |
-| ou5a-T115-L660-n-llha-Z06fluct-short.res | 3727.32A |   7.199e-07 |
-| ou5a-T115-L660-n-llha-Z15fluct-long.res  | 3727.32A |   7.018e-07 |
-| ou5a-T115-L660-n-llha-Z15fluct-short.res | 3727.32A |   9.791e-07 |
-| ou5a-T115-L660-n-llha-Z30fluct-long.res  | 3727.32A |   1.071e-06 |
-| ou5a-T115-L660-n-llha-Z30fluct-short.res | 3727.32A |   1.396e-06 |
-| ou5a-T115-L660-n-llha-Z60fluct-long.res  | 3727.32A |   1.706e-06 |
-| ou5a-T115-L660-n-llha-Z60fluct-short.res | 3727.32A |   2.234e-06 |
-| ou5a-T115-L660-n-llha.res                | 3727.32A |   3.172e-07 |
-| ou5a-T115-L660-p-llha-Z06fluct-long.res  | 3727.32A |   5.121e-07 |
-| ou5a-T115-L660-p-llha-Z06fluct-short.res | 3727.32A |   8.056e-07 |
-| ou5a-T115-L660-p-llha-Z15fluct-long.res  | 3727.32A |   9.911e-07 |
-| ou5a-T115-L660-p-llha-Z15fluct-short.res | 3727.32A |   1.175e-06 |
-| ou5a-T115-L660-p-llha-Z30fluct-long.res  | 3727.32A |   1.541e-06 |
-| ou5a-T115-L660-p-llha-Z30fluct-short.res | 3727.32A |   1.849e-06 |
-| ou5a-T115-L660-p-llha-Z60fluct-long.res  | 3727.32A |   1.468e-06 |
-| ou5a-T115-L660-p-llha-Z60fluct-short.res | 3727.32A |    2.34e-06 |
-| ou5a-T115-L660-p-llha.res                | 3727.32A |   1.983e-07 |
+
 
 ***** [N II] 6584
 #+name: res-6584
 #+begin_src bash :dir ../cloudy :results output table
   echo "N-II-FLUXES Wav F(6583.45A)"
-  for f in $(ls ou5a-T115-L660-?-llha*.res); do
+  for f in $(ls ou5a-T115-L??0-?-llha*.res); do
       printf "$f "; grep "N  2                6583.45A" $f | cut -c21-
   done
 #+end_src
 
 #+RESULTS: res-6584
 | N-II-FLUXES                              | Wav      | F(6583.45A) |
+| ou5a-T115-L400-n-llha-Z06fluct-long.res  | 6583.45A |   0.0002295 |
+| ou5a-T115-L400-n-llha-Z06fluct-short.res | 6583.45A |   0.0002432 |
+| ou5a-T115-L400-n-llha-Z15fluct-long.res  | 6583.45A |   7.568e-05 |
+| ou5a-T115-L400-n-llha-Z15fluct-short.res | 6583.45A |   3.693e-05 |
+| ou5a-T115-L400-n-llha-Z30fluct-long.res  | 6583.45A |   2.382e-05 |
+| ou5a-T115-L400-n-llha-Z30fluct-short.res | 6583.45A |   7.775e-06 |
+| ou5a-T115-L400-n-llha-Z60fluct-long.res  | 6583.45A |   9.117e-06 |
+| ou5a-T115-L400-n-llha-Z60fluct-short.res | 6583.45A |    3.28e-06 |
+| ou5a-T115-L400-n-llha.res                | 6583.45A |   0.0002927 |
 | ou5a-T115-L660-n-llha-Z06fluct-long.res  | 6583.45A |   9.557e-05 |
 | ou5a-T115-L660-n-llha-Z06fluct-short.res | 6583.45A |   0.0001048 |
 | ou5a-T115-L660-n-llha-Z15fluct-long.res  | 6583.45A |   3.201e-05 |
@@ -945,13 +959,22 @@ Extract them from the .res file, except they need to be divided by H beta
 #+name: res-4861
 #+begin_src bash :dir ../cloudy :results output table
   echo "H-BETA-FLUXES Wav F(4861.32A)"
-  for f in $(ls ou5a-T115-L660-?-llha*.res); do
+  for f in $(ls ou5a-T115-L??0-?-llha*.res); do
       printf "$f "; grep "H  1                4861.32A" $f | cut -c21-
   done
 #+end_src
 
 #+RESULTS: res-4861
 | H-BETA-FLUXES                            | Wav      | F(4861.32A) |
+| ou5a-T115-L400-n-llha-Z06fluct-long.res  | 4861.32A |    0.003839 |
+| ou5a-T115-L400-n-llha-Z06fluct-short.res | 4861.32A |    0.003791 |
+| ou5a-T115-L400-n-llha-Z15fluct-long.res  | 4861.32A |    0.003474 |
+| ou5a-T115-L400-n-llha-Z15fluct-short.res | 4861.32A |    0.003478 |
+| ou5a-T115-L400-n-llha-Z30fluct-long.res  | 4861.32A |    0.003483 |
+| ou5a-T115-L400-n-llha-Z30fluct-short.res | 4861.32A |    0.003542 |
+| ou5a-T115-L400-n-llha-Z60fluct-long.res  | 4861.32A |    0.003615 |
+| ou5a-T115-L400-n-llha-Z60fluct-short.res | 4861.32A |    0.003708 |
+| ou5a-T115-L400-n-llha.res                | 4861.32A |    0.004011 |
 | ou5a-T115-L660-n-llha-Z06fluct-long.res  | 4861.32A |     0.00377 |
 | ou5a-T115-L660-n-llha-Z06fluct-short.res | 4861.32A |    0.003719 |
 | ou5a-T115-L660-n-llha-Z15fluct-long.res  | 4861.32A |    0.003572 |
@@ -976,13 +999,22 @@ Extract them from the .res file, except they need to be divided by H beta
 #+name: res-4686
 #+begin_src bash :dir ../cloudy :results output table
   echo "He-II-FLUXES Wav F(4685.68A)"
-  for f in $(ls ou5a-T115-L660-?-llha*.res); do
+  for f in $(ls ou5a-T115-L??0-?-llha*.res); do
       printf "$f "; grep "He 2                4685.68A" $f | cut -c21-
   done
 #+end_src
 
 #+RESULTS: res-4686
 | He-II-FLUXES                             | Wav      | F(4685.68A) |
+| ou5a-T115-L400-n-llha-Z06fluct-long.res  | 4685.68A |    0.001597 |
+| ou5a-T115-L400-n-llha-Z06fluct-short.res | 4685.68A |    0.001582 |
+| ou5a-T115-L400-n-llha-Z15fluct-long.res  | 4685.68A |    0.001692 |
+| ou5a-T115-L400-n-llha-Z15fluct-short.res | 4685.68A |    0.001637 |
+| ou5a-T115-L400-n-llha-Z30fluct-long.res  | 4685.68A |    0.001617 |
+| ou5a-T115-L400-n-llha-Z30fluct-short.res | 4685.68A |     0.00158 |
+| ou5a-T115-L400-n-llha-Z60fluct-long.res  | 4685.68A |    0.001416 |
+| ou5a-T115-L400-n-llha-Z60fluct-short.res | 4685.68A |    0.001437 |
+| ou5a-T115-L400-n-llha.res                | 4685.68A |    0.001499 |
 | ou5a-T115-L660-n-llha-Z06fluct-long.res  | 4685.68A |    0.002591 |
 | ou5a-T115-L660-n-llha-Z06fluct-short.res | 4685.68A |     0.00256 |
 | ou5a-T115-L660-n-llha-Z15fluct-long.res  | 4685.68A |    0.002751 |
@@ -1006,13 +1038,22 @@ Extract them from the .res file, except they need to be divided by H beta
 #+name: res-4651
 #+begin_src bash :dir ../cloudy :results output table
   echo "O-II-FLUXES Wav F(4651.00A)"
-  for f in $(ls ou5a-T115-L660-?-llha*.res); do
+  for f in $(ls ou5a-T115-L??0-?-llha*.res); do
       printf "$f "; grep "O  2                4651.00A" $f | cut -c21-
   done
 #+end_src
 
 #+RESULTS: res-4651
 | O-II-FLUXES                              | Wav      | F(4651.00A) |
+| ou5a-T115-L400-n-llha-Z06fluct-long.res  | 4651.00A |   2.937e-05 |
+| ou5a-T115-L400-n-llha-Z06fluct-short.res | 4651.00A |   3.982e-05 |
+| ou5a-T115-L400-n-llha-Z15fluct-long.res  | 4651.00A |   7.193e-05 |
+| ou5a-T115-L400-n-llha-Z15fluct-short.res | 4651.00A |   9.664e-05 |
+| ou5a-T115-L400-n-llha-Z30fluct-long.res  | 4651.00A |    0.000163 |
+| ou5a-T115-L400-n-llha-Z30fluct-short.res | 4651.00A |   0.0002065 |
+| ou5a-T115-L400-n-llha-Z60fluct-long.res  | 4651.00A |   0.0003411 |
+| ou5a-T115-L400-n-llha-Z60fluct-short.res | 4651.00A |   0.0004241 |
+| ou5a-T115-L400-n-llha.res                | 4651.00A |   1.118e-05 |
 | ou5a-T115-L660-n-llha-Z06fluct-long.res  | 4651.00A |   2.454e-05 |
 | ou5a-T115-L660-n-llha-Z06fluct-short.res | 4651.00A |   3.552e-05 |
 | ou5a-T115-L660-n-llha-Z15fluct-long.res  | 4651.00A |   6.229e-05 |
@@ -1593,7 +1634,135 @@ These all hit the target of 33.86
 | ou5a-T115-L660-n-lha.out                | 4651.00A |   30.867 |  0.0028 |
 
 
-*** Looking at all the models we have with the T115-L660 star
+*** TODO [#A] Repeat for lower luminosity star
+:LOGBOOK:
+- Note taken on [2025-09-28 Sun 17:54] \\
+  Hopefully this will solve our singly ionized metals problem
+:END:
+
+**** Constant density: ou5a-T115-L400-n-llha
+We start off with the same densities that we used previously
+
+***** DONE Copy the files to L400-n-llha
+CLOSED: [2025-09-28 Sun 18:22]
+#+begin_src sh
+  for f in $(ls ../cloudy/ou5a-T115-L660-n-llha*.in); do
+      ff=$(echo $f | sed "s/-L660/-L400/")
+      sed "s/total 660/total 400/" $f > $ff
+  done  
+#+end_src
+
+***** DONE Run all the L400-n-llha models
+CLOSED: [2025-09-28 Sun 18:23]
+#+begin_src bash :dir ../cloudy :results output verbatim
+   for f in $(ls ou5a-T115-L400-n-llha*.out); do
+      printf "$f "; grep "Cloudy ends: " $f | cut -c13-
+  done
+#+end_src
+
+#+RESULTS:
+: ou5a-T115-L400-n-llha-Z06fluct-long.out : 47 zones, 2 iterations. (single thread) ExecTime(s) 27.11
+: ou5a-T115-L400-n-llha-Z06fluct-short.out : 295 zones, 2 iterations. (single thread) ExecTime(s) 84.43
+: ou5a-T115-L400-n-llha-Z15fluct-long.out : 84 zones, 2 iterations. (single thread) ExecTime(s) 36.32
+: ou5a-T115-L400-n-llha-Z15fluct-short.out : 725 zones, 2 iterations. (single thread) ExecTime(s) 180.08
+: ou5a-T115-L400-n-llha-Z30fluct-long.out : 109 zones, 2 iterations. (single thread) ExecTime(s) 41.77
+: ou5a-T115-L400-n-llha-Z30fluct-short.out : 1082 zones, 2 iterations. (single thread) ExecTime(s) 265.81
+: ou5a-T115-L400-n-llha-Z60fluct-long.out : 128 zones, 2 iterations, 2 cautions. (single thread) ExecTime(s) 46.75
+: ou5a-T115-L400-n-llha-Z60fluct-short.out : 1317 zones, 2 iterations, 2 cautions. (single thread) ExecTime(s) 322.22
+: ou5a-T115-L400-n-llha.out : 47 zones, 2 iterations. (single thread) ExecTime(s) 26.36
+
+***** TODO [1/1] Check output by grepping in .out and .res files
+
+****** DONE L400-n-llha fluxes (should be about 33.63)
+CLOSED: [2025-09-28 Sun 18:26]
+I think this is good enough
+#+begin_src bash :dir ../cloudy :results output table
+  echo "Ha-FLUXES Wav log10(F)"
+  for f in $(ls ou5a-T115-L400-n-llha*.out); do
+      printf "$f "; grep 6562.80A $f |tail -1 | cut -c20-38
+  done
+#+end_src
+
+#+RESULTS:
+| Ha-FLUXES                                | Wav      | log10(F) | F/F0 |
+|------------------------------------------+----------+----------+------|
+| ou5a-T115-L400-n-llha-Z06fluct-long.out  | 6562.80A |   33.644 | 1.03 |
+| ou5a-T115-L400-n-llha-Z06fluct-short.out | 6562.80A |   33.641 | 1.03 |
+| ou5a-T115-L400-n-llha-Z15fluct-long.out  | 6562.80A |   33.621 | 0.98 |
+| ou5a-T115-L400-n-llha-Z15fluct-short.out | 6562.80A |   33.628 | 1.00 |
+| ou5a-T115-L400-n-llha-Z30fluct-long.out  | 6562.80A |   33.644 | 1.03 |
+| ou5a-T115-L400-n-llha-Z30fluct-short.out | 6562.80A |   33.659 | 1.07 |
+| ou5a-T115-L400-n-llha-Z60fluct-long.out  | 6562.80A |   33.676 | 1.11 |
+| ou5a-T115-L400-n-llha-Z60fluct-short.out | 6562.80A |   33.692 | 1.15 |
+| ou5a-T115-L400-n-llha.out                | 6562.80A |   33.656 | 1.06 |
+#+TBLFM: $4=10**($3 - 33.63);f2
+
+****** L400-n-llha He II 4686 fluxes
+Oh no, these are now too small again
+#+begin_src bash :dir ../cloudy :results output table
+  echo "He-II-FLUXES Wav log10(F) 4686/Hb"
+  for f in $(ls ou5a-T115-L400-n-llha*.out); do
+      printf "$f "; grep "4685.68A" $f |tail -1 | cut -c20-48
+  done
+#+end_src
+
+#+RESULTS:
+| He-II-FLUXES                             | Wav      | log10(F) | 4686/Hb |
+| ou5a-T115-L400-n-llha-Z06fluct-long.out  | 4685.68A |    32.81 |  0.4148 |
+| ou5a-T115-L400-n-llha-Z06fluct-short.out | 4685.68A |   32.807 |  0.4162 |
+| ou5a-T115-L400-n-llha-Z15fluct-long.out  | 4685.68A |   32.841 |  0.4863 |
+| ou5a-T115-L400-n-llha-Z15fluct-short.out | 4685.68A |   32.829 |  0.4699 |
+| ou5a-T115-L400-n-llha-Z30fluct-long.out  | 4685.68A |   32.826 |  0.4637 |
+| ou5a-T115-L400-n-llha-Z30fluct-short.out | 4685.68A |   32.818 |  0.4455 |
+| ou5a-T115-L400-n-llha-Z60fluct-long.out  | 4685.68A |   32.771 |  0.3913 |
+| ou5a-T115-L400-n-llha-Z60fluct-short.out | 4685.68A |   32.779 |  0.3871 |
+| ou5a-T115-L400-n-llha.out                | 4685.68A |   32.779 |  0.3723 |
+
+****** L400-n-llha O II 4651 fluxes
+These are fine
+#+begin_src bash :dir ../cloudy :results output table
+  echo "O-II-FLUXES Wav log10(F) 4651/Hb"
+  for f in $(ls ou5a-T115-L400-n-llha*.out); do
+      printf "$f "; grep "4651.00A" $f |tail -1 | cut  -c128-157
+  done
+#+end_src
+
+#+RESULTS:
+| O-II-FLUXES                              | Wav      | log10(F) | 4651/Hb |
+| ou5a-T115-L400-n-llha-Z06fluct-long.out  | 4651.00A |   31.075 |  0.0076 |
+| ou5a-T115-L400-n-llha-Z06fluct-short.out | 4651.00A |   31.208 |  0.0105 |
+| ou5a-T115-L400-n-llha-Z15fluct-long.out  | 4651.00A |    31.47 |  0.0207 |
+| ou5a-T115-L400-n-llha-Z15fluct-short.out | 4651.00A |     31.6 |  0.0277 |
+| ou5a-T115-L400-n-llha-Z30fluct-long.out  | 4651.00A |   31.829 |  0.0467 |
+| ou5a-T115-L400-n-llha-Z30fluct-short.out | 4651.00A |   31.934 |  0.0582 |
+| ou5a-T115-L400-n-llha-Z60fluct-long.out  | 4651.00A |   32.153 |  0.0942 |
+| ou5a-T115-L400-n-llha-Z60fluct-short.out | 4651.00A |   32.249 |  0.1142 |
+| ou5a-T115-L400-n-llha.out                | 4651.00A |   30.652 |  0.0028 |
+
+****** L400-n-llha ionized masses
+No difference here since we have not changed the density 
+#+begin_src bash :dir ../cloudy :results output table
+  echo "MASS M_i"
+  for f in $(ls ou5a-T115-L400-n-llha*.out); do
+      printf "$f "; grep "MassTot" $f |tail -1 | cut  -c105-114
+  done
+#+end_src
+
+#+RESULTS:
+| MASS                                     |       M_i |
+| ou5a-T115-L400-n-llha-Z06fluct-long.out  | 1.74e+32 |
+| ou5a-T115-L400-n-llha-Z06fluct-short.out | 1.66e+32 |
+| ou5a-T115-L400-n-llha-Z15fluct-long.out  | 1.31e+32 |
+| ou5a-T115-L400-n-llha-Z15fluct-short.out |  1.2e+32 |
+| ou5a-T115-L400-n-llha-Z30fluct-long.out  | 1.02e+32 |
+| ou5a-T115-L400-n-llha-Z30fluct-short.out | 9.11e+31 |
+| ou5a-T115-L400-n-llha-Z60fluct-long.out  | 8.55e+31 |
+| ou5a-T115-L400-n-llha-Z60fluct-short.out | 7.79e+31 |
+| ou5a-T115-L400-n-llha.out                | 2.04e+32 |
+
+*** Original models with wrong abundances
+
+**** Looking at all the models we have with the T115-L660 star
 :PROPERTIES:
 :ID:       BA67223A-8A53-49F5-83EB-A9B53C2F9670
 :END:
@@ -1659,7 +1828,7 @@ These all hit the target of 33.86
 | ou5a-T115-L660-p-llha.out               | 6562.80A | 33.082 |
 
 
-*** Check that the adjustments have worked
+**** Check that the adjustments have worked
 - They should all have 33.86 +/- 0.1
 - First iteration
   - They all worked except the constant pressure, constant metallicity one

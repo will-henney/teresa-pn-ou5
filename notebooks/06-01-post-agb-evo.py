@@ -262,7 +262,7 @@ ax.set(
     ylabel="$\log_{10}\, L/L_\odot$",
     xlabel="$\log_{10}\, T_{\mathrm{eff}}$",
     xlim=[5.5, 3.8],
-    ylim=[2.0, None],
+    ylim=[1.0, None],
 )
 sns.despine()
 fig.savefig("hr-planetaries.pdf")
@@ -273,17 +273,22 @@ None
 
 # ## Now try the MIST tracks
 
+# Uncomment the line for set of tracks you want
+
 mist_variant = ""
 # mist_variant = "-norot"
+# mist_variant = "-Zhalf"
+# mist_variant = "-norot-Zhalf"
+
+mist_description = {
+    "": r"$[Z/\mathrm{H}] = 0.0$, $v/v_\mathrm{crit} = 0.4$",
+    "-norot": r"$[Z/\mathrm{H}] = 0.0$, $v/v_\mathrm{crit} = 0.0$",
+    "-Zhalf": r"$[Z/\mathrm{H}] = -0.3$, $v/v_\mathrm{crit} = 0.4$",
+    "-norot-Zhalf": r"$[Z/\mathrm{H}] = -0.3$, $v/v_\mathrm{crit} = 0.0$",  
+}
 
 mist_files = sorted((datadir / f"MIST{mist_variant}").glob("*.track.eep"))
 mist_files
-
-mist_tables = [
-    Table.read(p, format="ascii.commented_header", 
-               guess=False, fast_reader=False, header_start=-1)
-    for p in mist_files
-]
 
 # Significant rows correspond to `EEP_number - 1` (Equivalent evolutionary points)
 
@@ -291,11 +296,20 @@ iAGB = 808 - 1
 iPost = 1409 - 1
 iWD = 1710 - 1
 
+# Filter out incomplete tracks
+
+mist_tables = [
+    tab for p in mist_files 
+    if len(tab := Table.read(p, format="ascii.commented_header", 
+                             guess=False, fast_reader=False, header_start=-1)) 
+    > iWD
+]
+
 # ### Masses of the models
 #
 # Initial masses
 
-m_init = [np.round(tab["star_mass"][0], 4) for tab in mist_tables]
+m_init = [np.round(tab["star_mass"][0], 4) for tab in mist_tables if len(tab) >= iWD]
 
 # Final masses
 
@@ -430,16 +444,16 @@ with sns.color_palette("icefire", n_colors=len(mist_tables)):
             **mist_plot_kws,
         )
             
-    ax.legend(ncol=2, fontsize="xx-small")
+    ax.legend(ncol=5, fontsize="xx-small", loc='upper right', bbox_to_anchor=(1.0, -0.4))
     ax.set(
         xlabel="time, years",
         ylabel=r"$T_{\mathrm{eff}}$, K",
         xlim=[-30_000, 30_000],
-        ylim=[0, 2e5],
+        ylim=[2000, 2e5],
     )
     # ax.set_xscale("symlog", linthresh=3000)
     ax.set_xscale("linear")
-    ax.set_yscale("linear")
+    ax.set_yscale("log")
     
     axL.set_ylabel(r"$L / L_\odot$")
     axL.set_yscale("log")
@@ -454,7 +468,12 @@ with sns.color_palette("icefire", n_colors=len(mist_tables)):
         ylabel=r"$V_\mathrm{esc}$, km/s",
         yscale="log",
     )
+    
     sns.despine()
+
+# +
+# ax.legend?
+# -
 
 # ### MIST Kiel diagram
 
@@ -566,9 +585,9 @@ def get_all_stats_at_time(
 
 # #### Define the distance
 
-D_kpc = 4
+# D_kpc = 4
 # D_kpc = 3
-# D_kpc = 7
+D_kpc = 7
 
 # Use looser bounds on the kinematic age: $8.2 \pm 1$ (if we go with this, I need to update what the table in the paper says).
 #
@@ -578,6 +597,7 @@ D_kpc = 4
 D_scale = D_kpc / 4
 tkin, dtkin = D_scale * 8.2e3, D_scale * 1e3
 L_obs_min, L_obs_max = 310 * D_scale ** 2, 600 * D_scale ** 2 
+L_obs = np.sqrt(L_obs_min * L_obs_max)
 
 tkin_tab, tkin_masks = get_all_stats_at_time(tkin, dtkin, mist_tables, Teff_zero=1e4, return_masks=True)
 
@@ -634,10 +654,13 @@ with sns.color_palette("icefire", n_colors=1 + len(full_tab[istart::istep])):
         )
 
     ou5_text = "Ou 5"
-    ax.text(3 + np.log10(T), np.log10(430), ou5_text, fontweight="black", ha="center", va="center")
+    ax.text(3 + np.log10(T), np.log10(L_obs), ou5_text, fontweight="black", ha="center", va="center")
     title = (
         r"MIST Post-AGB tracks: $M_\mathrm{initial}$, $M_\mathrm{final}$"
         "\n"
+        + mist_description[mist_variant] + 
+        "\n"
+        rf"$D = {D_kpc:.0f}$ kpc, "
         rf"$t_\mathrm{{evol}}$ = {tkin:.0f} $\pm$ {dtkin:.0f} yr"
     )
     ax.legend(

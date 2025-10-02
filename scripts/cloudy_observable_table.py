@@ -39,6 +39,12 @@ OIII4363_CO  = "O  3 4363.21A"   # collisional
 OIII4363_RR  = "O 3R 4363.00A"   # recombination
 OIII4363_CX  = "O 3C 4363.00A"   # charge exchange
 
+# Ratio of 5007/4363 from pure recombination contribution
+# (Pequignot+1991) to account for the fact that Cloudy does not
+# calculate the recombination contribution to 5007
+recomb_5007_4363 = 3.4
+cx_5007_4363 = 3.4              # This needs checking!
+
 # ---- helpers ----
 def _iter_yaml_files(root: Path, pattern: str) -> Iterable[Path]:
     yield from sorted(root.glob(pattern))
@@ -124,6 +130,8 @@ def main(
         # total 4363/Hb as the sum of available components
         o3_4363_total = sum(v for v in (o3_4363_co, o3_4363_rr, o3_4363_cx) if v is not None) \
                         if any(v is not None for v in (o3_4363_co, o3_4363_rr, o3_4363_cx)) else None
+        # Approximately correct for missing recombination contribution to 5007
+        o3_5007 += recomb_5007_4363 * o3_4363_rr + cx_5007_4363 * o3_4363_cx
 
         r4363_5007 = (o3_4363_total / o3_5007) if (o3_4363_total is not None and o3_5007 and o3_5007 > 0) else None
 

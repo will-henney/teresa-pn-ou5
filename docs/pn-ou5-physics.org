@@ -39,6 +39,78 @@ The Q numbers are from original list
 
 
 
+* ACF versus ADF and omega and cool mass fraction
+- The ACF and the ADF are related by ACF / ADF = (1 - \omega) / \omega
+  - Gomez-Llanos:2020a, Garcia-Rojas:2022a
+- For Ou 5 we have \omega \sim 0.5 so this correction is unity
+- But for other nebulae, \omega tends to be small so the correction is larger
+- Garcia-Rojas:2022a give ACF and ADF values, but do not give \omega directly
+  - So we will have to invert the equations to find it
+  - \omega  = 1 / [1 + (ACF / ADF)]
+- *Conclusion*
+  - The lower ADF nebulae (ADF = 9-10) have small \omega < 0.1
+  - Hf 2-2 has ADF = 18 and has a larger \omega
+  - 
+| Nebula   | log ADF | T_cool | log ACF |    \omega |
+|----------+---------+-------+---------+-------|
+| NGC 6678 |    0.97 |   500 |    2.72 | 0.017 |
+|          |    0.97 |   800 |    2.43 | 0.034 |
+|          |    0.97 |  1000 |    2.27 | 0.048 |
+|----------+---------+-------+---------+-------|
+| M 1-42   |    0.90 |   500 |    2.54 | 0.022 |
+|          |    0.90 |   800 |    2.24 | 0.044 |
+|          |    0.90 |  1000 |    2.06 | 0.065 |
+|----------+---------+-------+---------+-------|
+| Hf 2-2   |    1.26 |   500 |    1.93 | 0.176 |
+|          |    1.26 |   800 |    1.44 | 0.398 |
+|          |    1.26 |  1000 |    0.81 | 0.738 |
+#+TBLFM: $5=1 / (1 + 10**($4 - $2));f3
+
+** Cool mass fraction
+- Castañeda-Carlos:2025a prefer to talk of the mass fraction in the cool component, so let's deal with that
+- They find mass fraction \mu = 0.18, we want to find emission fraction \omega
+- Assume two components, cool and warm: k = {c, w}
+- Recomb line emission from component k: L_k = VEM_k h\nu \alpha_eff(T_k) = V_k n_k^2 h\nu \alpha_eff(T_k)
+  - Assume \alpha_eff(T_k) = \alpha' T_k^-\beta
+- Mass of component k: M_k = m n_k V_k
+- Mass fraction: \mu = M_c / (M_c + M_w)
+- Emission fraction: \omega = L_c / (L_c + L_w)
+- Volume fraction: \xi = V_c / (V_c + V_w)
+  - V_c = \xi V
+  - V_w = (1 - \xi) V
+- M_c = m n_c V_c = \xi m n_c V
+- M_w = m n_w V_w = (1 - \xi) m n_w V
+- \mu =  \xi m n_c V / [ \xi m n_c V + (1 - \xi) m n_w V]
+  - \mu = \xi (n_c/n_w) / [ \xi (n_c/n_w) + 1 - \xi]
+    - Define \delta = n_c/n_w
+  - \mu = \delta / [\delta + \xi^-1 - 1]
+  - \mu = \xi \delta / [1 + \xi (\delta - 1)]
+- Inverse relation
+  - \xi = 1 / [1 + \delta (\mu^-1 - 1)] = \mu / [(1 - \delta) \mu + \delta]
+  - \xi = \mu / [\mu + \delta (1 - \mu)]
+- L_c = V_c n_c^2 h\nu \alpha' T_c^-\beta = M_c n_c T_c^-\beta (h\nu \alpha' / m) = \mu n_c T_c^-\beta (h\nu \alpha' M / m)
+- L_w = (1 - \mu) n_w T_w^-\beta (h\nu \alpha' M / m)
+- \omega = \mu n_c T_c^-\beta / [\mu n_c T_c^-\beta + (1 - \mu) n_w T_w^-\beta]
+  - Define t = T_c/T_w
+  - \omega = \mu \delta t^-\beta / [\mu \delta t^-\beta + 1 - \mu]
+  - \omega = \mu \delta t^-\beta / [1 + \mu (\delta t^-\beta - 1)]
+- Final equation relating mass fraction and emission fraction:
+  - \omega = A \mu /[1 + (A-1) \mu]
+  - Where A = (n_c/n_w) (T_c/T_w)^-\beta
+- Put in some numbers for Hf 2-2
+  - n_w = 500 - 2000 pcc; n_c = 3000 - 5000 pcc
+    - \delta = vmeane([3000, 5000]) / vmeane([500, 2000]) = 3.2 +/- 2.08
+  - T_w = 8000 - 16000 K; T_c = 540 K
+    - t = 540 / vmeane([8000, 16000]) = 0.045 +/- 0.015
+  - \beta = 0.75 (roughly)
+  - A = \delta t^-\beta = (3.2 +/- 2.08) (0.045 +/- 0.015)**-0.75 = 33 +/- 23
+- So \omega = 33 0.18 / (1 + 32 0.18) = 0.88
+  - Or with mean - sigma: (33 - 23) 0.18 / (1 + (32 - 23) 0.18) = 0.69
+  - Or with mean + sigma: (33 + 23) 0.18 / (1 + (32 + 23) 0.18) = 0.92
+- *Conclusion: \omega > 0.7*
+- We can also work out the volume fraction: \xi = 0.18 / (0.18 + 33 (1 - 0.18)) = 0.0066
+  - Or with mean - sigma: 0.18 / (0.18 + (33 - 23) (1 - 0.18)) = 0.021
+  
 * Instrumental widths
 | Line: Slit  |    lam | d lam |   d v | sigma |
 |-------------+--------+-------+-------+-------|
@@ -2146,6 +2218,9 @@ Note that this does not include the atomic nebular continuum, but I am not sure 
   - Initial paper Zanstra:1931a
     - Some confusion over dates since there is also a Zanstra:1929a which is the same
 ** Graphical Zanstra method from Harman:1966a
+:PROPERTIES:
+:ID:       016ABC59-2154-4188-A3FA-64A6515ED166
+:END:
 
 https://ui.adsabs.harvard.edu/abs/1966MNRAS.132...15H
 

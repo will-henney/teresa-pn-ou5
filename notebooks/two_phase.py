@@ -1,4 +1,4 @@
-""""
+""" "
 Two-phase model for the Hα emission line profile.
 
 This module models the emission line profile of hydrogen Hα
@@ -24,6 +24,7 @@ discrete_gaussian(x, amplitude, mean, stddev, bin_width)
 
 Author: William Henney, 2025
 """
+
 import numpy as np
 import scipy.stats
 from astropy.table import Table
@@ -33,6 +34,7 @@ from astropy.io import ascii
 
 _cdf = scipy.stats.norm.cdf
 
+
 def discrete_gaussian(x, amplitude, mean, stddev, bin_width):
     "Gaussian profile integrated over finite bins"
     return amplitude * (
@@ -40,13 +42,12 @@ def discrete_gaussian(x, amplitude, mean, stddev, bin_width):
         - _cdf(x - 0.5 * bin_width, loc=mean, scale=stddev)
     )
 
+
 # Reference Ha wavelength used by Clegg 1999
 WAV_REF = 6562.8812
 
 # RMS thermal broadening at T = 1e4 K for A = 1
-SIG0 = np.sqrt( 
-    constants.k_B * 10_000 * u.K / constants.m_p
-).to(u.km / u.s).value
+SIG0 = np.sqrt(constants.k_B * 10_000 * u.K / constants.m_p).to(u.km / u.s).value
 
 # Data tables for the fine structure components from Clegg 1999
 # So far, this is only Case B and only n=1e2, 1e4 pcc
@@ -72,6 +73,7 @@ Index,d lam,d v,300,1000,3000,10000,30000
 7,-.030,-1.36,.447,.423,.386,.328,.265
     """,
 }
+
 
 class PhaseProfile:
     """
@@ -105,7 +107,7 @@ class PhaseProfile:
     """
 
     def __init__(
-        self, 
+        self,
         temperature,
         density_tag="n2",
         A_other=16,
@@ -117,17 +119,15 @@ class PhaseProfile:
         self._initialize_components(
             ascii.read(
                 H_CASE_B_DATA[density_tag],
-                format='csv',
-           )
+                format="csv",
+            )
         )
         # Mean velocity over components
         self.vmean = np.average(self.vcomps, weights=self.icomps)
         # Centroid lab wavelength (in air)
         self.wav0 = WAV_REF * (1 + self.vmean / 3e5)
         # RMS excess thermal sigma of each component
-        self.sigma = SIG0 * np.sqrt(
-            (self.temperature / 1e4) * (1 - 1 / self.A_other)
-        )
+        self.sigma = SIG0 * np.sqrt((self.temperature / 1e4) * (1 - 1 / self.A_other))
         # Velocity grid for evaluating profile
         self.dv = dv
         self.nvgrid = 1 + int(2 * vmax / dv)
@@ -143,27 +143,32 @@ class PhaseProfile:
         # Array of log T from columns of intensity grid
         logTs = np.log10(list(map(float, itable.colnames)))
         # Interpolate the intensity of each component at desired T
-        self.icomps = np.array([
-            np.interp(
-                np.log10(self.temperature),
-                logTs,
-                irow,
-            )
-            for irow in np.array(itable).tolist()
-        ])
-        
+        self.icomps = np.array(
+            [
+                np.interp(
+                    np.log10(self.temperature),
+                    logTs,
+                    irow,
+                )
+                for irow in np.array(itable).tolist()
+            ]
+        )
+
     def _initialize_igrid(self):
         self.igrid = np.zeros_like(self.vgrid)
         for _icomp, _vcomp in zip(self.icomps, self.vcomps):
-            self.igrid += discrete_gaussian(
-                self.vgrid,
-                _icomp,
-                _vcomp,
-                self.sigma,
-                self.dv,
-            ) / self.dv
+            self.igrid += (
+                discrete_gaussian(
+                    self.vgrid,
+                    _icomp,
+                    _vcomp,
+                    self.sigma,
+                    self.dv,
+                )
+                / self.dv
+            )
 
-            
+
 class TwoPhaseProfile:
     """
     Two-phase emission line profile with warm and cool gas components.
@@ -187,7 +192,7 @@ class TwoPhaseProfile:
     dv : float, optional
         Velocity resolution of the internal profile grid in km/s.
         Default is 0.1 km/s.
-    
+
     Callable Behavior
     -----------------
     An instance of this class can be called as a function:
@@ -199,6 +204,7 @@ class TwoPhaseProfile:
     relative to line center. Returns the interpolated profile
     intensity at each velocity.
     """
+
     def __init__(self, alpha, omega, Twarm=1e4, dv=0.1):
         self.Twarm = Twarm
         self.alpha = alpha
@@ -207,11 +213,17 @@ class TwoPhaseProfile:
         self.warm = PhaseProfile(self.Twarm, dv=dv)
         self.cool = PhaseProfile(self.Tcool, dv=dv)
         self.vgrid = self.warm.vgrid
-        self.igrid = (
-            (1 - self.omega) * self.warm.igrid 
-            + self.omega * self.cool.igrid
-        )
+        self.igrid = (1 - self.omega) * self.warm.igrid + self.omega * self.cool.igrid
+        # Calculate moments
         self.vmean = np.average(self.vgrid, weights=self.igrid)
+        dv = self.vgrid - self.vmean
+        var = np.average(dv**2, weights=self.igrid)
+        self.sigma = np.sqrt(var)
+        m3 = np.average(dv**3, weights=self.igrid)
+        self.skewness = m3 / self.sigma**3
+        m4 = np.average(dv**4, weights=self.igrid)
+        self.kurtosis = m4 / var**2
+        self.excess_kurtosis = self.kurtosis - 3
 
     def __call__(self, v):
         """
@@ -270,7 +282,7 @@ class TwoPhaseProfile:
         return CustomKernel(
             discretize_model(
                 pixel_profile,
-                (-(npix -1) // 2, (npix - 1) // 2 + 1),
+                (-(npix - 1) // 2, (npix - 1) // 2 + 1),
                 # (-npix // 2, npix // 2 + 1),
                 mode=mode,
             )

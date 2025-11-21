@@ -2029,8 +2029,18 @@ class TwoPhaseProfile():
             (1 - self.omega) * self.warm.igrid 
             + self.omega * self.cool.igrid
         )
+        # Calculate moments
         self.vmean = np.average(self.vgrid, weights=self.igrid)
-
+        dv = self.vgrid - self.vmean
+        var = np.average(dv ** 2, weights=self.igrid)
+        self.sigma = np.sqrt(var)
+        m3 = np.average(dv**3, weights=self.igrid)
+        self.skewness = m3 / self.sigma**3
+        m4 = np.average(dv ** 4, weights=self.igrid)
+        self.kurtosis = (m4 / var ** 2) 
+        self.excess_kurtosis = self.kurtosis - 3
+        
+        
     def __call__(self, v):
         """Interpolated profile at velocity shift `v` centered on mean
         """
@@ -2046,17 +2056,45 @@ with sns.color_palette("mako", n_colors=len(alist)):
     for alpha in reversed(alist):
         omega = 0.4 + alpha
         p = TwoPhaseProfile(alpha, omega, dv=0.1)
-        label = fr"$T_\mathrm{{cool}} = {1e4 * alpha:.0f}$, $\omega = {omega:.2f}$"
+        print(f"{p.Twarm=:.0f}, {p.Tcool=:.0f}, {p.vmean=:.2f}, {p.sigma=:.2f}, {p.skewness=:.2f}, {p.kurtosis=:.2f}")
+        print(f"{p.Twarm=:.0f}, {p.Tcool=:.0f}, {p.warm.vmean=:.2f}, {p.cool.vmean=:.2f}, {p.warm.wav0=:.3f}, {p.cool.wav0=:.3f}")
+        label = fr"$T_\mathrm{{cool}} = {1e4 * alpha:.0f}\,$K, $\omega = {omega:.2f}$"
         line, = ax.plot(p.vgrid - p.vmean, p.igrid, label=label)
-    ax.legend(fontsize="x-small", loc="upper left", title="2-phase kernel")
-    ax.set_xlim(-35, 35)
-    ax.set_ylim(None, 0.12)
-    ax.set_xlabel("Velocity shift, km/s")
+
+    ax.axhline(0.0, color="k", lw=0.5)
+
+    # Plot the components of warm and cool phase for the last profile
+    _norm = 9
+    _alpha = 1.0
+    _lw = 2.6
+    for _xc, _xw, _yc, _yw in zip(p.cool.vcomps, p.warm.vcomps, p.cool.icomps, p.warm.icomps):
+        # Velocity shift origin is the mean wavelength of the line at each temperature
+        _xc = _xc - p.cool.vmean 
+        _xw = _xw - p.warm.vmean 
+        # blue bar for cool
+        ax.plot([_xc, _xc], [0, _yc / _norm], lw=_lw, color="b", alpha=_alpha, solid_capstyle="butt")
+        # red bar for warm
+        ax.plot([_xw, _xw], [0, _yw / _norm], lw=_lw, color="r", alpha=_alpha, solid_capstyle="butt")
+    ax.legend(
+        fontsize="x-small", 
+        loc="upper left", 
+    ).set_title(
+        r"2-phase kernel, $T_\mathrm{warm} = 10\,000\,$K",
+        prop=dict(size="x-small"), 
+    )
+    # ax.set_xlim(-35, 35)
+    ax.set_xlim(-20, 20)
+    ax.set_ylim(None, 0.135)
+    ax.set_xlabel(r"Velocity shift, km/s")
     figfile = "pn-ou5-two-phase-alpha.pdf"
     fig.savefig(figfile, bbox_inches="tight")
-    fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight")
+    fig.savefig(figfile.replace(".pdf", ".jpg"), bbox_inches="tight", dpi=600)
 
 # -
+
+p.cool.vcomps, p.cool.icomps, p.warm.icomps
+
+f"{p.vmean=:.2f}, {p.sigma=:.2f}, {p.skewness=:.2f}, {p.kurtosis=:.2f}"
 
 # Test that the interpolation function works. Plot on a coarser grid
 
@@ -2705,6 +2743,9 @@ with sns.color_palette("dark"):
             
         offset += offset_step
         p = TwoPhaseProfile(alpha=alpha, omega=omega)
+        # Save the A3 one
+        if label == "A3":
+            pA3 = p
         kernel = CustomKernel(
             discretize_model(pixel_profile, x_range, mode="oversample")
         )
@@ -2716,7 +2757,22 @@ with sns.color_palette("dark"):
         ax.text(-120, offset + 0.1, text, fontsize="small")
         ax.text(20, offset + 0.1, label, fontsize="small")
         ax.axhline(offset, ls="dashed", color="k", lw=1)
-    
+
+    # Add in example kernel: A3
+    p = pA3
+    ax.plot(p.vgrid - p.vmean - 33, 4 * p.igrid, color="k", lw=1)
+    _norm = 1.5
+    _alpha = 1.0
+    _lw = 1
+    for _xc, _xw, _yc, _yw in zip(p.cool.vcomps, p.warm.vcomps, p.cool.icomps, p.warm.icomps):
+        # Velocity shift origin is the mean wavelength of the line at each temperature
+        _xc = _xc - p.cool.vmean + vsys
+        _xw = _xw - p.warm.vmean + vsys
+        # blue bar for cool
+        ax.plot([_xc, _xc], [0, _yc / _norm], lw=_lw, color="b", alpha=_alpha, solid_capstyle="butt")
+        # red bar for warm
+        ax.plot([_xw, _xw], [0, _yw / _norm], lw=_lw, color="r", alpha=_alpha, solid_capstyle="butt")
+
     ax.axvspan(-33 - core_width, -33 + core_width, color="b", alpha=0.1, zorder=-100)
     ax.axvline(-33, ls="dashed", color="k", lw=1)
     ax.set_xlabel("Heliocentric velocity, km/s")
@@ -3136,6 +3192,8 @@ with sns.color_palette("dark"):
             
         offset += offset_step
         p = TwoPhaseProfile(alpha=alpha, omega=omega)
+        if alpha == 0.03:
+            p300 = p # save this kernel for later plotting
         kernel = CustomKernel(
             discretize_model(pixel_profile, x_range, mode="oversample")
         )
@@ -3146,6 +3204,21 @@ with sns.color_palette("dark"):
         ax.text(-120, offset + 0.1, text, fontsize="small")
         # ax.text(0, offset + 0.15, label, fontsize="small")
         ax.axhline(offset, ls="dashed", color="k", lw=1)
+
+    # Add in example kernel (300 K)
+    p = p300
+    ax.plot(p.vgrid - p.vmean + vmean_o_tp70, 6 * p.igrid, color="c")
+    _norm = 1.0
+    _alpha = 1.0
+    _lw = 1
+    for _xc, _xw, _yc, _yw in zip(p.cool.vcomps, p.warm.vcomps, p.cool.icomps, p.warm.icomps):
+        # Velocity shift origin is the mean wavelength of the line at each temperature
+        _xc = _xc - p.cool.vmean + vmean_o_tp70
+        _xw = _xw - p.warm.vmean + vmean_o_tp70
+        # blue bar for cool
+        ax.plot([_xc, _xc], [0, _yc / _norm], lw=_lw, color="b", alpha=_alpha, solid_capstyle="butt")
+        # red bar for warm
+        ax.plot([_xw, _xw], [0, _yw / _norm], lw=_lw, color="r", alpha=_alpha, solid_capstyle="butt")
     
     ax.axvspan(vmean_o_tp70 - full_width, vmean_o_tp70 + full_width, color="b", alpha=0.1, zorder=-100)
     ax.axvline(vmean_o_tp70, ls="dashed", color="k", lw=1)

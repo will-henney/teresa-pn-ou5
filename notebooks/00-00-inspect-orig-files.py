@@ -18,25 +18,37 @@
 from pathlib import Path
 from astropy.io import fits
 from astropy.table import Table
+import astropy.table
 
 dpath = Path("../data/originals/")
 
 # Look and see what sort of files we have:
 
 data = []
-kwds = ["MEZMODE", "DATE-OBS", "FILTER", "RA", "DEC", "PA", "CCDTYPE", "CCDSUM"]
+hdrs = []
+kwds = ["MEZMODE", "DATE-OBS", "FILTER", "EXPTIME", "RA", "DEC", "PA", "CCDTYPE", "CCDSUM"]
 for _file in sorted(dpath.glob("*.fits")):
     hdu = fits.open(_file)[0]
     thisdata = {"File": _file.stem}
     for k in kwds:
         thisdata[k] = hdu.header.get(k)
+    if "DISPAXIS" in hdu.header:
+        dlam = min(hdu.header["CDELT1"], hdu.header["CDELT2"])
+        lam0 = max(hdu.header["CRVAL1"], hdu.header["CRVAL2"])
+        nbin = int(thisdata["CCDSUM"][0])
+        thisdata["DV"] = 3e5 * dlam / lam0 / nbin
     data.append(thisdata)
+    hdrs.append(hdu.header)
 tab = Table(rows=data)
 tab.show_in_notebook()
 
 # So we have 2017 data with 70 micron slit and 2x2 binning, and then 2018, 2019 data with 150 micron slit and 3x3 binning.
 
 # Select the image+slit or slit+image files that we will need to do astrometry of
+
+hdrs[26]
+
+2 * 3e5 * hdrs[2].get("cdelt2") / hdrs[2].get("crval2")
 
 m = ["slit" in _ for _ in tab["MEZMODE"]]
 tab[m]

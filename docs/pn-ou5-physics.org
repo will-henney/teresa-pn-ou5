@@ -117,13 +117,44 @@ The Q numbers are from original list
 | Ha : 150    | 6562.8 |  0.26 | 11.89 |  5.05 |
 | o iii : 150 | 5006.8 |  0.19 | 11.38 |  4.83 |
 | Ha : 70     | 6562.8 |  0.13 |  5.94 |  2.52 |
+| oiii : 70   | 5006.8 |       |       |       |
 #+TBLFM: $4=3e5 $3 / $2 ; f2::$5=$4 / sqrt(8 log(2));f2
 
 - But supposedly, it is 11.76 km/s at Ha
   - which would give
     - 11.76 6563 / 3e5 = 0.257 at Ha
     - 11.76 5007 / 3e5 = 0.196 at [O III]
+    - [ ] 
     - 
+** Try again at determining instrumental width
+From the observing manual:
+: La escala de placa del f/7.5 es de 13.1 arcsec/mm. Para el caso del
+: CCD SITE 3, con píxeles cuadrados de 24 micras, esto
+: corresponde a .301 arcsec/píxel. Por lo tanto, para el caso de
+: binning x 2, la escala es de .602 arcsec/píxel.
+
+And
+
+: La rendija de 150 micras se proyecta en ~ 120 micras ≡ 6 pixeles
+: de 24 micras, i.e. en caso de binning 2 x 2 implica 3 píxeles.
+: La rendija de 70 micras se proyecta en ~ 60 micras ≡ 3 píxeles de
+: 24 micras (e.g. SITE 3). Para binning 2 x 2 implica 2 pixeles.
+: Notar que la cámara resuelve la imagen de la rendija de 150
+: micras, por lo que los perfiles de las líneas de la lámpara de Th Ar
+: parecen cuadrados, más que gaussianos.
+
+- We are using the CCD E2V-4240, which has pixels of 0.176845 arcsec, which means 1000 (0.176845 / 13.1) = 13.5 microns
+- This means that the projected slit width in pixels is
+  - 70 micron slit: 60 / 13.5 = 4.44 pixels
+  - 150 micron slit: 120 / 13.5 = 8.89 pixels
+- For Ha we have unbinned pixel width of 1.23 to 1.29 km/s (from FITS headers)
+  - 70 micron: 4.44 [1.23 .. 1.29] = [5.5 .. 5.7] km/s
+  - 150 micron: 8.89 [1.23 .. 1.29] = [10.9 .. 11.5]
+- For [O III] we have unbinned pixel width 1.29 to 1.30 km/s
+  - 70 micron: 4.44 [1.29 .. 1.30] = [5.7 .. 5.8] km/s
+  - 150 micron: 8.89 [1.29 .. 1.30] = [11.5 .. 11.6] km/s
+
+
 ** Crazy idea for estimating the instrumental widths better
 - The narrowest line that I have in the data is the ISM [N II] component
 - We could measure its width with the 150 micron and 70 micron slit

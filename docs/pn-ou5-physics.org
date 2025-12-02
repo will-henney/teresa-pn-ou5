@@ -165,6 +165,7 @@ And
     - Meaburn says that resolution is at least 30 microns, so that seems a reasonable approximation
 ** We could also measure the H temperature of the ISM
 Using the linewidth method with Ha and [N II]
+
 * Clegg fine structure broadening
 ** Tables from Clegg:1999a
 *** Case B Component intensities for Hα: H 3 →2 λ_ref = 6562.8812
@@ -2116,6 +2117,8 @@ This is to double check on the Zanstra method and to compare Black Body with Rau
   - Rauch: R / R_sun = sqrt(660) / (103 +/- 4 / 5.578)**2 = 0.0753 +/- 0.0058
   - Rauch with L=400: R / R_sun = sqrt(400) / (103 +/- 4 / 5.578)**2 = 0.0587 +/- 0.0046
   - So our radius is consistent with Jones if we use the Rauch value
+  - Using 480 +/- 180 we get
+    - R = sqrt(480 +/- 180) / (103 +/- 4 / 5.578)**2 = 0.0643 +/- 0.0130
 - Stellar gravity, assuming M_1 = 0.53 Msun (why? Jones has 0.50 ± 0.06)
   - BB: log g = G M / R^2 = log10(6.673e-8  1.989e33 (0.50 +/- 0.06) / (0.06 6.96e10)**2) = 6.58 +/- 0.05
   - Rauch: log10(6.673e-8 (0.50 +/- 0.06) 1.989e33 / ((0.0753 +/- 0.0058) 6.96e10)**2) = 6.38 +/- 0.08
@@ -2226,6 +2229,7 @@ Note that this does not include the atomic nebular continuum, but I am not sure 
   - a = (M P^2)^{1/3} in solar units
   - a = (0.73 (0.364/365.25)**2)**(1/3) = 8.9836e-03 AU = 1.3439e+11 cm = 1.93 R_sun
 - R_2 = 0.56 R_sun (+/- 0.08)
+  - R_2 / a = 0.56 / 1.93 = 0.2902
   - Roche lobe will be R_L = 0.61 Rsun
 - Orbital speed:
   - a = a_1 + a_2 = 1.93 R_sun
@@ -2235,9 +2239,21 @@ Note that this does not include the atomic nebular continuum, but I am not sure 
     - a_2 = a / (1 + q) = 1.93 / 1.46 = 1.32 R_sun
     - a_1 = 0.46 1.32 = 0.61
   - Relative velocity 2 pi a / P = 268 km/s
-
-
-
+  - 
+** New binary orbit with higher primary mass
+- Evolutionary tracks give M_1 = 0.58 \pm 0.01
+- Correlations in the posteriors in the Jones fitting give
+  - M_2 = 0.32 (40% higher)
+  - R_2 = 0.60 (7% higher)
+- Period stays the same at P = 0.364 d
+- This yields
+  - Semi-major axis: a = 2.072 R_sun
+  - R_2 / a = 0.60 / 2.072 = 0.2896
+  - Secondary Roche lobe: 0.681 R_sun
+  - Secondary underfills its Roche lobe by 12%
+    - or volume filling fraction (0.60 / 0.681)**3 = 0.68
+- R_1 = 0.075 R_sun from our models = 0.125 R_2
+  - So ramps at start/end of eclipse should be about 1/8 of duration
 * Zanstra temperatures
 :PROPERTIES:
 :ID:       8E92B83D-BADB-4AC7-B81E-D60E024AE574

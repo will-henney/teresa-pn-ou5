@@ -2124,9 +2124,17 @@ This is to double check on the Zanstra method and to compare Black Body with Rau
   - Rauch: log10(6.673e-8 (0.50 +/- 0.06) 1.989e33 / ((0.0753 +/- 0.0058) 6.96e10)**2) = 6.38 +/- 0.08
 - Repeat gravity but using M = 0.574 from our fitting
   - Rauch 400: log10(6.673e-8 (0.574 +/- 0.001) 1.989e33 / ((0.0587 +/- 0.0046) 6.96e10)**2) = 6.659 +/- 0.068
-  
 - Optical depth of Lyman continuum from [[id:B9698DFD-3E25-41CF-B77E-893B44846D71][H beta gives fraction of H-ionizing photons absorbed]]
   - \eta = 0.198 \pm 0.002
+  - So \tau = -ln(\eta) = 1.62 +/- 0.01
+** Zanstra analysis of Gruenwald:2000a
+- This is the same, but uses T_Z(He II) and He II 4686 / He I 5876
+- See their Fig 4
+- Observed ratio  4686 / 5876 = 71.11 / 20.12 = 3.5343
+  - log(4686 / 5876) = 0.5483
+- This shows we are in the regime where T_z(He II) is a good measure of T_*
+- And that \tau(13.6) is a bit more than 1
+  - Which is consistent with what we derived above. 
 ** Constraints from visual magnitudes
 - The primary eclipse in the g band (which has peak at 4686, so it is bluer than V)
   - \delta g = 3.6, g = 23.3 to 19.7

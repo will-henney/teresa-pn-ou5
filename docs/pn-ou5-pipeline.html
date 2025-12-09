@@ -3,10 +3,10 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2025-10-01 Wed 11:35 -->
+<!-- 2025-12-09 Tue 14:33 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Table of spectra from 00-00-inspect-orig-files</title>
+<title>&lrm;</title>
 <meta name="author" content="William Henney" />
 <meta name="generator" content="Org Mode" />
 <style type="text/css">
@@ -377,23 +377,872 @@ dt {
 </head>
 <body>
 <div id="content" class="content">
-<h1 class="title">Table of spectra from 00-00-inspect-orig-files</h1>
 <div id="table-of-contents" role="doc-toc">
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="#org6324b60">1. Organized by date</a></li>
-<li><a href="#org084692f">2. Organized by position, slit width, line</a></li>
+<li><a href="#org4d18010">1. New slits 2023</a>
+<ul>
+<li><a href="#org08e4c19">1.1. Remove cosmic rays</a>
+<ul>
+<li><a href="#org6db087e">1.1.1. Diego's intent to remove cosmic rays</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#org4eede50">2. Stages in data reduction and analysis</a>
+<ul>
+<li><a href="#org37951ca">2.1. 00 Preliminary organization</a>
+<ul>
+<li><a href="#org0120f18">2.1.1. Find list of image+slit exposures</a></li>
+<li><a href="#org27d7ad0">2.1.2. Set up astrometry.net</a></li>
+<li><a href="#org7b71726">2.1.3. Test of YAML files</a></li>
+<li><a href="#org8143a04">2.1.4. Databases of all the spectrum slits</a></li>
+</ul>
+</li>
+<li><a href="#orgf9f227d">2.2. <code>[2/2]</code> 01 Astrometry and median combination of images+slit</a>
+<ul>
+<li><a href="#org88fe14c">2.2.1. <span class="done DONE">DONE</span> TASK 01-00 Run <code>astrometry-net</code> on all the images</a></li>
+<li><a href="#orgb600d40">2.2.2. <span class="done DONE">DONE</span> TASK 01-01 Generating the median images</a></li>
+</ul>
+</li>
+<li><a href="#org339ac59">2.3. <code>[3/3]</code> 02 Photometry and WCS info for slit spectra</a>
+<ul>
+<li><a href="#org3563217">2.3.1. <span class="done DONE">DONE</span> TASK 02-00 Port the routines from <code>turtle_utils.py</code></a></li>
+<li><a href="#org10a3d7a">2.3.2. <span class="done DONE">DONE</span> TASK 02-01 Reference profiles from median image and compare with slit profiles</a></li>
+<li><a href="#orge8f77a3">2.3.3. <span class="done DONE">DONE</span> TASK 02-03 Write out extracted PV spectra with celestial coordinates</a></li>
+</ul>
+</li>
+<li><a href="#org85f846e">2.4. <span class="done DONE">DONE</span> 03 Isovelocity images</a></li>
+<li><a href="#orgea97317">2.5. <span class="done DONE">DONE</span> 04 Combine axial slits and make some plots</a></li>
+<li><a href="#org8d405ad">2.6. <span class="todo TODO">TODO</span> Comparison of my slit positions with the paper</a>
+<ul>
+<li><a href="#orgda07da0">2.6.1. Table of spectra from 00-00-inspect-orig-files</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#org3cd2fe2">3. Initial messages from Teresa</a>
+<ul>
+<li><a href="#org42b319f">3.1. 2021-06-21</a></li>
+</ul>
+</li>
 </ul>
 </div>
 </div>
+<div id="outline-container-org4d18010" class="outline-2">
+<h2 id="org4d18010"><span class="section-number-2">1.</span> New slits 2023</h2>
+<div class="outline-text-2" id="text-1">
+<ul class="org-ul">
+<li>Michael took some new [O III] spectra</li>
+<li>Tere has sent me the files <span class="timestamp-wrapper"><span class="timestamp">[2023-03-30 Thu]</span></span></li>
+<li>But she did not manage to remove the cosmic rays</li>
+</ul>
+</div>
+<div id="outline-container-org08e4c19" class="outline-3">
+<h3 id="org08e4c19"><span class="section-number-3">1.1.</span> Remove cosmic rays</h3>
+<div class="outline-text-3" id="text-1-1">
+<ul class="org-ul">
+<li>Python program to remove cosmic rays from the spectra</li>
+<li>Options include <code>ccdproc.cosmicray_lacosmic</code></li>
+<li>Or astroscrappy, which seems to be the same algorithm</li>
+</ul>
+</div>
+<div id="outline-container-org6db087e" class="outline-4">
+<h4 id="org6db087e"><span class="section-number-4">1.1.1.</span> Diego's intent to remove cosmic rays</h4>
+<div class="outline-text-4" id="text-1-1-1">
+<ul class="org-ul">
+<li>Diego says it is not working, so I will try it</li>
+<li>I have made the following changes
+<ul class="org-ul">
+<li>I have changed the path to look in the current folder</li>
+<li>I have removed the figure parts, since we can just look at the FITS files</li>
+</ul></li>
+</ul>
+<div class="org-src-container">
+<pre class="src src-sh">python remove_cosmicRay.py
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="outline-container-org4eede50" class="outline-2">
+<h2 id="org4eede50"><span class="section-number-2">2.</span> Stages in data reduction and analysis</h2>
+<div class="outline-text-2" id="text-2">
+<ul class="org-ul">
+<li>I am going to follow similar steps to what I did with the Owl and the Turtle</li>
+<li>But this time I will try and make a proper re-useable python library, rather than just have snippets of code spread over an org file</li>
+<li>And I will make jupyter notebooks to demonstrate use of the library</li>
+</ul>
+</div>
+<div id="outline-container-org37951ca" class="outline-3">
+<h3 id="org37951ca"><span class="section-number-3">2.1.</span> 00 Preliminary organization</h3>
+<div class="outline-text-3" id="text-2-1">
+</div>
+<div id="outline-container-org0120f18" class="outline-4">
+<h4 id="org0120f18"><span class="section-number-4">2.1.1.</span> Find list of image+slit exposures</h4>
+<div class="outline-text-4" id="text-2-1-1">
+<ul class="org-ul">
+<li>This is done in <a href="../notebooks/00-00-inspect-orig-files.py">00-00-inspect-orig-files.py</a>
+<ul class="org-ul">
+<li><a href="../notebooks/00-00-inspect-orig-files.ipynb">00-00-inspect-orig-files.ipynb</a></li>
+</ul></li>
+</ul>
+</div>
+<ol class="org-ol">
+<li><a id="org83e69a1"></a>A database of all the image+slit files<br />
+<div class="outline-text-5" id="text-2-1-1-1">
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-left">N10035</td>
+<td class="org-left">Ha</td>
+</tr>
+
+<tr>
+<td class="org-left">N10042</td>
+<td class="org-left">Ha</td>
+</tr>
+
+<tr>
+<td class="org-left">N10047o</td>
+<td class="org-left">Missing</td>
+</tr>
+
+<tr>
+<td class="org-left">N20001</td>
+<td class="org-left">Unfocused</td>
+</tr>
+
+<tr>
+<td class="org-left">N20008</td>
+<td class="org-left">[O III]</td>
+</tr>
+
+<tr>
+<td class="org-left">N20011</td>
+<td class="org-left">Ha</td>
+</tr>
+
+<tr>
+<td class="org-left">spm0020o</td>
+<td class="org-left">Ha</td>
+</tr>
+
+<tr>
+<td class="org-left">spm0025o</td>
+<td class="org-left">[O III]</td>
+</tr>
+
+<tr>
+<td class="org-left">spm0047o</td>
+<td class="org-left">Ha</td>
+</tr>
+
+<tr>
+<td class="org-left">spm0052o</td>
+<td class="org-left">[O III]</td>
+</tr>
+
+<tr>
+<td class="org-left">spm0053o</td>
+<td class="org-left">Ha</td>
+</tr>
+
+<tr>
+<td class="org-left">spm0058o</td>
+<td class="org-left">[O III]</td>
+</tr>
+
+<tr>
+<td class="org-left">spm0109o</td>
+<td class="org-left">[O III]</td>
+</tr>
+
+<tr>
+<td class="org-left">spm0210o</td>
+<td class="org-left">Ha</td>
+</tr>
+
+<tr>
+<td class="org-left">spm0214o</td>
+<td class="org-left">Ha</td>
+</tr>
+
+<tr>
+<td class="org-left">spm0431o</td>
+<td class="org-left">Ha</td>
+</tr>
+
+<tr>
+<td class="org-left">spm0439o</td>
+<td class="org-left">Ha</td>
+</tr>
+
+<tr>
+<td class="org-left">spm0600o</td>
+<td class="org-left">Ha</td>
+</tr>
+</tbody>
+</table>
+
+<ul class="org-ul">
+<li>I will make a YAML file by hand, even though some of the info could be obtained automatically</li>
+<li>To start off with, I will key it all by the image name, but I might change that later</li>
+</ul>
+
+<div class="org-src-container">
+<pre class="src src-yaml">-
+  image_id: N10035   
+  line_id: Ha        
+-
+  image_id: N10042   
+  line_id: Ha        
+-
+  image_id: N10047o  
+  problem: Missing   
+-
+  image_id: N20001   
+  problem: Unfocused 
+-
+  image_id: N20008   
+  line_id: O III   
+-
+  image_id: N20011   
+  line_id: Ha        
+-
+  image_id: spm0020o 
+  line_id: Ha        
+-
+  image_id: spm0025o 
+  line_id: O III   
+-
+  image_id: spm0047o 
+  line_id: Ha        
+-
+  image_id: spm0052o 
+  line_id: O III   
+-
+  image_id: spm0053o 
+  line_id: Ha        
+-
+  image_id: spm0058o 
+  line_id: O III   
+-
+  image_id: spm0109o 
+  line_id: O III   
+-
+  image_id: spm0104o 
+  line_id: Ha   
+-
+  image_id: spm0210o 
+  line_id: Ha        
+-
+  image_id: spm0214o 
+  line_id: Ha        
+-
+  image_id: spm0431o 
+  line_id: Ha        
+-
+  image_id: spm0439o 
+  line_id: Ha        
+-
+  image_id: spm0600o 
+  line_id: Ha        
+</pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+<div id="outline-container-org27d7ad0" class="outline-4">
+<h4 id="org27d7ad0"><span class="section-number-4">2.1.2.</span> Set up astrometry.net</h4>
+<div class="outline-text-4" id="text-2-1-2">
+<ol class="org-ol">
+<li>Find which HEALpix tiles to use
+<ul class="org-ul">
+<li>This is done in <a href="../notebooks/00-00-inspect-orig-files.py">00-00-inspect-orig-files.py</a>
+<ul class="org-ul">
+<li><a href="../notebooks/00-00-inspect-orig-files.ipynb">00-00-inspect-orig-files.ipynb</a></li>
+</ul></li>
+</ul></li>
+<li>Download data files from <a href="http://data.astrometry.net/5000/">http://data.astrometry.net/5000/</a>
+<ul class="org-ul">
+<li>I got <code>index500[0-4]-14.fits</code> and <code>index500[5-7]-03.fits</code></li>
+<li>Note that <code>astropy_healpix</code> did not help much here - it gave a different ID for the tile from what astrometry-net was using</li>
+</ul></li>
+<li>Copy data files to <a href="../data/astrometry-net/">../data/astrometry-net/</a></li>
+<li>Install <code>astrometry-net</code>
+<ul class="org-ul">
+<li>Used Homebrew</li>
+</ul></li>
+<li>Configure <code>astrometry-net</code>
+<ul class="org-ul">
+<li><a href="../data/astrometry-net/astrometry.cfg">../data/astrometry-net/astrometry.cfg</a></li>
+<li>Turn on <code>inparallel</code></li>
+<li>Use <code>add_path</code> to add my data folder (see above)</li>
+</ul></li>
+</ol>
+</div>
+</div>
+<div id="outline-container-org7b71726" class="outline-4">
+<h4 id="org7b71726"><span class="section-number-4">2.1.3.</span> Test of YAML files</h4>
+<div class="outline-text-4" id="text-2-1-3">
+</div>
+<ol class="org-ol">
+<li><a id="orgd8a1c65"></a>Make a YAML file for testing<br />
+<div class="outline-text-5" id="text-2-1-3-1">
+<div class="org-src-container">
+<pre class="src src-yaml">this: that
+tother:
+  - one
+  - two
+  - three
+</pre>
+</div>
+</div>
+</li>
+<li><a id="org5f7d7de"></a>Read in test file as a dict<br />
+<div class="outline-text-5" id="text-2-1-3-2">
+<div class="org-src-container">
+<pre class="src src-python">import yaml
+
+data = yaml.load(open("test.yml"))
+</pre>
+</div>
+
+<pre class="example">
+{'this': 'that', 'tother': ['one', 'two', 'three']}
+</pre>
+
+
+<p>
+That seems to work fine
+</p>
+
+<div class="org-src-container">
+<pre class="src src-python">import yaml
+
+data = yaml.load(open("../data/image-slit-database.yml"))
+</pre>
+</div>
+
+<pre class="example">
+[{'image_id': 'N10035', 'line_id': 'Ha'}, {'image_id': 'N10042', 'line_id': 'Ha'}, {'image_id': 'N10047o', 'problem': 'Missing'}, {'image_id': 'N20001', 'problem': 'Unfocused'}, {'image_id': 'N20008', 'line_id': 'O III'}, {'image_id': 'N20011', 'line_id': 'Ha'}, {'image_id': 'spm0020o', 'line_id': 'Ha'}, {'image_id': 'spm0025o', 'line_id': 'O III'}, {'image_id': 'spm0047o', 'line_id': 'Ha'}, {'image_id': 'spm0052o', 'line_id': 'O III'}, {'image_id': 'spm0053o', 'line_id': 'Ha'}, {'image_id': 'spm0058o', 'line_id': 'O III'}, {'image_id': 'spm0109o', 'line_id': 'O III'}, {'image_id': 'spm0210o', 'line_id': 'Ha'}, {'image_id': 'spm0214o', 'line_id': 'Ha'}, {'image_id': 'spm0431o', 'line_id': 'Ha'}, {'image_id': 'spm0439o', 'line_id': 'Ha'}, {'image_id': 'spm0600o', 'line_id': 'Ha'}]
+</pre>
+</div>
+</li>
+<li><a id="org335c6d7"></a>Load into a dataframe and astropy Table<br />
+<div class="outline-text-5" id="text-2-1-3-3">
+<p>
+Astropy table deals well with missing values
+</p>
+
+<div class="org-src-container">
+<pre class="src src-python">import yaml
+from astropy.table import Table
+
+data = yaml.load(open("../data/image-slit-database.yml"))
+data = Table(data)
+</pre>
+</div>
+
+<pre class="example" id="org07066d6">
+image_id line_id  problem 
+-------- ------- ---------
+  N10035      Ha        --
+  N10042      Ha        --
+ N10047o      --   Missing
+  N20001      -- Unfocused
+  N20008   O III        --
+  N20011      Ha        --
+spm0020o      Ha        --
+spm0025o   O III        --
+spm0047o      Ha        --
+spm0052o   O III        --
+spm0053o      Ha        --
+spm0058o   O III        --
+spm0109o   O III        --
+spm0210o      Ha        --
+spm0214o      Ha        --
+spm0431o      Ha        --
+spm0439o      Ha        --
+spm0600o      Ha        --
+</pre>
+
+<p>
+And so does pandas:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-python">import yaml
+from pandas import DataFrame
+
+data = yaml.load(open("../data/image-slit-database.yml"))
+data = DataFrame(data)
+</pre>
+</div>
+
+<pre class="example" id="org90618dc">
+    image_id line_id    problem
+0     N10035      Ha        NaN
+1     N10042      Ha        NaN
+2    N10047o     NaN    Missing
+3     N20001     NaN  Unfocused
+4     N20008   O III        NaN
+5     N20011      Ha        NaN
+6   spm0020o      Ha        NaN
+7   spm0025o   O III        NaN
+8   spm0047o      Ha        NaN
+9   spm0052o   O III        NaN
+10  spm0053o      Ha        NaN
+11  spm0058o   O III        NaN
+12  spm0109o   O III        NaN
+13  spm0210o      Ha        NaN
+14  spm0214o      Ha        NaN
+15  spm0431o      Ha        NaN
+16  spm0439o      Ha        NaN
+17  spm0600o      Ha        NaN
+</pre>
+</div>
+</li>
+</ol>
+</div>
+<div id="outline-container-org8143a04" class="outline-4">
+<h4 id="org8143a04"><span class="section-number-4">2.1.4.</span> Databases of all the spectrum slits</h4>
+<div class="outline-text-4" id="text-2-1-4">
+</div>
+<ol class="org-ol">
+<li><a id="orge95580a"></a>[O III] slits<br />
+<div class="outline-text-5" id="text-2-1-4-1">
+<div class="org-src-container">
+<pre class="src src-yaml">-
+  slit_id: N10039
+  orig_file: crN10039_bx-oiii.fits
+  image_id: N10035
+  line_id: O III
+  slit_width: 70
+  comment: &gt;-
+    Just E of center. 
+    Highest resolution for the inner shell.
+    Image is Ha, not O III. 
+-
+  slit_id: N10045
+  orig_file: crN10045_bx-oiii.fits
+  image_id: N10042
+  line_id: O III
+  slit_width: 70
+  comment: &gt;-
+    Grazes E limb.
+    Shows part of outer lobe.
+    Image is Ha, not O III.
+-
+  slit_id: N20006
+  orig_file: crN20006_bx-oiii.fits
+  image_id: N20008
+  line_id: O III
+  slit_width: 70
+  comment: &gt;-
+    Crosses E limb. 
+-
+  slit_id: spm0023o
+  orig_file: crspm0023o_bx-oiii.fits
+  image_id: spm0025o
+  line_id: O III
+  slit_width: 150
+  comment: &gt;-
+    Grazes E limb. 
+-
+  slit_id: spm0050o
+  orig_file: crspm0050o_bx.fits
+  image_id: spm0052o
+  line_id: O III
+  slit_width: 150
+  comment: &gt;-
+    E of center.
+    Shows outer lobes well.
+    Shows central blue wing.
+-
+  slit_id: spm0056o
+  orig_file: crspm0056o_bx.fits
+  image_id: spm0058o
+  line_id: O III
+  slit_width: 150
+  comment: &gt;-
+    Just W of center.
+    Shows outer lobes well.
+    Shows central blue wing.
+    Shows weak continuum from unrelated star. 
+-
+  slit_id: spm0107o
+  orig_file: crspm0107o_bx.fits
+  image_id: spm0109o
+  line_id: O III
+  slit_width: 150
+  comment: &gt;-
+    W of center.
+    Shows outer lobes well.
+    Shows central blue wing.
+
+</pre>
+</div>
+
+<ul class="org-ul">
+<li>Some thoughts:
+<ul class="org-ul">
+<li>We could co-add the last 3 [O III] slits: spm0050o, spm0056o, spm0107o
+<ul class="org-ul">
+<li>They look very similar in nearly all respects, and it would improve s/n for the fainter features</li>
+</ul></li>
+<li>We have no [O III] slits of the W limb, which is a shame</li>
+</ul></li>
+</ul>
+
+
+<p>
+Check that the file loads OK.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-python">import yaml
+from pandas import DataFrame
+
+data = yaml.load(open("../data/slits-o3.yml"))
+data = DataFrame(data)
+</pre>
+</div>
+
+<pre class="example" id="orgcf95671">
+    slit_id  ...                                            comment
+0    N10039  ...  Just E of center.  Highest resolution for the ...
+1    N10045  ...            Grazes E limb.  Image is Ha, not O III.
+2    N20006  ...                                   Crosses E limb. 
+3  spm0023o  ...                                    Grazes E limb. 
+4  spm0050o  ...  E of center. Shows outer lobes well. Shows cen...
+5  spm0056o  ...  Exact center. Shows outer lobes well. Shows ce...
+6  spm0107o  ...  W of center. Shows outer lobes well. Shows cen...
+
+[7 rows x 6 columns]
+</pre>
+
+<p>
+Looks good. 
+</p>
+</div>
+</li>
+<li><a id="org30a0ce4"></a>Ha slits<br />
+<div class="outline-text-5" id="text-2-1-4-2">
+<div class="org-src-container">
+<pre class="src src-yaml">-
+  slit_id: N10036
+  orig_file: crN10036_bx.fits
+  image_id: N10035
+  line_id: Ha
+  slit_width: 70
+  comment: &gt;-
+    Just E of center.
+-
+  slit_id: N10043
+  orig_file: crN10043_bx.fits
+  image_id: N10042
+  line_id: Ha
+  slit_width: 70
+  comment: &gt;-
+    Grazes E limb.
+-
+  slit_id: N20004
+  orig_file: crN20004_bx.fits
+  image_id: N20008
+  line_id: Ha
+  slit_width: 70
+  comment: &gt;-
+    Crosses E limb.
+    Image is O III, not Ha.
+-
+  slit_id: N20012
+  orig_file: crN20012_bx.fits
+  image_id: N20011
+  line_id: Ha
+  slit_width: 70
+  comment: &gt;-
+    W of center.
+-
+  slit_id: spm0021o
+  orig_file: crspm0021o_bx.fits
+  image_id: spm0020o
+  line_id: Ha
+  slit_width: 150
+  comment: &gt;-
+    Grazes E limb.
+-
+  slit_id: spm0048o
+  orig_file: crspm0048o_bx.fits
+  image_id: spm0047o
+  line_id: Ha
+  slit_width: 150
+  comment: &gt;-
+    Just E of center.
+-
+  slit_id: spm0054o
+  orig_file: crspm0054o_bx.fits
+  image_id: spm0053o
+  line_id: Ha
+  slit_width: 150
+  comment: &gt;-
+    Just W of center.
+    Crosses unrelated star.
+-
+  slit_id: spm0105o
+  orig_file: crspm0105o_bx.fits
+  image_id: spm0104o
+  line_id: Ha
+  slit_width: 150
+  comment: &gt;-
+    W of center.
+-
+  slit_id: spm0211o
+  orig_file: crspm0211o_b1t.fits
+  image_id: spm0210o
+  line_id: Ha
+  slit_width: 150
+  comment: &gt;-
+    Just W of center.
+-
+  slit_id: spm0215o
+  orig_file: crspm0215o_b1t.fits
+  image_id: spm0214o
+  line_id: Ha
+  slit_width: 150
+  comment: &gt;-
+    Crosses W limb.
+-
+  slit_id: spm0432o
+  orig_file: crspm0432o_b1t.fits
+  image_id: spm0431o
+  line_id: Ha
+  slit_width: 150
+  comment: &gt;-
+    E of center.
+-
+  slit_id: spm0440o
+  orig_file: crspm0440o_b1t.fits
+  image_id: spm0439o
+  line_id: Ha
+  slit_width: 150
+  comment: &gt;-
+    Horizontal slit.
+-
+  slit_id: spm0601o
+  orig_file: crspm0601o_b1t.fits
+  image_id: spm0600o
+  line_id: Ha
+  slit_width: 150
+  comment: &gt;-
+    Crosses W limb.
+
+
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-python">import yaml
+from pandas import DataFrame
+
+data = yaml.load(open("../data/slits-ha.yml"))
+data = DataFrame(data)
+</pre>
+</div>
+
+<pre class="example" id="orgf7d0315">
+     slit_id            orig_file  ...            trim shift_range
+0     N10036     crN10036_bx.fits  ...             NaN         NaN
+1     N10043     crN10043_bx.fits  ...             NaN         NaN
+2     N20004     crN20004_bx.fits  ...             NaN         NaN
+3     N20012     crN20012_bx.fits  ...  [0, 0, 0, -50]   [50, 110]
+4   spm0021o   crspm0021o_bx.fits  ...             NaN         NaN
+5   spm0048o   crspm0048o_bx.fits  ...             NaN         NaN
+6   spm0054o   crspm0054o_bx.fits  ...             NaN         NaN
+7   spm0105o   crspm0105o_bx.fits  ...             NaN         NaN
+8   spm0211o  crspm0211o_b1t.fits  ...             NaN         NaN
+9   spm0215o  crspm0215o_b1t.fits  ...             NaN         NaN
+10  spm0432o  crspm0432o_b1t.fits  ...             NaN         NaN
+11  spm0440o  crspm0440o_b1t.fits  ...             NaN         NaN
+12  spm0601o  crspm0601o_b1t.fits  ...             NaN         NaN
+
+[13 rows x 10 columns]
+</pre>
+</div>
+</li>
+</ol>
+</div>
+</div>
+<div id="outline-container-orgf9f227d" class="outline-3">
+<h3 id="orgf9f227d"><span class="section-number-3">2.2.</span> <code>[2/2]</code> 01 Astrometry and median combination of images+slit</h3>
+<div class="outline-text-3" id="text-2-2">
+</div>
+<div id="outline-container-org88fe14c" class="outline-4">
+<h4 id="org88fe14c"><span class="section-number-4">2.2.1.</span> <span class="done DONE">DONE</span> TASK 01-00 Run <code>astrometry-net</code> on all the images</h4>
+<div class="outline-text-4" id="text-2-2-1">
+<ul class="org-ul">
+<li>The only tricky parts here were
+<ol class="org-ol">
+<li>Finding the correct HEALpix tile (see above)</li>
+<li>Putting sensible limits on the pixel scale</li>
+</ol></li>
+<li>Once those were resolved then solutions are found very rapidly for all the images.</li>
+<li>Run these in the terminal
+<ul class="org-ul">
+<li>I divide the images in two groups since the pixel scale is different</li>
+</ul></li>
+<li><p>
+The ones starting <code>crN</code> have 2x2 binning
+</p>
+<div class="org-src-container">
+<pre class="src src-sh">for F in $(grep crN image-list.dat); do
+    solve-field --config astrometry-net/astrometry.cfg \
+            --ra 318.58 --dec 43.69 --radius 1.0\
+            --scale-units arcsecperpix --scale-low 0.3 --scale-high 0.4\
+            --depth 50 --dir wcs --new-fits '%s-wcs.fits'\
+            --no-tweak --overwrite originals/$F.fits 
+done
+</pre>
+</div></li>
+<li><p>
+The ones starting <code>crspm</code> have 3x3 binning
+</p>
+<div class="org-src-container">
+<pre class="src src-sh">for F in $(grep crspm image-list.dat); do
+    solve-field --config astrometry-net/astrometry.cfg \
+            --ra 318.58 --dec 43.69 --radius 1.0\
+            --scale-units arcsecperpix --scale-low 0.5 --scale-high 0.6\
+            --depth 50 --dir wcs --new-fits '%s-wcs.fits'\
+            --no-tweak --overwrite originals/$F.fits 
+done
+</pre>
+</div></li>
+<li><p>
+The one I forgot
+</p>
+<div class="org-src-container">
+<pre class="src src-sh">F=crspm0104o_b
+solve-field --config astrometry-net/astrometry.cfg \
+        --ra 318.58 --dec 43.69 --radius 1.0\
+        --scale-units arcsecperpix --scale-low 0.5 --scale-high 0.6\
+        --depth 50 --dir wcs --new-fits '%s-wcs.fits'\
+        --no-tweak --overwrite originals/$F.fits 
+</pre>
+</div></li>
+</ul>
+</div>
+</div>
+<div id="outline-container-orgb600d40" class="outline-4">
+<h4 id="orgb600d40"><span class="section-number-4">2.2.2.</span> <span class="done DONE">DONE</span> TASK 01-01 Generating the median images</h4>
+<div class="outline-text-4" id="text-2-2-2">
+<ul class="org-ul">
+<li>This is done in the notebook
+<ul class="org-ul">
+<li><a href="../notebooks/01-00-image-astrometry.py">../notebooks/01-00-image-astrometry.py</a></li>
+</ul></li>
+</ul>
+</div>
+</div>
+</div>
+<div id="outline-container-org339ac59" class="outline-3">
+<h3 id="org339ac59"><span class="section-number-3">2.3.</span> <code>[3/3]</code> 02 Photometry and WCS info for slit spectra</h3>
+<div class="outline-text-3" id="text-2-3">
+<ul class="org-ul">
+<li>We will generally follow the Turtle plan</li>
+<li>But another thing we could do is to use the BG component in H alpha</li>
+</ul>
+</div>
+<div id="outline-container-org3563217" class="outline-4">
+<h4 id="org3563217"><span class="section-number-4">2.3.1.</span> <span class="done DONE">DONE</span> TASK 02-00 Port the routines from <code>turtle_utils.py</code></h4>
+<div class="outline-text-4" id="text-2-3-1">
+<ul class="org-ul">
+<li>These need to be generalised a bit and put in <a href="../src/mes_longslit/">../src/mes_longslit/</a></li>
+<li>They are in <a href="../src/mes_longslit/slit_utils.py">../src/mes_longslit/slit_utils.py</a></li>
+</ul>
+</div>
+</div>
+<div id="outline-container-org10a3d7a" class="outline-4">
+<h4 id="org10a3d7a"><span class="section-number-4">2.3.2.</span> <span class="done DONE">DONE</span> TASK 02-01 Reference profiles from median image and compare with slit profiles</h4>
+<div class="outline-text-4" id="text-2-3-2">
+<ul class="org-ul">
+<li>This is done in <a href="../notebooks/02-01-test-normalize.py">../notebooks/02-01-test-normalize.py</a> for Ha</li>
+<li>And in <a href="../notebooks/02-02-o3-normalize.py">../notebooks/02-02-o3-normalize.py</a> for [O III]</li>
+<li>They use the routine <code>pv_extract()</code> from the library</li>
+</ul>
+</div>
+</div>
+<div id="outline-container-orge8f77a3" class="outline-4">
+<h4 id="orge8f77a3"><span class="section-number-4">2.3.3.</span> <span class="done DONE">DONE</span> TASK 02-03 Write out extracted PV spectra with celestial coordinates</h4>
+<div class="outline-text-4" id="text-2-3-3">
+<ul class="org-ul">
+<li>This is done with the same notebooks as above</li>
+<li>The files are in <a href="../data/pvextract/">../data/pvextract/</a></li>
+<li>The have two different WCS systems
+<ul class="org-ul">
+<li>Default is just wavelength, offset</li>
+<li><code>A</code> is a fancy one
+<ul class="org-ul">
+<li>with 3 WCS axes mapping on to 2 image axes</li>
+<li>wavelength, RA, and Dec</li>
+</ul></li>
+</ul></li>
+</ul>
+</div>
+</div>
+</div>
+<div id="outline-container-org85f846e" class="outline-3">
+<h3 id="org85f846e"><span class="section-number-3">2.4.</span> <span class="done DONE">DONE</span> 03 Isovelocity images</h3>
+<div class="outline-text-3" id="text-2-4">
+<ul class="org-ul">
+<li>This is done in 03-01-test-vmap
+<ul class="org-ul">
+<li>Notebook <a href="../notebooks/03-01-test-vmap.ipynb">../notebooks/03-01-test-vmap.ipynb</a></li>
+<li>Pure python version: <a href="../notebooks/03-01-test-vmap.py">../notebooks/03-01-test-vmap.py</a></li>
+</ul></li>
+</ul>
+</div>
+</div>
+<div id="outline-container-orgea97317" class="outline-3">
+<h3 id="orgea97317"><span class="section-number-3">2.5.</span> <span class="done DONE">DONE</span> 04 Combine axial slits and make some plots</h3>
+<div class="outline-text-3" id="text-2-5">
+<ul class="org-ul">
+<li>To improve the signal-to-noise, we can add together the slits that are not too far from the nebular axis</li>
+<li>This is done in 04-01-coadd-slits
+<ul class="org-ul">
+<li><a href="../notebooks/04-01-coadd-slits.ipynb">../notebooks/04-01-coadd-slits.ipynb</a></li>
+<li><a href="../notebooks/04-01-coadd-slits.py">../notebooks/04-01-coadd-slits.py</a></li>
+</ul></li>
+<li>The results are in <a href="../data/pv-common/">../data/pv-common/</a></li>
+<li>We also made some 1D spectra plots</li>
+</ul>
+</div>
+</div>
+<div id="outline-container-org8d405ad" class="outline-3">
+<h3 id="org8d405ad"><span class="section-number-3">2.6.</span> <span class="todo TODO">TODO</span> Comparison of my slit positions with the paper</h3>
+<div class="outline-text-3" id="text-2-6">
+</div>
+<div id="outline-container-orgda07da0" class="outline-4">
+<h4 id="orgda07da0"><span class="section-number-4">2.6.1.</span> Table of spectra from 00-00-inspect-orig-files</h4>
+<div class="outline-text-4" id="text-2-6-1">
 <ul class="org-ul">
 <li>This is from the fits headers of all the files</li>
 <li>I am adding offset positions from 04-01-coadd-slits</li>
 </ul>
-<div id="outline-container-org6324b60" class="outline-2">
-<h2 id="org6324b60"><span class="section-number-2">1.</span> Organized by date</h2>
-<div class="outline-text-2" id="text-1">
+</div>
+<ol class="org-ol">
+<li><a id="orgfebcfea"></a>Organized by date<br />
+<div class="outline-text-5" id="text-2-6-1-1">
 <table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
 
 
@@ -439,7 +1288,7 @@ dt {
 <td class="org-right">43:46:40.0</td>
 <td class="org-left">8.63 , -351.37</td>
 <td class="org-right">2.32</td>
-<td class="org-left">b</td>
+<td class="org-left">c</td>
 </tr>
 
 <tr>
@@ -451,7 +1300,7 @@ dt {
 <td class="org-right">43:46:48.0</td>
 <td class="org-left">8.63 , -351.37</td>
 <td class="org-right">2.324</td>
-<td class="org-left">b</td>
+<td class="org-left">c</td>
 </tr>
 
 <tr>
@@ -684,10 +1533,9 @@ dt {
 </tbody>
 </table>
 </div>
-</div>
-<div id="outline-container-org084692f" class="outline-2">
-<h2 id="org084692f"><span class="section-number-2">2.</span> Organized by position, slit width, line</h2>
-<div class="outline-text-2" id="text-2">
+</li>
+<li><a id="org28ca4a3"></a>Organized by position, slit width, line<br />
+<div class="outline-text-5" id="text-2-6-1-2">
 <p>
 Vertical Ha 150
 </p>
@@ -1138,11 +1986,105 @@ Horizontal
 </tbody>
 </table>
 </div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div id="outline-container-org3cd2fe2" class="outline-2">
+<h2 id="org3cd2fe2"><span class="section-number-2">3.</span> Initial messages from Teresa</h2>
+<div class="outline-text-2" id="text-3">
+</div>
+<div id="outline-container-org42b319f" class="outline-3">
+<h3 id="org42b319f"><span class="section-number-3">3.1.</span> 2021-06-21</h3>
+<div class="outline-text-3" id="text-3-1">
+<pre class="example">
+Al ver los espectros, se ven con mucho ruido, esto es porque eliminé
+el background, creo que mejor te envio los originales para que también
+tengan el mismo tamaño, el último corte lo hice antes de cambiar la
+versión de la mac, de hecho haré como con la tortuga, te envio todo el
+material ya que no he tomado en cuenta algunas posiciones, tal vez
+sean de utilidad para la parte central.
+</pre>
+
+
+<pre class="example" id="org73af672">
+*****************
+28 de Agosto 2017
+*****************
+
+N1035 I+S  Halpha
+N1036 espectro Ha
+N1039 espelctro [OIII]
+
+N1042 I+S
+N1043 espectro Ha
+N1045 espectro [OIII]
+N1047 slit+image
+
+N2001 I+S desenfocada
+N2004 espectro ha
+N2006 espectro [OIII]
+N2008 I+S confiar en esta posicion
+
+POSICION D
+N2011 I+S
+N2012 espec ha
+
+
+MAYO 1 2018
+
+crspm0021o_bx.fits Ha
+crspm0023o_bx oiii
+
+
+MAYO 2 2018
+
+crspm047 i+s
+crspm048 espec
+crspm050 spec
+crspm052 s+i
+
+crspm053 i+s
+crspm054 spec
+crspm056 spec
+crspm058 S+i
+
+spm104 I+S
+spm105 esp
+spm106 lamp
+spm107 spe
+spm108 arc
+spm109 s+i
+
+14/09/2019
+
+Ha
+
+spm0210 I+S
+spm0211 spec
+
+spm0214 I+S
+spm0215 spec
+
+spm0431 I+S
+spm0432 spec
+
+
+spm0439 I+S
+spm0440 spec
+
+
+spm0600 I+S
+spm0601 spec
+</pre>
+</div>
+</div>
 </div>
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: William Henney</p>
-<p class="date">Created: 2025-10-01 Wed 11:35</p>
+<p class="date">Created: 2025-12-09 Tue 14:33</p>
 <p class="validation"><a href="https://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>

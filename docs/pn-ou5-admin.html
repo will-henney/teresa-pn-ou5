@@ -1,0 +1,749 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<!-- 2025-12-09 Tue 14:34 -->
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>&lrm;</title>
+<meta name="author" content="William Henney" />
+<meta name="generator" content="Org Mode" />
+<style type="text/css">
+<!--/*--><![CDATA[/*><!--*/
+/* 18 Jan 2016: Modified from the stylesheet by Zhitao Gong on
+https://github.com/gongzhitaao/orgcss/
+ */
+
+body {
+    max-width: 100%;
+    margin: 1% 1%;
+    font: normal normal normal 16px/1.6em 'Open Sans', sans-serif;
+    color: #333;
+}
+
+@media all and (min-width: 95ex) {
+    body {
+        max-width: 95ex;
+        margin: 1% auto;
+    }
+
+    .creator {
+        float: right;
+    }
+}
+
+@media not all and (min-width: 110ex) {
+
+    .creator {
+        float: left;
+    }
+
+    p img {
+        width: 95%;
+    }
+}
+
+.title {
+    padding: .5em 0;
+    text-align: center;
+    color: black;
+}
+
+.subtitle {
+    font-size: medium;
+    font-weight: bold;
+    margin-top: 0;
+    text-align: center;
+}
+
+.abstract {
+    width: 80%;
+    margin: auto;
+    font-style: italic;
+}
+
+.abstract p:last-of-type:before {
+    content: "    ";
+    white-space: pre;
+}
+
+.status {
+    font-size: 90%;
+    margin: 2em auto;
+}
+
+[class^="section-number-"] {
+    margin-right: .5em;
+}
+
+#footnotes {
+    font-size: 90%;
+}
+
+.footpara {
+    display: inline;
+    margin: .2em auto;
+}
+
+.footdef {
+    margin-bottom: 1em;
+}
+
+.footdef sup {
+    padding-right: .5em;
+}
+
+a {
+    color: #527d9a;
+    text-decoration: none;
+}
+
+a:hover {
+    color: #003355;
+    border-bottom: 1px dotted;
+}
+
+p img {
+    vertical-align: middle;
+}
+
+h1,h2,h3,h4,h5,h6 {
+    color: #A5573E;
+    line-height: 1.6em;
+    font-family: 'Droid Serif', serif;
+}
+
+h4,h5,h6 {
+    font-size: 1em;
+}
+
+table {
+    border-top: 2px solid;
+    border-bottom: 2px solid;
+    margin: auto;
+    border-collapse: collapse;
+}
+
+thead {
+    border-bottom: 2px solid;
+}
+
+table td + td, table th + th {
+    border-left: 1px solid gray;
+}
+
+table tr {
+    border-top: 1px solid lightgray;
+}
+
+td,th {
+    padding: 5px 10px;
+    vertical-align: middle;
+}
+
+code {
+    padding: 2px 5px;
+    margin: auto 1px;
+    border: 1px solid #DDD;
+    border-radius: 3px;
+    background-clip: padding-box;
+    color: #333;
+    font-size: 90%;
+}
+
+blockquote {
+    margin: 1em 2em;
+    padding-left: 1em;
+    border-left: 3px solid #ccc;
+}
+
+kbd {
+    background-color: #f7f7f7;
+    font-size: 14px;
+    margin: 0 .1em;
+    padding: .1em .6em;
+}
+
+.figure {
+    padding: 1em;
+}
+
+.figure p {
+    text-align: center;
+}
+
+.todo {
+    color: red;
+    font-family: monospace;
+}
+
+.done {
+    color: green;
+    font-family: monospace;
+}
+
+.priority {
+    color: orange;
+    font-family: monospace;
+}
+
+.tag {
+    background-color: #eee;
+    font-family: monospace;
+    font-size: 80%;
+    font-weight: normal;
+    padding: 2px;
+}
+
+.timestamp {
+    color: #bebebe;
+}
+
+.timestamp-kwd {
+    color: #5f9ea0;
+}
+
+.org-right {
+    margin-left: auto;
+    margin-right: 0px;
+    text-align: right;
+}
+
+.org-left {
+    margin-left: 0px;
+    margin-right: auto;
+    text-align: left;
+}
+
+.org-center {
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+}
+
+.underline {
+    text-decoration: underline;
+}
+
+#postamble p, #preamble p {
+    font-size: 90%;
+    margin: .2em;
+}
+
+p.verse {
+    margin-left: 3%;
+}
+
+pre {
+    border: 1px solid #ccc;
+    box-shadow: 3px 3px 3px #eee;
+    font-family: monospace;
+    margin: 1.2em;
+    padding: 8pt;
+}
+
+pre.src {
+    overflow: auto;
+    padding-top: 1.2em;
+    position: relative;
+    font-size: 90%;
+    color: #dcdccc;
+    background-color: #3f3f3f; 
+}
+
+pre.src:before {
+    background-color: gray;
+    border: 1px solid black;
+    display: none;
+    padding: 3px;
+    position: absolute;
+    right: 10px;
+    /* top: -10px; */
+}
+
+pre.src:hover:before {
+    display: inline;
+}
+
+pre.src-sh:before {
+    content: 'sh';
+}
+pre.src-bash:before {
+    content: 'bash';
+}
+pre.src-emacs-lisp:before {
+    content: 'Emacs Lisp';
+}
+pre.src-R:before {
+    content: 'R';
+}
+pre.src-python:before {
+    content: 'Python';
+}
+pre.src-org:before {
+    content: 'Org';
+}
+pre.src-c++:before {
+    content: 'C++';
+}
+pre.src-c:before {
+    content: 'C';
+}
+pre.src-html:before {
+    content: 'HTML'
+}
+
+caption.t-above {
+    caption-side: top;
+}
+
+caption.t-bottom {
+    caption-side: bottom;
+}
+
+th.org-right {
+    text-align: center;
+}
+
+th.org-left {
+    text-align: center;
+}
+
+th.org-center {
+    text-align: center;
+}
+
+td.org-right {
+    text-align: right;
+}
+
+td.org-left {
+    text-align: left;
+}
+
+td.org-center {
+    text-align: center;
+}
+
+dt {
+    font-weight: bold;
+}
+
+.inlinetask {
+    background: #ffffcc;
+    border: 2px solid gray;
+    margin: 10px;
+    padding: 10px;
+}
+
+#org-div-home-and-up {
+    font-size: 70%;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.linenr {
+    font-size: smaller;
+}
+
+.code-highlighted {
+    background-color: #ffff00;
+}
+
+#bibliography {
+    font-size: 90%;
+}
+
+#bibliography table {
+    width: 100%;
+}
+
+/* .org-info-js_info-navigation { */
+/*     border-style: none; */
+/* } */
+/* #org-info-js_console-label { */
+/*     font-size: 10px; */
+/*     font-weight: bold; */
+/*     white-space: nowrap; */
+/* } */
+/* .org-info-js_search-highlight { */
+/*     background-color: #ffff00; */
+/*     color: #000000; */
+/*     font-weight: bold; */
+/* } */
+/*]]>*/-->
+</style>
+</head>
+<body>
+<div id="content" class="content">
+<div id="table-of-contents" role="doc-toc">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents" role="doc-toc">
+<ul>
+<li><a href="#org2c4377c">1. Administration tasks for Teresa PN Ou 5 project</a>
+<ul>
+<li><a href="#orgb22e606">1.1. Revisiting this project 2025</a>
+<ul>
+<li><a href="#org4405c44">1.1.1. Testing locally installed version</a></li>
+<li><a href="#org1773772">1.1.2. Testing that the notebooks still work</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orgdbbcbcf">2. Original version from 2021</a>
+<ul>
+<li><a href="#org33d2e60">2.1. Managing the Python environment</a>
+<ul>
+<li><a href="#org35e9ee4">2.1.1. Installing the environment</a></li>
+<li><a href="#org4c82b01">2.1.2. Activating the environment</a></li>
+<li><a href="#orge122832">2.1.3. Updating the environment</a></li>
+</ul>
+</li>
+<li><a href="#orga370297">2.2. Installing the source library</a>
+<ul>
+<li><a href="#org80a556c">2.2.1. Setting up flit</a></li>
+<li><a href="#org40be1dd">2.2.2. Installing local version with flit</a></li>
+<li><a href="#orgd4d9c9d">2.2.3. <span class="done DONE">DONE</span> Testing locally installed version</a></li>
+<li><a href="#org18be82b">2.2.4. Publishing the package</a></li>
+<li><a href="#org4eb7333">2.2.5. Resources on package management</a></li>
+</ul>
+</li>
+<li><a href="#orgdd027db">2.3. Maintaining the jupyter notebooks</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="outline-container-org2c4377c" class="outline-2">
+<h2 id="org2c4377c"><span class="section-number-2">1.</span> Administration tasks for Teresa PN Ou 5 project</h2>
+<div class="outline-text-2" id="text-1">
+</div>
+<div id="outline-container-orgb22e606" class="outline-3">
+<h3 id="orgb22e606"><span class="section-number-3">1.1.</span> Revisiting this project 2025</h3>
+<div class="outline-text-3" id="text-1-1">
+<ul class="org-ul">
+<li>I would rather not have to use conda any more</li>
+<li>I have rewritten everything to use uv instead, which was very painful
+<ul class="org-ul">
+<li>I had to use the github version of <code>fits_tools</code>, since the PyPI version is very old and I could not get it to compile</li>
+<li>the sub-package is now in mes-longslits, which is included as a workspace member in the top-level uv config</li>
+<li>This means that it has its own <code>pyproject.toml</code></li>
+<li>I am currently using python 3.11 as a compromise between modernity and compatibility
+<ul class="org-ul">
+<li>Later versions produce irreconcilable version conflicts between numpy and distutils</li>
+</ul></li>
+</ul></li>
+</ul>
+</div>
+<div id="outline-container-org4405c44" class="outline-4">
+<h4 id="org4405c44"><span class="section-number-4">1.1.1.</span> Testing locally installed version</h4>
+<div class="outline-text-4" id="text-1-1-1">
+<div class="org-src-container">
+<pre class="src src-sh">uv run ./test-import.py
+</pre>
+</div>
+
+<pre class="example">
+0.1
+</pre>
+
+
+<p>
+This works, but it does give some warnings though
+</p>
+<pre class="example" id="orgc0e95a7">
+/Users/will/Dropbox/teresa-pn-ou5/.venv/lib/python3.11/site-packages/FITS_tools/__init__.py:33: UserWarning: module 'astropy.config.configuration' has no attribute 'update_default_config', which has been deprecated in astropy 6.1.1.
+  warn(wmsg)
+</pre>
+</div>
+</div>
+<div id="outline-container-org1773772" class="outline-4">
+<h4 id="org1773772"><span class="section-number-4">1.1.2.</span> Testing that the notebooks still work</h4>
+<div class="outline-text-4" id="text-1-1-2">
+<div class="org-src-container">
+<pre class="src src-sh">uv run jupyter lab --no-browser
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="outline-container-orgdbbcbcf" class="outline-2">
+<h2 id="orgdbbcbcf"><span class="section-number-2">2.</span> Original version from 2021</h2>
+<div class="outline-text-2" id="text-2">
+</div>
+<div id="outline-container-org33d2e60" class="outline-3">
+<h3 id="org33d2e60"><span class="section-number-3">2.1.</span> Managing the Python environment</h3>
+<div class="outline-text-3" id="text-2-1">
+<ul class="org-ul">
+<li>Managed with anaconda</li>
+<li>Python version and required packages are listed in <a href="../environment.yml">../environment.yml</a></li>
+<li>For more details, see <a href="https://haveagreatdata.com/posts/data-science-python-dependency-management/">this blog post</a></li>
+<li>I wanted to try Python 3.10 but it seems that there is no astropy available for that version yet</li>
+</ul>
+</div>
+<div id="outline-container-org35e9ee4" class="outline-4">
+<h4 id="org35e9ee4"><span class="section-number-4">2.1.1.</span> Installing the environment</h4>
+<div class="outline-text-4" id="text-2-1-1">
+<p>
+This only needs to be run once on a given machine:
+</p>
+<div class="org-src-container">
+<pre class="src src-sh">conda env create -f environment.yml 
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-org4c82b01" class="outline-4">
+<h4 id="org4c82b01"><span class="section-number-4">2.1.2.</span> Activating the environment</h4>
+<div class="outline-text-4" id="text-2-1-2">
+<ul class="org-ul">
+<li><p>
+In terminal
+</p>
+<div class="org-src-container">
+<pre class="src src-sh">conda activate pn-ou5
+</pre>
+</div></li>
+<li><p>
+In Emacs
+</p>
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(pyvenv-activate (expand-file-name "~/miniconda3/envs/pn-ou5"))
+</pre>
+</div>
+<p>
+Or use the <code>VirtualEnvs-&gt;Activate</code> menu item
+</p>
+<ul class="org-ul">
+<li><p>
+To deactivate
+</p>
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(pyvenv-deactivate)
+</pre>
+</div></li>
+</ul></li>
+</ul>
+</div>
+</div>
+<div id="outline-container-orge122832" class="outline-4">
+<h4 id="orge122832"><span class="section-number-4">2.1.3.</span> Updating the environment</h4>
+<div class="outline-text-4" id="text-2-1-3">
+<ul class="org-ul">
+<li>Add new dependencies to <a href="file:///Users/will/Dropbox/teresa-pn-ou5/environment.yml"><code>environment.yml</code></a></li>
+<li>Run one of the following to install new packages and remove unwanted ones:
+<ul class="org-ul">
+<li><p>
+Mamba
+</p>
+<div class="org-src-container">
+<pre class="src src-sh">mamba env update --prune
+</pre>
+</div></li>
+<li><p>
+Conda
+</p>
+<div class="org-src-container">
+<pre class="src src-sh">conda env update --prune
+</pre>
+</div></li>
+</ul></li>
+<li>In principle, Mamba should be faster</li>
+</ul>
+</div>
+</div>
+</div>
+<div id="outline-container-orga370297" class="outline-3">
+<h3 id="orga370297"><span class="section-number-3">2.2.</span> Installing the source library</h3>
+<div class="outline-text-3" id="text-2-2">
+<ul class="org-ul">
+<li>I am going to try and do things properly this time
+<ul class="org-ul">
+<li>So instead of adding to <code>sys.packages</code> I will make my library code be a proper package and install it with pip</li>
+<li>I want to have an editable install so that it automatically gets changes</li>
+<li>There are various ways of doing this
+<ul class="org-ul">
+<li>setuptools</li>
+<li>poetry</li>
+<li>flit</li>
+</ul></li>
+<li>I am going to try flit</li>
+</ul></li>
+<li>Package is called <code>mes_longslit</code></li>
+</ul>
+</div>
+<div id="outline-container-org80a556c" class="outline-4">
+<h4 id="org80a556c"><span class="section-number-4">2.2.1.</span> Setting up flit</h4>
+<div class="outline-text-4" id="text-2-2-1">
+<p>
+This is following the instructions in the <a href="https://flit.readthedocs.io/en/latest/index.html">flit docs</a>
+</p>
+
+<ol class="org-ol">
+<li>I added flit to <a href="file:///Users/will/Dropbox/teresa-pn-ou5/environment.yml"><code>environment.yml</code></a> and updated environment</li>
+<li>I ran <code>flit init</code> and answered the questions</li>
+<li>This made my <a href="file:///Users/will/Dropbox/teresa-pn-ou5/pyproject.toml">pyproject.toml</a> file</li>
+<li>Edit it to add more stuff, such as minimum python version</li>
+</ol>
+</div>
+</div>
+<div id="outline-container-org40be1dd" class="outline-4">
+<h4 id="org40be1dd"><span class="section-number-4">2.2.2.</span> Installing local version with flit</h4>
+<div class="outline-text-4" id="text-2-2-2">
+<div class="org-src-container">
+<pre class="src src-sh">flit install --symlink
+</pre>
+</div>
+<p>
+The option <code>--symlink</code> is what makes it an editable install.  On Windows one would have to use <code>--pth-file</code> instead.
+</p>
+</div>
+</div>
+<div id="outline-container-orgd4d9c9d" class="outline-4">
+<h4 id="orgd4d9c9d"><span class="section-number-4">2.2.3.</span> <span class="done DONE">DONE</span> Testing locally installed version</h4>
+<div class="outline-text-4" id="text-2-2-3">
+<p>
+Try it both ways:
+</p>
+<ol class="org-ol">
+<li>Executing source block directly (<code>C-c C-c</code> in following block)</li>
+<li>Tangle to file and then run that file from a shell source block (<code>C-c x</code> in following block)</li>
+</ol>
+
+<div class="org-src-container">
+<pre class="src src-python">import sys
+
+import mes_longslit
+print(mes_longslit.__version__)
+</pre>
+</div>
+
+<pre class="example">
+0.1
+</pre>
+
+
+<div class="org-src-container">
+<pre class="src src-sh">echo $VIRTUAL_ENV
+which python
+python ./test-import.py
+</pre>
+</div>
+
+<pre class="example">
+
+</pre>
+</div>
+</div>
+<div id="outline-container-org18be82b" class="outline-4">
+<h4 id="org18be82b"><span class="section-number-4">2.2.4.</span> Publishing the package</h4>
+<div class="outline-text-4" id="text-2-2-4">
+<ul class="org-ul">
+<li>At the moment I do not want to do this</li>
+<li>But if I ever do in the future I can use <code>flit publish</code></li>
+</ul>
+</div>
+</div>
+<div id="outline-container-org4eb7333" class="outline-4">
+<h4 id="org4eb7333"><span class="section-number-4">2.2.5.</span> Resources on package management</h4>
+<div class="outline-text-4" id="text-2-2-5">
+<ul class="org-ul">
+<li><a href="https://www.blog.pythonlibrary.org/2021/09/23/python-101-how-to-create-a-python-package/">Python 101 - How to Create a Python Package</a>
+<ul class="org-ul">
+<li>Very thorough but uses outdated setup.py method</li>
+</ul></li>
+<li><a href="https://packaging.python.org/tutorials/packaging-projects/#configuring-metadata">Packaging Python Projects</a>
+<ul class="org-ul">
+<li>Tutorial on packaging.python.org</li>
+<li>Explains directory layout and use of <code>pyproject.toml</code></li>
+<li>Uses setuptools method as an example, but also mentions other options such as poetry and flit</li>
+</ul></li>
+<li><a href="https://flit.readthedocs.io/en/latest/index.html">Flit documentation</a>
+<ul class="org-ul">
+<li>This is basically what I followed</li>
+</ul></li>
+<li><a href="https://ealizadeh.com/blog/guide-to-python-env-pkg-dependency-using-conda-poetry">A Guide to Python Environment, Dependency and Package Management: Conda + Poetry</a>
+<ul class="org-ul">
+<li>An alternative way of doing things, using:
+<ul class="org-ul">
+<li>conda but only for managing environment</li>
+<li>pip for package installs</li>
+<li>poetry for dependency management</li>
+</ul></li>
+<li>I am not using this at the moment, but I might switch to it later
+<ul class="org-ul">
+<li>It has the advantage that the dependencies are all in pyproject.toml</li>
+<li>Poetry can have separate normal and dev dependencies</li>
+<li>But som of his criticism of using conda for dependency management is obviated if you use mamba instead</li>
+</ul></li>
+</ul></li>
+<li><a href="https://cookiecutter-hypermodern-python.readthedocs.io">Hypermodern Python</a>
+<ul class="org-ul">
+<li>Has a cookiecutter project</li>
+<li>But also has an <a href="https://cjolowicz.github.io/posts/hypermodern-python-01-setup/">older series of blog posts</a></li>
+<li>Similar to the previous in that it heavily uses poetry</li>
+<li>But different in that it uses pyenv instead of conda for managing python version and environment</li>
+<li>Also includes lots of extra stuff or testing and continuous integration and the like</li>
+</ul></li>
+</ul>
+</div>
+</div>
+</div>
+<div id="outline-container-orgdd027db" class="outline-3">
+<h3 id="orgdd027db"><span class="section-number-3">2.3.</span> Maintaining the jupyter notebooks</h3>
+<div class="outline-text-3" id="text-2-3">
+<ul class="org-ul">
+<li>Use jupytext</li>
+<li><p>
+Sync pure python version of all notebooks
+</p>
+<div class="org-src-container">
+<pre class="src src-sh">uv run jupytext --sync *.ipynb
+</pre>
+</div>
+
+<pre class="example" id="org150007c">
+[jupytext] Reading 00-00-inspect-orig-files.ipynb in format ipynb
+[jupytext] Loading 00-00-inspect-orig-files.py
+[jupytext] Updating the timestamp of 00-00-inspect-orig-files.py
+[jupytext] Reading 01-01-median-image.ipynb in format ipynb
+[jupytext] Loading 01-01-median-image.py
+[jupytext] Updating the timestamp of 01-01-median-image.py
+[jupytext] Reading 02-01-test-normalize.ipynb in format ipynb
+[jupytext] Loading 02-01-test-normalize.py
+[jupytext] Updating the timestamp of 02-01-test-normalize.py
+[jupytext] Reading 02-02-o3-normalize.ipynb in format ipynb
+[jupytext] Loading 02-02-o3-normalize.py
+[jupytext] Updating the timestamp of 02-02-o3-normalize.py
+[jupytext] Reading 03-01-test-vmap.ipynb in format ipynb
+[jupytext] Updating 03-01-test-vmap.py
+</pre></li>
+
+<li><p>
+Or this version if we have added a new notebook
+</p>
+<div class="org-src-container">
+<pre class="src src-sh">jupytext --set-formats ipynb,py:light 03*.ipynb
+</pre>
+</div>
+
+<pre class="example">
+[jupytext] Reading 03-01-test-vmap.ipynb in format ipynb
+[jupytext] Updating notebook metadata with '{"jupytext": {"formats": "ipynb,py:light"}}'
+[jupytext] Updating 03-01-test-vmap.ipynb
+[jupytext] Updating 03-01-test-vmap.py
+</pre></li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<p class="author">Author: William Henney</p>
+<p class="date">Created: 2025-12-09 Tue 14:34</p>
+<p class="validation"><a href="https://validator.w3.org/check?uri=referer">Validate</a></p>
+</div>
+</body>
+</html>
